@@ -8,6 +8,7 @@
     "documents": "Documents",
     "sections": {
       "admin": "ADMINISTRATION",
+      "commercial": "MES CLIENTS",
       "support": "SUPPORT & AIDE",
       "documents": "GESTION DOCUMENTAIRE"
     }
@@ -30,7 +31,7 @@
       "actions": "Actions"
     },
     "form": {
-      "add_title": "Nouveau Utilisateur",
+      "add_title": "Nouvel Utilisateur",
       "edit_title": "Modifier Utilisateur",
       "full_name": "Nom complet",
       "full_name_placeholder": "Ex: Jean Dupont",
@@ -44,6 +45,10 @@
       "extranet_access_desc": "Portail Web MyAsk",
       "mobile_access": "Accès Application Mobile",
       "mobile_access_desc": "Application Mobile",
+      "user_type": "Type d'utilisateur",
+      "cabinet_desc": "Accès administration cabinet",
+      "client_desc": "Accès portail client",
+      "mobile_client_na": "Non disponible pour les clients",
       "save": "Enregistrer les modifications",
       "create": "Ajouter l'utilisateur"
     },
@@ -87,6 +92,7 @@
   "clients": {
     "title": "Gestion des Clients",
     "subtitle": "Gestion des comptes entreprises et particuliers.",
+    "subtitle_commercial": "Vos clients assignés et leurs options de support.",
     "search_placeholder": "Rechercher un client...",
     "table": {
       "name": "Raison Sociale",
@@ -135,7 +141,7 @@
     "echeance": "Échéance",
     "risques": "Risques",
     "assures": "Les Assurés",
-    "ensemble_personnel": "Ensemble de personnel",
+    "ensemble_personnel": "Ensemble du personnel",
     "liste_nominative": "Liste nominative",
     "sinistres": "Sinistres",
     "sinistres_encours": "Sinistres en cours",
@@ -191,7 +197,7 @@
     "nature_s": "Sinistres",
     "nature_c": "Comptabilité",
     "nature_i": "Demandes d'info",
-    "nature_d": "Correction de donnée",
+    "nature_d": "Correction de données",
     "placeholder": "Rechercher...",
     "ticket_num": "Ticket",
     "opened_on": "Ouvert le",
@@ -262,6 +268,10 @@
     "col_transfere": "Transféré",
     "transfere_oui": "Oui",
     "transfere_non": "Non",
+    "transfere_par": "par {name}",
+    "col_transfere_par": "Transféré par",
+    "toast_transfere_success": "Statut de transfert mis à jour.",
+    "toast_transfere_error": "Erreur lors de la mise à jour du transfert.",
     "view_btn": "Voir",
     "empty": "Aucun document trouvé.",
     "loading": "Chargement du document...",

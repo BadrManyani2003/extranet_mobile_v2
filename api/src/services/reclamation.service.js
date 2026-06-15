@@ -1,7 +1,12 @@
 const db = require('./db.service');
 const qry = require('../sql/qryExtranet');
 
+// Réclamations pour clients/adhérents (sans filtrage rôle)
 const getReclamations = (userId, source, token) => db.execute(qry.getReclamations, [userId, source, token]);
+
+// Réclamations pour admin/commercial — filtrées par rôle dans le SP
+const getAdminReclamations = (userId, source, token, role = 'admin_cabinet') =>
+    db.execute(qry.getAdminReclamations, [userId, source, token, role]);
 
 const getReclamationDetails = (userId, source, token, reclamationId) => db.execute(qry.getReclamationDetails, [userId, source, token, reclamationId]);
 
@@ -17,6 +22,7 @@ const deleteMessage = (userId, token, messageId) => db.execute(qry.deleteMessage
 
 module.exports = {
     getReclamations,
+    getAdminReclamations,
     getReclamationDetails,
     createReclamation,
     addMessage,

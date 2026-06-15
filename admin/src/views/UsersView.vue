@@ -12,8 +12,10 @@ import UserSimulationsDialog from '@/components/shared/UserSimulationsDialog.vue
 import { api } from '@/lib/api'
 import { toast } from '@/components/ui/sonner'
 import { useI18n } from 'vue-i18n'
+import { useRole } from '@/composables/useRole'
 
 const { t } = useI18n()
+const { isAdmin } = useRole()
 
 // -- States
 const users = ref<any[]>([])
@@ -144,21 +146,25 @@ onMounted(() => {
                   <div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
                   <span class="text-emerald-600 text-[14px] font-black uppercase tracking-widest">{{ $t('statuts.actif') }}</span>
                 </div>
-                <Button v-else variant="ghost" size="sm" class="h-8 gap-2 text-[14px] text-orange-600 font-black hover:bg-orange-50 rounded-xl px-2" @click="activeUser = user; dialogs.sync = true">
+                <Button v-else-if="user.canManage !== 0" variant="ghost" size="sm" class="h-8 gap-2 text-[14px] text-orange-600 font-black hover:bg-orange-50 rounded-xl px-2" @click="activeUser = user; dialogs.sync = true">
                   <RefreshCcw class="w-3 h-3" /> {{ $t('statuts.sync') }}
                 </Button>
+                <div v-else class="flex items-center gap-2">
+                  <div class="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
+                  <span class="text-slate-400 text-[14px] font-black uppercase tracking-widest">{{ $t('statuts.inactif', 'Inactif') }}</span>
+                </div>
               </div>
             </TableCell>
             <TableCell class="text-right pr-8">
               <div class="flex justify-end gap-1">
-                <Button v-if="['A', 'E', 'P'].includes(user.nature) || user.roles?.toLowerCase().includes('admin') || user.roles?.toLowerCase().includes('commercial')" variant="ghost" size="sm" class="h-9 px-3 premium-button text-slate-600 hover:bg-primary hover:text-primary-foreground" @click="openSimulations(user)">
+                <Button v-if="isAdmin && (['A', 'E', 'P'].includes(user.nature) || user.roles?.toLowerCase().includes('admin') || user.roles?.toLowerCase().includes('commercial'))" variant="ghost" size="sm" class="h-9 px-3 premium-button text-slate-600 hover:bg-primary hover:text-primary-foreground" @click="openSimulations(user)">
                   <Users class="w-4 h-4 mr-2" /> {{ $t('statuts.simulations') }}
                 </Button>
-                <Button v-if="user.idAuth" variant="ghost" size="sm" class="h-9 px-3 premium-button text-slate-600 hover:bg-primary hover:text-primary-foreground" @click="openRoles(user)">
+                <Button v-if="isAdmin && user.idAuth" variant="ghost" size="sm" class="h-9 px-3 premium-button text-slate-600 hover:bg-primary hover:text-primary-foreground" @click="openRoles(user)">
                   <ShieldCheck class="w-4 h-4 mr-2" /> {{ $t('users.table.roles', 'Rôles') }}
                 </Button>
-                <Button variant="ghost" size="icon" class="h-9 w-9 rounded-xl hover:bg-slate-200" @click="openEdit(user)"><Edit class="w-4 h-4 text-slate-600" /></Button>
-                <Button variant="ghost" size="icon" class="h-9 w-9 rounded-xl hover:bg-red-50 text-red-500" @click="activeUser = user; dialogs.delete = true"><Trash2 class="w-4 h-4" /></Button>
+                <Button v-if="user.canManage !== 0" variant="ghost" size="icon" class="h-9 w-9 rounded-xl hover:bg-slate-200" @click="openEdit(user)"><Edit class="w-4 h-4 text-slate-600" /></Button>
+                <Button v-if="user.canManage !== 0" variant="ghost" size="icon" class="h-9 w-9 rounded-xl hover:bg-red-50 text-red-500" @click="activeUser = user; dialogs.delete = true"><Trash2 class="w-4 h-4" /></Button>
               </div>
             </TableCell>
           </TableRow>

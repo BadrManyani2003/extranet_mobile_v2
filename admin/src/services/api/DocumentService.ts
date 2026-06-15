@@ -18,4 +18,10 @@ export const DocumentService = {
    */
   deleteDocument: (documentId: number) =>
     request<any>('/documents/delete', { method: 'POST', body: JSON.stringify({ documentId }) }),
+
+  /**
+   * Met à jour le statut transféré d'un document.
+   */
+  updateDocumentTransfere: (documentId: number, transfere: 'O' | 'N') =>
+    request<any>('/documents/update-transfere', { method: 'POST', body: JSON.stringify({ documentId, transfere }) }),
 }

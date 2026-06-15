@@ -1,17 +1,5 @@
 const sql       = require('mssql');
-const dbConfig  = require('../config/database');
-
-let poolPromise = null;
-
-const getPool = async () => {
-    if (!poolPromise) {
-        poolPromise = sql.connect(dbConfig.sqlConfig).catch(err => {
-            poolPromise = null;
-            throw err;
-        });
-    }
-    return poolPromise;
-};
+const { getPool } = require('./db.service');
 
 /**
  * Upload un document dans StdDocument.
@@ -91,4 +79,23 @@ const deleteDocument = async (userId, token, source, documentId) => {
     return result.recordsets;
 };
 
-module.exports = { upload, getDocuments, getDocumentById, deleteDocument };
+/**
+ * Met à jour le statut transféré d'un document par son Id.
+ */
+const updateDocumentTransfere = async (userId, token, source, documentId, transfere) => {
+    const pool    = await getPool();
+    const request = pool.request();
+
+    request.input('userId',     sql.Int,              userId);
+    request.input('token',      sql.VarChar(sql.MAX), token);
+    request.input('source',     sql.VarChar(10),      source);
+    request.input('documentId', sql.Int,              documentId);
+    request.input('transfere',  sql.Char(1),          transfere);
+
+    const result = await request.query(
+        `exec dbo.sp_UpdateDocumentTransfere @userId, @token, @source, @documentId, @transfere`
+    );
+    return result.recordsets;
+};
+
+module.exports = { upload, getDocuments, getDocumentById, deleteDocument, updateDocumentTransfere };

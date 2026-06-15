@@ -9,6 +9,7 @@ USE IBS_Extranet_Mobile;
 GO
 
 IF OBJECT_ID('dbo.ReclamationsDet', 'U') IS NOT NULL DROP TABLE dbo.ReclamationsDet;
+IF OBJECT_ID('dbo.StdDocument', 'U') IS NOT NULL DROP TABLE dbo.StdDocument;
 IF OBJECT_ID('dbo.ReclamationsIdt', 'U') IS NOT NULL DROP TABLE dbo.ReclamationsIdt;
 IF OBJECT_ID('dbo.UserSimulationClients', 'U') IS NOT NULL DROP TABLE dbo.UserSimulationClients;
 IF OBJECT_ID('dbo.PolDocument', 'U') IS NOT NULL DROP TABLE dbo.PolDocument;
@@ -40,10 +41,12 @@ CREATE TABLE dbo.sysUser
     Nature CHAR(1) NULL,
     Extranet CHAR(1) NOT NULL DEFAULT 'N',
     Mobile CHAR(1) NOT NULL DEFAULT 'N',
+    CreatedBy INT NULL,
     CreatedAt DATETIME2 NOT NULL DEFAULT GETDATE(),
     UpdatedAt DATETIME2 NULL,
     CONSTRAINT PK_sysUser PRIMARY KEY CLUSTERED (Id),
-    CONSTRAINT UQ_sysUser_Email UNIQUE NONCLUSTERED (Email)
+    CONSTRAINT UQ_sysUser_Email UNIQUE NONCLUSTERED (Email),
+    CONSTRAINT FK_sysUser_CreatedBy FOREIGN KEY (CreatedBy) REFERENCES dbo.sysUser(Id)
 );
 GO
 
@@ -104,6 +107,7 @@ CREATE TABLE dbo.Clients
     Telephone VARCHAR(20) NULL,
     recClt CHAR(1) NOT NULL DEFAULT 'N',
     recAdh CHAR(1) NOT NULL DEFAULT 'N',
+    EmailChargeCompte VARCHAR(max) NULL,
     CreatedAt DATETIME2 NOT NULL  DEFAULT GETDATE(),
     UpdatedAt DATETIME2 NULL,
     CONSTRAINT PK_Clients PRIMARY KEY CLUSTERED (Id),
@@ -204,7 +208,7 @@ CREATE TABLE dbo.Risques
     Assure VARCHAR(255) NULL,
     DateDu DATE NULL,
     DateEcheance DATE NULL,
-    NumeroIBS INT NULL,
+    NumeroIBS VARCHAR(100) NULL,
     Statut CHAR(1) NULL,
     CreatedAt DATETIME2 NOT NULL DEFAULT GETDATE(),
     UpdatedAt DATETIME2 NULL,
@@ -233,7 +237,7 @@ CREATE TABLE dbo.Sinistres
     FK_Risque_Id INT NULL,
     FK_Police_Id INT NOT NULL,
     FK_Adherent_Id INT NULL,
-    NumeroSin INT NULL,
+    NumeroSin VARCHAR(100) NULL,
     DateSin DATE NULL,
     DateDeclaration DATE NULL,
     Statut CHAR(1) NULL,
@@ -295,8 +299,10 @@ CREATE TABLE dbo.StdDocument
     Transfere     CHAR(1)        NOT NULL DEFAULT 'N',           
     FK_User_Id    INT            NOT NULL,                       
     DateCreation  DATETIME2      NOT NULL DEFAULT GETDATE(),
+    TransferePar  INT            NULL,
     CONSTRAINT PK_StdDocument PRIMARY KEY CLUSTERED (Id),
-    CONSTRAINT FK_StdDocument_User FOREIGN KEY (FK_User_Id) REFERENCES dbo.sysUser(Id)
+    CONSTRAINT FK_StdDocument_User FOREIGN KEY (FK_User_Id) REFERENCES dbo.sysUser(Id),
+    CONSTRAINT FK_StdDocument_TransferePar FOREIGN KEY (TransferePar) REFERENCES dbo.sysUser(Id)
 );
 GO
 
@@ -333,7 +339,7 @@ CREATE TABLE dbo.sinComplement
 (
     id INT NOT NULL IDENTITY(1,1),
     fk_sinistre_id INT NOT NULL,
-    Ref_Sinistre INT NULL,
+    Ref_Sinistre VARCHAR(100) NULL,
     Date_Sinistre DATE NULL,
     Victime VARCHAR(255) NULL,
     Lieu VARCHAR(255) NULL,
@@ -351,8 +357,6 @@ CREATE TABLE dbo.sinComplement
     Indem_Jrn DECIMAL(18,2) NULL,
     Nature_indem VARCHAR(255) NULL,
     Montant_indem DECIMAL(18,2) NULL,
-    FRS_MED DECIMAL(18,2) NULL,
-    FRS_TRNS DECIMAL(18,2) NULL,
     HONR_MED DECIMAL(18,2) NULL,
     IPP_EVA DECIMAL(18,2) NULL,
     Salaire DECIMAL(18,2) NULL,

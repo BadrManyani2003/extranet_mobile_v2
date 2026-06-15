@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { api } from '../lib/api'
+import keycloak from '../services/keycloak'
 
 export const useUserStore = defineStore('user', () => {
   const user = ref<any>(null)
@@ -12,6 +13,10 @@ export const useUserStore = defineStore('user', () => {
     if (!user.value) return '...'
     return user.value.nom || user.value.Nom || user.value.name || user.value.username || 'Admin'
   })
+
+  // Rôles basés sur Keycloak
+  const isAdmin = computed(() => keycloak.hasRole('admin_cabinet'))
+  const isCommercial = computed(() => keycloak.hasRole('commercial_cabinet') && !keycloak.hasRole('admin_cabinet'))
 
   async function fetchUser() {
     loading.value = true
@@ -43,6 +48,8 @@ export const useUserStore = defineStore('user', () => {
     error,
     isAuthenticated,
     userName,
+    isAdmin,
+    isCommercial,
     fetchUser,
     setUser,
     clearUser

@@ -5,7 +5,9 @@ const asyncHandler = require('../middleware/asyncHandler');
 const getContext = (req) => ({
     userId: req.user.id,
     token:  req.user.token,
-    source: req.headers['x-source'] || 'A'
+    source: req.headers['x-source'] || 'A',
+    // Détermine le rôle actif (admin_cabinet prioritaire)
+    role:   (req.user.roles || []).includes('admin_cabinet') ? 'admin_cabinet' : 'commercial_cabinet'
 });
 
 const getUsers = asyncHandler(async (req, res) => {
@@ -63,8 +65,8 @@ const deleteUser = asyncHandler(async (req, res) => {
 });
 
 const getClients = asyncHandler(async (req, res) => {
-    const { userId, source, token } = getContext(req);
-    const result = await adminService.getClients(userId, token, source);
+    const { userId, source, token, role } = getContext(req);
+    const result = await adminService.getClients(userId, token, source, role);
     success(res, result[0] || []);
 });
 
@@ -97,23 +99,23 @@ const syncKeycloak = asyncHandler(async (req, res) => {
 });
 
 const linkUserToClient = asyncHandler(async (req, res) => {
-    const { userId, source, token } = getContext(req);
+    const { userId, source, token, role } = getContext(req);
     const { targetUserId, clientId } = req.body;
-    await adminService.linkUserToClient(userId, token, source, targetUserId, clientId);
+    await adminService.linkUserToClient(userId, token, source, targetUserId, clientId, role);
     success(res, null, 'Liaison réussie');
 });
 
 const unlinkUserFromClient = asyncHandler(async (req, res) => {
-    const { userId, source, token } = getContext(req);
+    const { userId, source, token, role } = getContext(req);
     const { targetUserId, clientId } = req.body;
-    await adminService.unlinkUserFromClient(userId, token, source, targetUserId, clientId);
+    await adminService.unlinkUserFromClient(userId, token, source, targetUserId, clientId, role);
     success(res, null, 'Liaison supprimée');
 });
 
 const linkUserToAdherent = asyncHandler(async (req, res) => {
-    const { userId, source, token } = getContext(req);
+    const { userId, source, token, role } = getContext(req);
     const { targetUserId, adherentId } = req.body;
-    await adminService.linkUserToAdherent(userId, token, source, targetUserId, adherentId);
+    await adminService.linkUserToAdherent(userId, token, source, targetUserId, adherentId, role);
     success(res, null, 'Liaison réussie');
 });
 
@@ -130,13 +132,13 @@ const updateUserRoles = asyncHandler(async (req, res) => {
 });
 
 const updateClientOptions = asyncHandler(async (req, res) => {
-    const { userId, source, token } = getContext(req);
+    const { userId, source, token, role } = getContext(req);
     const { clientId, recClt, recAdh } = req.body;
     
     if (!clientId) throw new Error('ID client manquant.');
     if (!recClt || !recAdh) throw new Error('Options de reclamation manquantes.');
 
-    await adminService.updateClientOptions(userId, token, source, clientId, recClt, recAdh);
+    await adminService.updateClientOptions(userId, token, source, clientId, recClt, recAdh, role);
     success(res, null, 'Options client mises a jour');
 });
 
@@ -159,4 +161,4 @@ module.exports = {
     getAvailableRoles,
     updateUserRoles,
     updateClientOptions
-};
+};

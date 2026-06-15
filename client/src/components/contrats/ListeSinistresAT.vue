@@ -165,6 +165,10 @@ const { t } = useI18n()
                        <span class="text-xs font-bold text-slate-400 uppercase shrink-0">{{ $t('sinistres.etape') }}</span>
                        <span class="text-xs font-black text-slate-800 text-right break-words">{{ sin.etape }}</span>
                      </div>
+                     <div v-if="sin.age" class="flex justify-between items-center py-1.5 border-b border-slate-100/60 gap-4">
+                       <span class="text-xs font-bold text-slate-400 uppercase shrink-0">{{ $t('sinistres.age') }}</span>
+                       <span class="text-xs font-black text-slate-800 text-right">{{ sin.age }}</span>
+                     </div>
                    </div>
                 </div>
 
@@ -207,6 +211,10 @@ const { t } = useI18n()
                        <span class="text-xs font-bold text-slate-400 uppercase">{{ $t('sinistres.ipp_conseil') }}</span>
                        <span class="text-xs font-black text-slate-800">{{ sin.ippConseil != null ? sin.ippConseil + ' %' : '-' }}</span>
                      </div>
+                     <div class="flex justify-between items-center py-1.5 border-b border-slate-100/60">
+                       <span class="text-xs font-bold text-slate-400 uppercase">{{ $t('sinistres.ipp_eva') }}</span>
+                       <span class="text-xs font-black text-slate-800">{{ sin.ippEva != null ? sin.ippEva + ' %' : '-' }}</span>
+                     </div>
                      <div class="flex justify-between items-center py-1.5">
                        <span class="text-xs font-bold text-slate-400 uppercase">{{ $t('sinistres.ipp_retenu') }}</span>
                        <span class="text-xs font-black text-primary">{{ sin.ippRetenu != null ? sin.ippRetenu + ' %' : '-' }}</span>
@@ -244,7 +252,22 @@ const { t } = useI18n()
                        <span class="text-xs font-bold text-slate-400 uppercase">{{ $t('sinistres.montant_indem') }}</span>
                        <span class="text-xs font-black text-slate-800">{{ formatCurrency(sin.montantIndem || 0) }}</span>
                      </div>
-                     
+                     <div v-if="sin.honrMed !== undefined && sin.honrMed !== null" class="flex justify-between items-center py-1.5 border-b border-slate-100/60">
+                       <span class="text-xs font-bold text-slate-400 uppercase">{{ $t('sinistres.honr_med') }}</span>
+                       <span class="text-xs font-black text-slate-800">{{ formatCurrency(sin.honrMed) }}</span>
+                     </div>
+                     <div v-if="sin.salaire !== undefined && sin.salaire !== null" class="flex justify-between items-center py-1.5 border-b border-slate-100/60">
+                       <span class="text-xs font-bold text-slate-400 uppercase">{{ $t('sinistres.salaire') }}</span>
+                       <span class="text-xs font-black text-slate-800">{{ formatCurrency(sin.salaire) }}</span>
+                     </div>
+                     <div v-if="sin.ccrEv !== undefined && sin.ccrEv !== null" class="flex justify-between items-center py-1.5 border-b border-slate-100/60">
+                       <span class="text-xs font-bold text-slate-400 uppercase">{{ $t('sinistres.ccr_ev') }}</span>
+                       <span class="text-xs font-black text-slate-800">{{ formatCurrency(sin.ccrEv) }}</span>
+                     </div>
+                     <div v-if="sin.coutTot !== undefined && sin.coutTot !== null" class="flex justify-between items-center py-1.5 border-b border-slate-100/60">
+                       <span class="text-xs font-bold text-slate-400 uppercase">{{ $t('sinistres.cout_tot') }}</span>
+                       <span class="text-xs font-black text-slate-800">{{ formatCurrency(sin.coutTot) }}</span>
+                     </div>
                    </div>
                 </div>
               </div>

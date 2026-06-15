@@ -3,7 +3,7 @@ setlocal enabledelayedexpansion
 
 :: --- CONFIGURATION KEYCLOAK ---
 set KC_PATH=C:\keycloak\bin\kcadm.bat
-set KC_SERVER=http://localhost:8080
+set KC_SERVER=http://localhost:8180
 set KC_REALM=ask_extranet_mobile
 set KC_USER=admin
 set KC_PASS=admin
@@ -23,7 +23,6 @@ call :create_user "admin_cabinet@ibs.ma" "Admin Cabinet" "admin_cabinet"
 
 echo.
 echo [3/3] Termine.
-pause
 goto :eof
 
 :create_user

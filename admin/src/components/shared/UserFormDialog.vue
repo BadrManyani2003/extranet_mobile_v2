@@ -10,12 +10,14 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Globe, Smartphone } from 'lucide-vue-next'
+import { Globe, Smartphone, Building2, User } from 'lucide-vue-next'
 import { api } from '@/lib/api'
 import { toast } from '@/components/ui/sonner'
 import { useI18n } from 'vue-i18n'
+import { useRole } from '@/composables/useRole'
 
 const { t } = useI18n()
+const { isAdmin, isCommercial } = useRole()
 
 const props = defineProps<{
   open: boolean
@@ -36,13 +38,7 @@ const formData = ref({
   mobile: 'N'
 })
 
-const natureLabel = computed(() => {
-  if (formData.value.nature === 'A') return t('users.natures.cabinet')
-  if (formData.value.nature === 'P') return t('users.natures.poste')
-  if (formData.value.nature === 'C') return t('users.natures.client')
-  if (formData.value.nature === 'E') return t('users.natures.expert')
-  return formData.value.nature || ''
-})
+const isEditing = computed(() => !!formData.value.id)
 
 watch(() => props.open, (isOpen) => {
   if (isOpen) {
@@ -55,7 +51,7 @@ watch(() => props.open, (isOpen) => {
         nom: '',
         email: '',
         telephone: '',
-        nature: 'A',
+        nature: isCommercial.value ? 'C' : 'A',
         extranet: 'O',
         mobile: 'N'
       }
@@ -88,6 +84,65 @@ const handleSave = async () => {
       </DialogHeader>
 
       <div class="p-8 space-y-6 flex-1 overflow-y-auto">
+
+        <!-- Nature (Type d'utilisateur) -->
+        <div v-if="isAdmin" class="space-y-3">
+          <Label class="text-[14px] font-black uppercase tracking-widest text-slate-400">{{ $t('users.form.user_type') }}</Label>
+          <div class="grid grid-cols-2 gap-3">
+            <!-- Cabinet -->
+            <button
+              type="button"
+              :disabled="isEditing"
+              @click="formData.nature = 'A'"
+              class="flex items-center gap-3 p-4 rounded-2xl border-2 transition-all duration-200 text-left"
+              :class="[
+                formData.nature === 'A'
+                  ? 'border-primary bg-primary/5 ring-1 ring-primary shadow-sm'
+                  : 'border-slate-100 bg-white hover:border-slate-200 hover:bg-slate-50/50',
+                isEditing ? 'opacity-65 cursor-not-allowed' : 'cursor-pointer'
+              ]"
+            >
+              <div class="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm transition-colors"
+                :class="formData.nature === 'A' ? 'bg-primary text-primary-foreground' : 'bg-slate-100 text-slate-400'">
+                <Building2 class="w-5 h-5" />
+              </div>
+              <div>
+                <div class="font-bold text-sm" :class="formData.nature === 'A' ? 'text-primary' : 'text-slate-700'">{{ $t('users.natures.cabinet') }}</div>
+                <div class="text-xs text-slate-400 font-medium mt-0.5">{{ $t('users.form.cabinet_desc') }}</div>
+              </div>
+            </button>
+            <!-- Client -->
+            <button
+              type="button"
+              :disabled="isEditing"
+              @click="formData.nature = 'C'"
+              class="flex items-center gap-3 p-4 rounded-2xl border-2 transition-all duration-200 text-left"
+              :class="[
+                formData.nature === 'C'
+                  ? 'border-emerald-500 bg-emerald-50/50 ring-1 ring-emerald-400 shadow-sm'
+                  : 'border-slate-100 bg-white hover:border-slate-200 hover:bg-slate-50/50',
+                isEditing ? 'opacity-65 cursor-not-allowed' : 'cursor-pointer'
+              ]"
+            >
+              <div class="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm transition-colors"
+                :class="formData.nature === 'C' ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-400'">
+                <User class="w-5 h-5" />
+              </div>
+              <div>
+                <div class="font-bold text-sm" :class="formData.nature === 'C' ? 'text-emerald-700' : 'text-slate-700'">{{ $t('users.natures.client') }}</div>
+                <div class="text-xs text-slate-400 font-medium mt-0.5">{{ $t('users.form.client_desc') }}</div>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Pour le commercial (uniquement nature Client en lecture seule) -->
+        <div v-else-if="isCommercial" class="space-y-1.5">
+          <Label class="text-[14px] font-black uppercase tracking-widest text-slate-400">{{ $t('users.form.nature') }}</Label>
+          <input :value="$t('users.natures.client')" disabled class="flex h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500 font-bold shadow-sm cursor-not-allowed focus-visible:outline-none" />
+        </div>
+
+        <!-- Nom complet -->
         <div class="space-y-1.5">
           <Label class="text-[14px] font-black uppercase tracking-widest text-slate-400">{{ $t('users.form.full_name') }}</Label>
           <Input v-model="formData.nom" :placeholder="$t('users.form.full_name_placeholder')" class="h-11 rounded-xl border-slate-200 shadow-sm focus-visible:ring-slate-900/10" />
@@ -104,18 +159,11 @@ const handleSave = async () => {
           </div>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          <!-- Nature (Affiché en lecture seule / désactivé) -->
-          <div class="space-y-1.5">
-            <Label class="text-[14px] font-black uppercase tracking-widest text-slate-400">{{ $t('users.form.nature') }}</Label>
-            <input :value="natureLabel" disabled class="flex h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500 font-bold shadow-sm cursor-not-allowed focus-visible:outline-none" />
-          </div>
-        </div>
-
+        <!-- Autorisations d'accès -->
         <div class="space-y-3">
           <Label class="text-[14px] font-black uppercase tracking-widest text-slate-400 block">{{ $t('users.form.authorizations') }}</Label>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <!-- Carte interactive d'accès Extranet -->
+            <!-- Accès Extranet -->
             <div 
               @click="formData.extranet = formData.extranet === 'O' ? 'N' : 'O'"
               class="flex items-center justify-between p-4 rounded-2xl border cursor-pointer transition-all duration-200 group hover:bg-slate-50/50"
@@ -130,8 +178,6 @@ const handleSave = async () => {
                   <div class="text-xs text-slate-400 font-medium mt-0.5">{{ $t('users.form.extranet_access_desc') }}</div>
                 </div>
               </div>
-              
-              <!-- Bascule de style Switch Toggle -->
               <div 
                 class="w-10 h-6 rounded-full p-0.5 transition-colors duration-350 ease-out"
                 :class="formData.extranet === 'O' ? 'bg-primary' : 'bg-slate-200'"
@@ -143,7 +189,7 @@ const handleSave = async () => {
               </div>
             </div>
 
-            <!-- Carte interactive d'accès Mobile -->
+            <!-- Accès Mobile -->
             <div 
               @click="formData.mobile = formData.mobile === 'O' ? 'N' : 'O'"
               class="flex items-center justify-between p-4 rounded-2xl border cursor-pointer transition-all duration-200 group hover:bg-slate-50/50"
@@ -158,8 +204,6 @@ const handleSave = async () => {
                   <div class="text-xs text-slate-400 font-medium mt-0.5">{{ $t('users.form.mobile_access_desc') }}</div>
                 </div>
               </div>
-              
-              <!-- Bascule de style Switch Toggle -->
               <div 
                 class="w-10 h-6 rounded-full p-0.5 transition-colors duration-350 ease-out"
                 :class="formData.mobile === 'O' ? 'bg-primary' : 'bg-slate-200'"
@@ -173,6 +217,7 @@ const handleSave = async () => {
           </div>
         </div>
       </div>
+
       <DialogFooter class="p-8 bg-slate-50/50 border-t border-slate-100 shrink-0">
         <Button @click="handleSave" :disabled="processing" class="w-full h-12 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-lg hover:scale-[1.01] active:scale-[0.99] transition-all">
           <span v-if="processing" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></span>

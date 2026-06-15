@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { FileDown } from 'lucide-vue-next'
+import { FileDown, Building2, Tag, FileText } from 'lucide-vue-next'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import DataTableWrapper from '@/components/shared/DataTableWrapper.vue'
@@ -12,6 +12,104 @@ import * as XLSX from 'xlsx-js-style'
 const { t } = useI18n()
 const quittances = ref<any[]>([])
 const loading = ref(true)
+
+// Filtres
+const selectedClient = ref('')
+const selectedBranche = ref('')
+const selectedPolice = ref('')
+const dateDu = ref('')
+const dateAu = ref('')
+
+const uniqueClients = computed(() => {
+  const clients = quittances.value.map(q => q.client).filter(Boolean)
+  return [...new Set(clients)].sort()
+})
+
+const uniqueBranches = computed(() => {
+  const branches = quittances.value.map(q => q.branche).filter(Boolean)
+  return [...new Set(branches)].sort()
+})
+
+const uniquePolices = computed(() => {
+  let list = quittances.value
+  if (selectedClient.value) {
+    list = list.filter(q => q.client === selectedClient.value)
+  }
+  if (selectedBranche.value) {
+    list = list.filter(q => q.branche === selectedBranche.value)
+  }
+  const polices = list.map(q => q.numPolice).filter(Boolean)
+  return [...new Set(polices)].sort()
+})
+
+watch([selectedClient, selectedBranche], () => {
+  selectedPolice.value = ''
+})
+
+const toDateStr = (dateVal: any) => {
+  if (!dateVal) return ''
+  const d = new Date(dateVal)
+  if (isNaN(d.getTime())) {
+    const s = String(dateVal)
+    if (s.includes('T')) return s.split('T')[0]
+    return s
+  }
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+const filteredQuittances = computed(() => {
+  return quittances.value.filter(item => {
+    if (selectedClient.value && item.client !== selectedClient.value) {
+      return false
+    }
+    if (selectedBranche.value && item.branche !== selectedBranche.value) {
+      return false
+    }
+    if (selectedPolice.value && item.numPolice !== selectedPolice.value) {
+      return false
+    }
+    if (dateDu.value) {
+      const start = toDateStr(item.dateDebut)
+      if (start < dateDu.value) return false
+    }
+    if (dateAu.value) {
+      const start = toDateStr(item.dateDebut)
+      if (start > dateAu.value) return false
+    }
+    return true
+  })
+})
+
+const dateDuFormatted = computed(() => {
+  if (!dateDu.value) return ''
+  const parts = dateDu.value.split('-') // YYYY-MM-DD
+  if (parts.length === 3) {
+    return `${parts[2]}/${parts[1]}/${parts[0]}`
+  }
+  return dateDu.value
+})
+
+const dateAuFormatted = computed(() => {
+  if (!dateAu.value) return ''
+  const parts = dateAu.value.split('-') // YYYY-MM-DD
+  if (parts.length === 3) {
+    return `${parts[2]}/${parts[1]}/${parts[0]}`
+  }
+  return dateAu.value
+})
+
+const openPicker = (e: Event) => {
+  try {
+    (e.target as HTMLInputElement).showPicker()
+  } catch (err) {
+    console.error('showPicker not supported:', err)
+  }
+}
+
+
 
 const fetchAllQuittances = async () => {
   try {
@@ -26,7 +124,7 @@ const fetchAllQuittances = async () => {
 }
 
 const exportToExcel = () => {
-  if (!quittances.value.length) return
+  if (!filteredQuittances.value.length) return
 
   const headers = [
     t('quittances.num'), t('contrats.num'), t('contrats.branche'), t('quittances.from'), t('quittances.to'), t('quittances.total'), t('quittances.unpaid')
@@ -57,7 +155,7 @@ const exportToExcel = () => {
   // 2. Création de la matrice de données
   const data = [
     headers.map(h => ({ v: h, s: headerStyle })), // Ligne d'en-tête
-    ...quittances.value.map(item => [
+    ...filteredQuittances.value.map(item => [
       { v: item.numero, s: cellStyle },
       { v: item.numPolice, s: cellStyle },
       { v: item.branche, s: cellStyle },
@@ -91,7 +189,7 @@ onMounted(() => {
   <DataTableWrapper 
     :title="$t('vue_releve_global.title')" 
     :description="$t('vue_releve_global.subtitle')"
-    :items="quittances" 
+    :items="filteredQuittances" 
     :loading="loading" 
     :search-placeholder="$t('vue_releve_global.search')"
   >
@@ -100,11 +198,100 @@ onMounted(() => {
         variant="outline" 
         class="rounded-2xl h-12 px-6 gap-2 border-slate-200 bg-white hover:bg-slate-50 text-slate-900 font-black shadow-sm"
         @click="exportToExcel"
-        :disabled="!quittances.length"
+        :disabled="!filteredQuittances.length"
       >
         <FileDown class="w-5 h-5 text-slate-900" />
         {{ $t('commun.download') }}
       </Button>
+    </template>
+
+    <template #filters>
+      <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto mt-2 sm:mt-0">
+        <!-- Client Filter -->
+        <div class="relative min-w-[160px] flex-1 sm:flex-initial">
+          <Building2 class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+          <select 
+            v-model="selectedClient"
+            class="w-full bg-white border border-slate-200 rounded-2xl pl-10 pr-8 py-3.5 font-bold text-sm text-slate-800 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary appearance-none transition-all shadow-sm cursor-pointer"
+          >
+            <option value="">{{ $t('contrats.all_clients') }}</option>
+            <option v-for="cName in uniqueClients" :key="cName" :value="cName">
+              {{ cName }}
+            </option>
+          </select>
+          <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-slate-400">
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </div>
+
+        <!-- Branche Filter -->
+        <div class="relative min-w-[160px] flex-1 sm:flex-initial">
+          <Tag class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+          <select 
+            v-model="selectedBranche"
+            class="w-full bg-white border border-slate-200 rounded-2xl pl-10 pr-8 py-3.5 font-bold text-sm text-slate-800 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary appearance-none transition-all shadow-sm cursor-pointer"
+          >
+            <option value="">{{ $t('contrats.all_branches') }}</option>
+            <option v-for="bName in uniqueBranches" :key="bName" :value="bName">
+              {{ bName }}
+            </option>
+          </select>
+          <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-slate-400">
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </div>
+
+        <!-- Police Filter -->
+        <div class="relative min-w-[160px] flex-1 sm:flex-initial">
+          <FileText class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+          <select 
+            v-model="selectedPolice"
+            class="w-full bg-white border border-slate-200 rounded-2xl pl-10 pr-8 py-3.5 font-bold text-sm text-slate-800 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary appearance-none transition-all shadow-sm cursor-pointer"
+          >
+            <option value="">{{ $t('contrats.all_policies') }}</option>
+            <option v-for="pNum in uniquePolices" :key="pNum" :value="pNum">
+              {{ pNum }}
+            </option>
+          </select>
+          <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-slate-400">
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </div>
+
+        <!-- Date Du -->
+        <div class="relative flex items-center gap-2 bg-white border border-slate-200 rounded-2xl px-4 py-3.5 shadow-sm flex-1 sm:flex-initial min-w-[160px] cursor-pointer">
+          <span class="text-xs font-black text-slate-400 uppercase tracking-wider shrink-0 mr-1 pointer-events-none">{{ $t('commun.date_from') }}</span>
+          <span :class="dateDu ? 'text-slate-800 font-bold text-sm' : 'text-slate-400 font-medium text-sm'" class="pointer-events-none">
+            {{ dateDuFormatted || 'JJ/MM/AAAA' }}
+          </span>
+          <input 
+            type="date" 
+            v-model="dateDu" 
+            class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            @click="openPicker"
+          />
+        </div>
+
+        <!-- Date Au -->
+        <div class="relative flex items-center gap-2 bg-white border border-slate-200 rounded-2xl px-4 py-3.5 shadow-sm flex-1 sm:flex-initial min-w-[160px] cursor-pointer">
+          <span class="text-xs font-black text-slate-400 uppercase tracking-wider shrink-0 mr-1 pointer-events-none">{{ $t('commun.date_to') }}</span>
+          <span :class="dateAu ? 'text-slate-800 font-bold text-sm' : 'text-slate-400 font-medium text-sm'" class="pointer-events-none">
+            {{ dateAuFormatted || 'JJ/MM/AAAA' }}
+          </span>
+          <input 
+            type="date" 
+            v-model="dateAu" 
+            class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            @click="openPicker"
+          />
+        </div>
+      </div>
     </template>
 
     <template #default="{ items }">

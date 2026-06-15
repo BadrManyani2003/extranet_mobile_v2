@@ -2,7 +2,7 @@
 setlocal enabledelayedexpansion
 
 :: ================= CONFIG =================
-set "KEYCLOAK_URL=http://localhost:8080"
+set "KEYCLOAK_URL=http://localhost:8180"
 set "ADMIN_USER=admin"
 set /p ADMIN_PASS=Mot de passe : 
 
@@ -21,8 +21,8 @@ set "KCADM_PATH=C:\keycloak\bin\kcadm.bat"
 :: ================= SMTP CONFIG =================
 set "SMTP_HOST=smtp.gmail.com"
 set "SMTP_PORT=587"
-set "SMTP_FROM=badr@example.com"
-set "SMTP_USER=badr@example.com"
+set "SMTP_FROM=myask@example.com"
+set "SMTP_USER=myask@example.com"
 set "SMTP_PASS=your_password"
 
 cls
@@ -62,7 +62,9 @@ call :CREATE_CLIENT "%CLIENT_MOBILE%" "%REDIRECT_MOBILE%" true
 
 call "%KCADM_PATH%" get clients -r %REALM_NAME% > tmp_clients.json 2>nul
 findstr /C:"\"clientId\" : \"%CLIENT_API%\"" tmp_clients.json >nul
-if %ERRORLEVEL% EQU 0 goto :SKIP_CLIENT_API
+set "FIND_ERR=%ERRORLEVEL%"
+del tmp_clients.json 2>nul
+if %FIND_ERR% EQU 0 goto :SKIP_CLIENT_API
 echo Creation du client API...
 call "%KCADM_PATH%" create clients -r %REALM_NAME% -s clientId=%CLIENT_API% -s enabled=true -s publicClient=false -s serviceAccountsEnabled=true -s clientAuthenticatorType=client-secret >nul 2>&1
 :SKIP_CLIENT_API

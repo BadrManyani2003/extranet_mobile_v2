@@ -2,7 +2,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Building2, UserPlus, CheckCircle2, Link, X, MessageSquare } from 'lucide-vue-next'
+import { Building2, UserPlus, CheckCircle2, Link, X, MessageSquare, Edit } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import DataTableWrapper from '@/components/shared/DataTableWrapper.vue'
@@ -10,8 +10,10 @@ import UserLinkDialog from '@/components/shared/UserLinkDialog.vue'
 import ConfirmModal from '@/components/shared/ConfirmModal.vue'
 import { api } from '@/lib/api'
 import { toast } from '@/components/ui/sonner'
+import { useRole } from '@/composables/useRole'
 
 const { t } = useI18n()
+const { isAdmin, isCommercial } = useRole()
 
 const clients = ref<any[]>([])
 const loading = ref(true)
@@ -113,7 +115,7 @@ onUnmounted(() => {
 <template>
   <DataTableWrapper 
     :title="$t('clients.title')" 
-    :description="$t('clients.subtitle')"
+    :description="isCommercial ? $t('clients.subtitle_commercial') : $t('clients.subtitle')"
     :items="clients"
     :loading="loading"
     :search-placeholder="$t('clients.search_placeholder')"
@@ -152,7 +154,8 @@ onUnmounted(() => {
                 <div v-for="(user, idx) in client.userNom.split(', ')" :key="user" class="group/badge relative flex items-center gap-1 bg-emerald-50 text-emerald-600 border border-emerald-100 text-[14px] font-black uppercase tracking-widest px-2 py-1 rounded-lg">
                    <CheckCircle2 class="w-2.5 h-2.5" /> 
                    {{ user }}
-                   <button @click="openUnlinkConfirm(client.id, client.fkUserId.split(', ')[idx])" class="ml-1 hover:text-red-600 transition-colors">
+                   <!-- Délier : admin + commercial -->
+                   <button v-if="isAdmin || isCommercial" @click="openUnlinkConfirm(client.id, client.fkUserId.split(', ')[idx])" class="ml-1 hover:text-red-600 transition-colors">
                      <X class="w-3 h-3" />
                    </button>
                 </div>
@@ -161,14 +164,21 @@ onUnmounted(() => {
             </TableCell>
             <TableCell class="text-right">
               <div class="flex justify-end gap-1 items-center">
-                <Button variant="ghost" size="sm" class="h-9 gap-2 premium-button text-slate-600 hover:bg-primary hover:text-primary-foreground" @click="handleCreateUser(client.id)">
+                <!-- Créer utilisateur : admin + commercial -->
+                <Button 
+                  v-if="isAdmin || isCommercial"
+                  variant="ghost" size="sm" class="h-9 gap-2 premium-button text-slate-600 hover:bg-primary hover:text-primary-foreground" 
+                  @click="handleCreateUser(client.id)"
+                >
                   <UserPlus class="w-4 h-4" /> {{ $t('users.add_button') }}
                 </Button>
+
+                <!-- Lier utilisateur : admin + commercial -->
                 <Button variant="ghost" size="sm" class="h-9 gap-2 premium-button text-emerald-600 hover:bg-emerald-50" @click="openLinkDialog(client.id)">
                   <Link class="w-4 h-4" /> {{ $t('commun.link') }}
                 </Button>
                 
-                <!-- Dropdown de configuration des options -->
+                <!-- Options réclamation : admin + commercial -->
                 <div class="relative inline-block text-left">
                   <Button variant="ghost" size="sm" class="h-9 w-9 p-0 premium-button text-slate-600 hover:bg-slate-100" @click.stop="toggleDropdown(client.id, $event)">
                     <MessageSquare class="w-4 h-4" />
@@ -232,4 +242,3 @@ onUnmounted(() => {
     @confirm="confirmUnlinkUser"
   />
 </template>
-

@@ -5,13 +5,31 @@ const asyncHandler = require('../middleware/asyncHandler');
 const getContext = (req) => ({
     userId: req.user.id,
     token:  req.user.token,
-    source: req.headers['x-source'] || 'M'
+    source: req.headers['x-source'] || 'M',
+    // Détermine le rôle actif pour le filtrage (admin vs commercial)
+    role:   (req.user.roles || []).includes('admin_cabinet') ? 'admin_cabinet' : 'commercial_cabinet'
+});
+
+// Route admin/commercial — résultats filtrés par rôle
+const getAdminReclamations = asyncHandler(async (req, res) => {
+    const { userId, source, token, role } = getContext(req);
+    const result = await reclamationService.getAdminReclamations(userId, source, token, role);
+    success(res, result[0] || []);
 });
 
 const getReclamations = asyncHandler(async (req, res) => {
-    const { userId, source, token } = getContext(req);
-    const result = await reclamationService.getReclamations(userId, source, token);
-    success(res, result[0] || []);
+    const { userId, source, token, role } = getContext(req);
+    const roles = req.user.roles || [];
+    const isAdmin = roles.includes('admin_cabinet');
+    const isCommercial = roles.includes('commercial_cabinet');
+
+    if (isAdmin || isCommercial) {
+        const result = await reclamationService.getAdminReclamations(userId, source, token, role);
+        success(res, result[0] || []);
+    } else {
+        const result = await reclamationService.getReclamations(userId, source, token);
+        success(res, result[0] || []);
+    }
 });
 
 const getReclamationDetails = asyncHandler(async (req, res) => {
@@ -57,6 +75,7 @@ const deleteMessage = asyncHandler(async (req, res) => {
 });
 
 module.exports = {
+    getAdminReclamations,
     getReclamations,
     getReclamationDetails,
     createReclamation,
@@ -64,4 +83,4 @@ module.exports = {
     updateStatus,
     deleteReclamation,
     deleteMessage
-};
+};

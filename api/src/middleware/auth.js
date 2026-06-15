@@ -6,9 +6,21 @@ const keycloakConfig = require('../config/keycloak');
 const authService = require('../services/auth.service');
 const keycloakService = require('../services/keycloak.service');
 
-console.log(`[Auth Init] URL JWKS configuree pour le backend : ${keycloakConfig.jwksUri}`);
+let formattedPublicKey = null;
+if (keycloakConfig.publicKey) {
+    const rawKey = keycloakConfig.publicKey.trim();
+    if (!rawKey.includes('-----BEGIN PUBLIC KEY-----')) {
+        const lines = rawKey.replace(/\s+/g, '').match(/.{1,64}/g) || [];
+        formattedPublicKey = `-----BEGIN PUBLIC KEY-----\n${lines.join('\n')}\n-----END PUBLIC KEY-----`;
+    } else {
+        formattedPublicKey = rawKey.replace(/\\n/g, '\n');
+    }
+    console.log('[Auth Init] Mode Cle Publique Statique active pour la verification des tokens.');
+} else {
+    console.log(`[Auth Init] URL JWKS configuree pour le backend : ${keycloakConfig.jwksUri}`);
+}
 
-const client = jwksClient({
+const client = keycloakConfig.publicKey ? null : jwksClient({
     jwksUri: keycloakConfig.jwksUri,
     cache: true,
     cacheMaxEntries: 5,
@@ -21,6 +33,10 @@ const client = jwksClient({
 });
 
 function getKey(header, callback) {
+    if (formattedPublicKey) {
+        return callback(null, formattedPublicKey);
+    }
+
     if (!header || !header.kid) {
         console.error("❌ [Auth Middleware] Le token JWT ne contient pas de 'kid' dans son en-tete.");
         return callback(new Error("Le token JWT ne contient pas de parametre 'kid' dans son en-tete."));
@@ -34,6 +50,7 @@ function getKey(header, callback) {
         callback(null, key.getPublicKey());
     });
 }
+
 
 const verifyToken = promisify(jwt.verify);
 

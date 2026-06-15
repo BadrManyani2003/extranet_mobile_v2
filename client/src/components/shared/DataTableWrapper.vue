@@ -57,8 +57,8 @@ const handleSearch = () => {
       </div>
     </div>
 
-    <div class="flex items-center gap-4">
-      <div class="relative flex-1 max-w-sm group">
+    <div class="flex flex-wrap items-center gap-4">
+      <div class="relative flex-1 max-w-sm group min-w-[280px]">
         <Search class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-primary transition-colors" />
         <input 
           v-model="searchQuery"
@@ -68,6 +68,7 @@ const handleSearch = () => {
           @input="handleSearch"
         />
       </div>
+      <slot name="filters"></slot>
     </div>
 
     <div class="border border-slate-200 rounded-[2rem] bg-white shadow-xl overflow-hidden">

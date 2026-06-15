@@ -112,3 +112,171 @@
     @apply rounded-xl font-black uppercase tracking-widest text-[12px] transition-all duration-200 bg-primary text-primary-foreground hover:bg-primary/90 shadow-md hover:shadow-lg;
   }
 }
+
+@media print {
+  /* Hide UI elements like sidebar, header, filters and impersonation banner */
+  aside,
+  header,
+  .no-print,
+  .dashboard-filters,
+  .bg-amber-500,
+  nav,
+  button {
+    display: none !important;
+  }
+
+  /* Reset layout margins for printing */
+  main {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Make containers full width */
+  .mx-auto {
+    max-width: 100% !important;
+    padding: 0 !important;
+  }
+
+  /* Adjust page background */
+  body, html, .bg-background\/40 {
+    background: white !important;
+    background-color: white !important;
+  }
+
+  /* Ensure page breaks are handled nicely */
+  .glass-card {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    box-shadow: none !important;
+    border: 1px solid #e2e8f0 !important;
+    margin-bottom: 2rem !important;
+  }
+}
+
+/* ==========================================================================
+   Professional PDF Export Mode Adaptations
+   ========================================================================== */
+
+/* Hidden on screen by default */
+.pdf-header {
+  display: none !important;
+}
+
+/* Enabled only during PDF generation */
+.pdf-export-mode {
+  width: 800px !important;
+  max-width: 800px !important;
+  min-width: 800px !important;
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  padding: 40px !important; /* Acts as A4 page margins when html2pdf margins are 0 */
+  margin: 0 auto !important;
+  box-sizing: border-box !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.pdf-export-mode .pdf-header {
+  display: block !important;
+}
+
+/* Force elements into beautiful grid layouts when rendering PDF */
+.pdf-export-mode .grid {
+  display: grid !important;
+}
+
+/* Force KPI grid: 2 columns to fit currency text nicely */
+.pdf-export-mode .grid.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-4 {
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 16px !important;
+}
+
+/* Force repartition grids: 2 columns */
+.pdf-export-mode .grid.grid-cols-1.lg\:grid-cols-2 {
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 16px !important;
+}
+
+/* Standard card tweaks for PDF */
+.pdf-export-mode .bg-white {
+  background-color: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 1.25rem !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+}
+
+.pdf-export-mode .bg-slate-50\/50,
+.pdf-export-mode .bg-slate-50\/30 {
+  background-color: #f8fafc !important;
+}
+
+/* Adjust card padding inside grids for PDF density */
+.pdf-export-mode .p-6,
+.pdf-export-mode .md\:p-8,
+.pdf-export-mode .glass-card .p-6 {
+  padding: 16px !important;
+}
+
+/* Reduce card heights to keep them tight and proportional */
+.pdf-export-mode .min-h-\[140px\] {
+  min-height: 100px !important;
+}
+
+.pdf-export-mode .min-h-\[90px\] {
+  min-height: 60px !important;
+}
+
+/* Scale down font sizes inside cards to prevent layout shifts */
+.pdf-export-mode .text-3xl {
+  font-size: 20px !important;
+  line-height: 28px !important;
+}
+
+.pdf-export-mode .text-2xl {
+  font-size: 16px !important;
+}
+
+.pdf-export-mode .text-xl {
+  font-size: 14px !important;
+}
+
+.pdf-export-mode .text-lg {
+  font-size: 13px !important;
+}
+
+/* Adjust table text and padding for print density */
+.pdf-export-mode table {
+  width: 100% !important;
+  font-size: 11px !important;
+}
+
+.pdf-export-mode th {
+  padding: 8px 10px !important;
+  font-size: 9px !important;
+  background-color: #1e293b !important;
+}
+
+.pdf-export-mode td {
+  padding: 6px 10px !important;
+  font-size: 10px !important;
+}
+
+/* Force specific heights for chart canvases to avoid overflow */
+.pdf-export-mode .h-72 {
+  height: 220px !important;
+}
+
+.pdf-export-mode .h-80,
+.pdf-export-mode .md\:h-\[400px\] {
+  height: 260px !important;
+}
+
+/* Prevent breaking inside cards */
+.pdf-export-mode .glass-card,
+.pdf-export-mode > div {
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+}

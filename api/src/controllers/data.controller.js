@@ -87,6 +87,34 @@ const getStatsByPolice = asyncHandler(async (req, res) => {
     success(res, result[0]?.[0] || {});
 });
 
+const getStatsKPIs = asyncHandler(async (req, res) => {
+    const { userId, source, token } = getContext(req);
+    const { policeId, dateDu, dateAu } = req.query;
+    const result = await dataService.getStatsKPIs(userId, source, token, policeId, dateDu, dateAu);
+    success(res, result[0]?.[0] || {});
+});
+
+const getStatsEvolutionAnnuelle = asyncHandler(async (req, res) => {
+    const { userId, source, token } = getContext(req);
+    const { policeId, dateDu, dateAu } = req.query;
+    const result = await dataService.getStatsEvolutionAnnuelle(userId, source, token, policeId, dateDu, dateAu);
+    success(res, result[0] || []);
+});
+
+const getStatsTop5ITT = asyncHandler(async (req, res) => {
+    const { userId, source, token } = getContext(req);
+    const { policeId, dateDu, dateAu } = req.query;
+    const result = await dataService.getStatsTop5ITT(userId, source, token, policeId, dateDu, dateAu);
+    success(res, result[0] || []);
+});
+
+const getStatsRepartition = asyncHandler(async (req, res) => {
+    const { userId, source, token } = getContext(req);
+    const { policeId, dateDu, dateAu } = req.query;
+    const result = await dataService.getStatsRepartition(userId, source, token, policeId, dateDu, dateAu);
+    success(res, result || []);
+});
+
 const getDocumentsByPolice = asyncHandler(async (req, res) => {
     const { userId, source, token } = getContext(req);
     const { policeId } = req.query;
@@ -105,6 +133,10 @@ module.exports = {
     getAdherents,
     getPersACharge,
     getStats,
+    getStatsKPIs,
+    getStatsEvolutionAnnuelle,
+    getStatsTop5ITT,
+    getStatsRepartition,
     getStatsByPolice,
     getDocumentsByPolice
 };

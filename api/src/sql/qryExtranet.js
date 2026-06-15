@@ -10,17 +10,23 @@ const qry = {
     getPersACharge:       "exec dbo.sp_GetPersACharge       @0, @1, @2, @3",
     getGarantiesByRisque: "exec dbo.sp_GetGarantiesByRisque @0, @1, @2, @3",
     getStats:             "exec dbo.sp_GetStats             @0, @1, @2",
+    getStatsKPIs:         "exec dbo.sp_GetStatsKPIs         @0, @1, @2, @3, @4, @5",
+    getStatsEvolutionAnnuelle: "exec dbo.sp_GetStatsEvolutionAnnuelle @0, @1, @2, @3, @4, @5",
+    getStatsTop5ITT:      "exec dbo.sp_GetStatsTop5ITT      @0, @1, @2, @3, @4, @5",
+    getStatsRepartition:  "exec dbo.sp_GetStatsRepartition  @0, @1, @2, @3, @4, @5",
     getStatsByPolice:     "exec dbo.ps_GetStatsByPolice     @0, @1, @2, @3",
     getDocumentsByPolice: "exec dbo.sp_GetDocumentsByPolice @0, @1, @2, @3",
 
-    getReclamations:       "exec dbo.sp_GetReclamations          @0, @1, @2",
-    getReclamationDetails: "exec dbo.sp_GetReclamationDetails    @0, @1, @2, @3",
-    createReclamation:     "exec dbo.sp_CreateReclamation        @0, @1, @2, @3, @4, @5",
-    addMessageReclamation: "exec dbo.sp_AddMessageReclamation    @0, @1, @2, @3, @4, @5",
-    updateReclamationStatut:"exec dbo.sp_UpdateReclamationStatus @0, @1, @2, @3, @4",
-    deleteReclamation:     "exec dbo.sp_DeleteReclamation        @0, @1, @2, @3",
+    getReclamations:        "exec dbo.sp_GetReclamations          @0, @1, @2",
+    // SP admin/commercial — param @3 = rôle pour filtrer les réclamations du commercial
+    getAdminReclamations:   "exec dbo.sp_GetAdminReclamations     @0, @1, @2, @3",
+    getReclamationDetails:  "exec dbo.sp_GetReclamationDetails    @0, @1, @2, @3",
+    createReclamation:      "exec dbo.sp_CreateReclamation        @0, @1, @2, @3, @4, @5",
+    addMessageReclamation:  "exec dbo.sp_AddMessageReclamation    @0, @1, @2, @3, @4, @5",
+    updateReclamationStatut:"exec dbo.sp_UpdateReclamationStatus  @0, @1, @2, @3, @4",
+    deleteReclamation:      "exec dbo.sp_DeleteReclamation        @0, @1, @2, @3",
     deleteMessageReclamation: "exec dbo.sp_DeleteMessageReclamation @0, @1, @2",
-    getReclamationStatut:  "exec dbo.sp_GetReclamationStatut @0",
+    getReclamationStatut:   "exec dbo.sp_GetReclamationStatut @0",
 
     getUsers:              "exec dbo.ps_GetUsers              @0, @1, @2",
     getSimulationList:     "exec dbo.ps_GetSimulationList     @0, @1, @2",
@@ -29,20 +35,27 @@ const qry = {
     deleteUserSimulationClient: "exec dbo.ps_DeleteUserSimulationClient @0, @1, @2, @3, @4",
     saveUser:              "exec dbo.ps_SaveUser              @0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10",
     deleteUser:            "exec dbo.ps_DeleteUser            @0, @1, @2, @3",
-    getClients:            "exec dbo.ps_GetClients            @0, @1, @2",
+    // @3 = role (admin_cabinet | commercial_cabinet) pour filtrer les clients du commercial
+    getClients:            "exec dbo.ps_GetClients            @0, @1, @2, @3",
     createUserFromClient:  "exec dbo.ps_CreateUserFromClient  @0, @1, @2, @3",
     getAdherentsAdmin:     "exec dbo.sp_GetAdherents          @0, @1, @2, @3",
     createUserFromAdherent:"exec dbo.ps_CreateUserFromAdherent @0, @1, @2, @3",
     syncKeycloak:          "exec dbo.ps_SyncKeycloak           @0, @1, @2, @3, @4",
-    linkUserToClient:      "exec dbo.ps_LinkUserToClient       @0, @1, @2, @3, @4",
-    unlinkUserFromClient:    "exec dbo.ps_UnlinkUserFromClient     @0, @1, @2, @3, @4",
-    linkUserToAdherent:    "exec dbo.ps_LinkUserToAdherent     @0, @1, @2, @3, @4",
-    updateClientOptions:   "exec dbo.ps_UpdateClientOptions    @0, @1, @2, @3, @4, @5",
+    // @5 = role pour vérification permission commercial
+    linkUserToClient:      "exec dbo.ps_LinkUserToClient       @0, @1, @2, @3, @4, @5",
+    unlinkUserFromClient:  "exec dbo.ps_UnlinkUserFromClient   @0, @1, @2, @3, @4, @5",
+    linkUserToAdherent:    "exec dbo.ps_LinkUserToAdherent     @0, @1, @2, @3, @4, @5",
+    // @6 = role pour vérification permission commercial
+    updateClientOptions:   "exec dbo.ps_UpdateClientOptions    @0, @1, @2, @3, @4, @5, @6",
 
     updateToken:         "exec dbo.sp_UpdateToken @0, @1",
     getUserInfoByAuthId: "exec dbo.sp_GetUserInfoByAuthId @0",
     getUserByAuthId:     "exec dbo.sp_GetUserByAuthId @0",
     updateUserRoles:     "exec dbo.ps_UpdateUserRoles @0, @1, @2, @3, @4",
+
+    getUserById:              "exec dbo.sp_GetUserById @0",
+    updateTokenById:          "exec dbo.sp_UpdateTokenById @0, @1",
+    checkSimulationPermission: "exec dbo.ps_CheckSimulationPermission @0, @1",
 };
 
 module.exports = qry;

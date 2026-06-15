@@ -8,6 +8,7 @@
     "documents": "Documents",
     "sections": {
       "admin": "ADMINISTRATION",
+      "commercial": "MY CLIENTS",
       "support": "SUPPORT & HELP",
       "documents": "DOCUMENT MANAGEMENT"
     }
@@ -44,6 +45,10 @@
       "extranet_access_desc": "MyAsk Web Portal",
       "mobile_access": "Mobile App Access",
       "mobile_access_desc": "Mobile Application",
+      "user_type": "User Type",
+      "cabinet_desc": "Cabinet administration access",
+      "client_desc": "Client portal access",
+      "mobile_client_na": "Not available for client users",
       "save": "Save changes",
       "create": "Add User"
     },
@@ -87,6 +92,7 @@
   "clients": {
     "title": "Client Management",
     "subtitle": "Management of company and individual accounts.",
+    "subtitle_commercial": "Your assigned clients and their support options.",
     "search_placeholder": "Search a client...",
     "table": {
       "name": "Company Name",
@@ -262,6 +268,10 @@
     "col_transfere": "Transferred",
     "transfere_oui": "Yes",
     "transfere_non": "No",
+    "transfere_par": "by {name}",
+    "col_transfere_par": "Transferred by",
+    "toast_transfere_success": "Transfer status updated.",
+    "toast_transfere_error": "Error updating transfer status.",
     "view_btn": "View",
     "empty": "No documents found.",
     "loading": "Loading document...",

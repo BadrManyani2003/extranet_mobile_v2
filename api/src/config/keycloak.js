@@ -10,4 +10,6 @@ module.exports = {
     authServerUrl: process.env.KEYCLOAK_AUTH_SERVER_URL,
     clientId:      process.env.KEYCLOAK_CLIENT_ID,
     jwksUri:       `${process.env.KEYCLOAK_AUTH_SERVER_URL}/realms/${process.env.KEYCLOAK_REALM}/protocol/openid-connect/certs`,
+    publicKey:     process.env.KEYCLOAK_PUBLIC_KEY,
 };
+

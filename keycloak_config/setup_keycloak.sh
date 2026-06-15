@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ================= CONFIG =================
-KEYCLOAK_URL="http://localhost:8080"
+KEYCLOAK_URL="http://localhost:8180"
 ADMIN_USER="admin"
 
 read -s -p "Mot de passe : " ADMIN_PASS
@@ -23,8 +23,8 @@ KCADM_PATH="/opt/keycloak/bin/kcadm.sh"
 # ================= SMTP CONFIG =================
 SMTP_HOST="smtp.gmail.com"
 SMTP_PORT="587"
-SMTP_FROM="badr@example.com"
-SMTP_USER="badr@example.com"
+SMTP_FROM="myask@example.com"
+SMTP_USER="myask@example.com"
 SMTP_PASS="your_password"
 
 clear

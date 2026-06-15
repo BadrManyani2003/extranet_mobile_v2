@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Menu, X, User, Languages, LogOut } from 'lucide-vue-next'
+import { Menu, X, User, LogOut } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { useI18n } from 'vue-i18n'
 import keycloak from '@/services/keycloak'
@@ -13,10 +13,6 @@ defineProps<{
 }>()
 
 const emit = defineEmits(['toggle'])
-
-const toggleLanguage = () => {
-  locale.value = locale.value === 'fr' ? 'en' : 'fr'
-}
 
 const handleLogout = () => {
   userStore.clearUser()
@@ -37,18 +33,22 @@ const handleLogout = () => {
     </div>
     
     <div class="flex items-center gap-3 sm:gap-6">
-      <!-- <button 
-        @click="toggleLanguage"
-        class="flex items-center gap-2 px-3 py-2 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-100 transition-all group"
-      >
-        <Languages class="w-4 h-4 text-slate-400 group-hover:text-slate-900 transition-colors" />
-        <span class="text-sm font-black uppercase tracking-widest text-slate-600">{{ locale }}</span>
-      </button> -->
-
       <div class="flex items-center gap-3">
         <div class="flex items-center gap-3 bg-slate-50 px-4 py-2 rounded-xl border border-slate-100 shadow-sm">
-          <span class="hidden sm:inline text-base font-bold text-slate-700">{{ userStore.userName }}</span>
-          <div class="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md shadow-primary/20">
+          <div class="hidden sm:flex flex-col items-end gap-0.5">
+            <span class="text-base font-bold text-slate-700 leading-none">{{ userStore.userName }}</span>
+            <!-- Badge rôle -->
+            <span 
+              class="text-[10px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-md leading-none"
+              :class="userStore.isAdmin 
+                ? 'bg-primary/10 text-primary' 
+                : 'bg-emerald-50 text-emerald-600'"
+            >
+              {{ userStore.isAdmin ? 'Admin Cabinet' : 'Commercial' }}
+            </span>
+          </div>
+          <div class="w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-colors"
+            :class="userStore.isAdmin ? 'bg-primary text-primary-foreground shadow-primary/20' : 'bg-emerald-500 text-white shadow-emerald-200'">
             <User class="w-4 h-4" />
           </div>
         </div>

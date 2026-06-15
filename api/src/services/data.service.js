@@ -20,6 +20,10 @@ const getAdherents = (userId, source, token, policeId) => db.execute(qry.getAdhe
 const getPersACharge = (userId, source, token, adherentId) => db.execute(qry.getPersACharge, [userId, source, token, adherentId]);
 
 const getStats = (userId, source, token) => db.execute(qry.getStats, [userId, source, token]);
+const getStatsKPIs = (userId, source, token, policeId, dateDu, dateAu) => db.execute(qry.getStatsKPIs, [userId, source, token, policeId, dateDu, dateAu]);
+const getStatsEvolutionAnnuelle = (userId, source, token, policeId, dateDu, dateAu) => db.execute(qry.getStatsEvolutionAnnuelle, [userId, source, token, policeId, dateDu, dateAu]);
+const getStatsTop5ITT = (userId, source, token, policeId, dateDu, dateAu) => db.execute(qry.getStatsTop5ITT, [userId, source, token, policeId, dateDu, dateAu]);
+const getStatsRepartition = (userId, source, token, policeId, dateDu, dateAu) => db.execute(qry.getStatsRepartition, [userId, source, token, policeId, dateDu, dateAu]);
 
 const getStatsByPolice = (userId, source, token, policeId) => db.execute(qry.getStatsByPolice, [userId, token, source, policeId]);
 const getDocumentsByPolice = (userId, source, token, policeId) => db.execute(qry.getDocumentsByPolice, [userId, source, token, policeId]);
@@ -35,6 +39,10 @@ module.exports = {
     getAdherents,
     getPersACharge,
     getStats,
+    getStatsKPIs,
+    getStatsEvolutionAnnuelle,
+    getStatsTop5ITT,
+    getStatsRepartition,
     getStatsByPolice,
     getDocumentsByPolice
 };

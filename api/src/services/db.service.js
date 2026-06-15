@@ -31,4 +31,4 @@ const checkConnection = async () => {
     }
 };
 
-module.exports = { execute, checkConnection };
+module.exports = { execute, checkConnection, getPool };

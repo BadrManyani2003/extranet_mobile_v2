@@ -86,4 +86,22 @@ const deleteDocument = asyncHandler(async (req, res) => {
     success(res, null, 'Document supprimé avec succès');
 });
 
-module.exports = { uploadDocument, getDocuments, getDocumentById, deleteDocument };
+/**
+ * POST /api/documents/update-transfere
+ * Corps : { documentId, transfere }
+ * Accessible aux rôles admin_cabinet et commercial_cabinet uniquement.
+ */
+const updateDocumentTransfere = asyncHandler(async (req, res) => {
+    const { userId, token, source } = getContext(req);
+    const { documentId, transfere } = req.body;
+
+    if (!documentId) throw new Error('documentId manquant.');
+    if (!transfere || (transfere !== 'O' && transfere !== 'N')) {
+        throw new Error("Paramètre 'transfere' invalide ou manquant (doit être 'O' ou 'N').");
+    }
+
+    await documentService.updateDocumentTransfere(userId, token, source, documentId, transfere);
+    success(res, null, 'Statut de transfert mis à jour avec succès');
+});
+
+module.exports = { uploadDocument, getDocuments, getDocumentById, deleteDocument, updateDocumentTransfere };

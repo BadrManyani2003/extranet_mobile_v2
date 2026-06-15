@@ -2,28 +2,38 @@ const router = require('express').Router();
 const auth   = require('../middleware/auth');
 const ctrl   = require('../controllers/admin.controller');
 
+// Authentification obligatoire sur toutes les routes admin
 router.use(auth);
-router.use(auth.checkRole(['admin_cabinet', 'commercial_cabinet']));
 
-router.post('/users',                ctrl.getUsers);
-router.post('/simulation-users',     ctrl.getSimulationUsers);
-router.post('/users/simulation-clients',         ctrl.getUserSimulationClients);
-router.post('/users/simulation-clients/add',     ctrl.addUserSimulationClient);
-router.post('/users/simulation-clients/delete',  ctrl.deleteUserSimulationClient);
-router.post('/users/save',           ctrl.saveUser);
-router.post('/users/delete',         ctrl.deleteUser);
-router.post('/users/sync-keycloak',  ctrl.syncKeycloak);
-router.get('/roles',                 ctrl.getAvailableRoles);
-router.post('/users/roles',          ctrl.updateUserRoles);
+const adminOnly  = auth.checkRole(['admin_cabinet']);
+const adminOrCom = auth.checkRole(['admin_cabinet', 'commercial_cabinet']);
 
-router.post('/clients',              ctrl.getClients);
-router.post('/clients/create-user',  ctrl.createUserFromClient);
-router.post('/clients/link-user',    ctrl.linkUserToClient);
-router.post('/clients/unlink-user',  ctrl.unlinkUserFromClient);
-router.post('/clients/options',      ctrl.updateClientOptions);
+// ── Utilisateurs (admin + commercial) ──────────────────────────────────────────
+router.post('/users',               adminOrCom, ctrl.getUsers);
+router.post('/users/save',          adminOrCom, ctrl.saveUser);
+router.post('/users/delete',        adminOrCom, ctrl.deleteUser);
+router.post('/users/sync-keycloak', adminOrCom, ctrl.syncKeycloak);
+router.get ('/roles',               adminOnly,  ctrl.getAvailableRoles);
+router.post('/users/roles',         adminOnly,  ctrl.updateUserRoles);
 
-router.post('/adherents',            ctrl.getAdherents);
-router.post('/adherents/create-user', ctrl.createUserFromAdherent);
-router.post('/adherents/link-user',  ctrl.linkUserToAdherent);
+// ── Simulations (admin + commercial) ─────────────────────────────────────────
+router.post('/simulation-users',                 adminOrCom, ctrl.getSimulationUsers);
+router.post('/users/simulation-clients',         adminOrCom, ctrl.getUserSimulationClients);
+router.post('/users/simulation-clients/add',     adminOrCom, ctrl.addUserSimulationClient);
+router.post('/users/simulation-clients/delete',  adminOrCom, ctrl.deleteUserSimulationClient);
+
+// ── Clients (admin + commercial, résultats filtrés par rôle) ─────────────────
+router.post('/clients',              adminOrCom, ctrl.getClients);
+router.post('/clients/link-user',    adminOrCom, ctrl.linkUserToClient);
+router.post('/clients/unlink-user',  adminOrCom, ctrl.unlinkUserFromClient);
+router.post('/clients/options',      adminOrCom, ctrl.updateClientOptions);
+
+// ── Clients — actions admin + commercial ───────────────────────────────────────
+router.post('/clients/create-user',  adminOrCom, ctrl.createUserFromClient);
+
+// ── Adhérents (admin + commercial) ─────────────────────────────────────────────
+router.post('/adherents',             adminOrCom, ctrl.getAdherents);
+router.post('/adherents/create-user', adminOrCom, ctrl.createUserFromAdherent);
+router.post('/adherents/link-user',   adminOrCom, ctrl.linkUserToAdherent);
 
 module.exports = router;

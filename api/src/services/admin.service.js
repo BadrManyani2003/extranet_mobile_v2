@@ -11,7 +11,7 @@ const saveUser  = (userId, token, source, targetId, authId, nom, tel, email, nat
     db.execute(qry.saveUser, [userId, token, source, targetId, authId, nom, tel, email, nature, extranet, mobile]);
 
 const deleteUser = async (userId, token, source, deleteId) => {
-    const userResult = await db.execute("SELECT Id_Auth FROM dbo.sysUser WHERE Id = @0", [deleteId]);
+    const userResult = await db.execute(qry.getUserById, [deleteId]);
     const user = userResult[0]?.[0];
 
     await db.execute(qry.deleteUser, [userId, token, source, deleteId]);
@@ -25,7 +25,10 @@ const deleteUser = async (userId, token, source, deleteId) => {
     }
 };
 
-const getClients           = (userId, token, source) => db.execute(qry.getClients, [userId, token, source]);
+// Clients — filtrés selon le rôle (admin_cabinet = tous, commercial = ses clients simulation)
+const getClients = (userId, token, source, role = 'admin_cabinet') =>
+    db.execute(qry.getClients, [userId, token, source, role]);
+
 const createUserFromClient = (userId, token, source, clientId) => db.execute(qry.createUserFromClient, [userId, token, source, clientId]);
 const getAdherents         = (userId, source, token, policeId) => db.execute(qry.getAdherentsAdmin, [userId, source, token, policeId]);
 const createUserFromAdherent = (userId, token, source, adherentId) => db.execute(qry.createUserFromAdherent, [userId, token, source, adherentId]);
@@ -50,7 +53,7 @@ const resolveOrCreateKeycloakUser = async (Nom, Email) => {
 };
 
 const syncKeycloak = async (userId, token, source, id) => {
-    const userResult = await db.execute("SELECT Nom, Email, Id_Auth FROM dbo.sysUser WHERE Id = @0", [id]);
+    const userResult = await db.execute(qry.getUserById, [id]);
     const userToSync = userResult[0]?.[0];
 
     if (!userToSync) throw new Error("Utilisateur local introuvable.");
@@ -78,11 +81,20 @@ const syncKeycloak = async (userId, token, source, id) => {
     return { success: true, keycloakUserId };
 };
 
-const linkUserToClient       = (userId, token, source, targetUserId, clientId)  => db.execute(qry.linkUserToClient, [userId, token, source, targetUserId, clientId]);
-const unlinkUserFromClient   = (userId, token, source, targetUserId, clientId)  => db.execute(qry.unlinkUserFromClient, [userId, token, source, targetUserId, clientId]);
-const linkUserToAdherent     = (userId, token, source, targetUserId, adherentId) => db.execute(qry.linkUserToAdherent, [userId, token, source, targetUserId, adherentId]);
-const updateClientOptions    = (userId, token, source, clientId, recClt, recAdh) => db.execute(qry.updateClientOptions, [userId, token, source, clientId, recClt, recAdh]);
-const getAvailableRoles      = () => keycloakService.getAvailableRoles();
+// Lier/délier client — vérification que le commercial n'agit que sur ses propres clients (le SP gère le filtrage)
+const linkUserToClient     = (userId, token, source, targetUserId, clientId, role = 'admin_cabinet')  =>
+    db.execute(qry.linkUserToClient, [userId, token, source, targetUserId, clientId, role]);
+
+const unlinkUserFromClient = (userId, token, source, targetUserId, clientId, role = 'admin_cabinet')  =>
+    db.execute(qry.unlinkUserFromClient, [userId, token, source, targetUserId, clientId, role]);
+
+const linkUserToAdherent   = (userId, token, source, targetUserId, adherentId, role = 'admin_cabinet') =>
+    db.execute(qry.linkUserToAdherent, [userId, token, source, targetUserId, adherentId, role]);
+
+const updateClientOptions  = (userId, token, source, clientId, recClt, recAdh, role = 'admin_cabinet') =>
+    db.execute(qry.updateClientOptions, [userId, token, source, clientId, recClt, recAdh, role]);
+
+const getAvailableRoles = () => keycloakService.getAvailableRoles();
 
 const updateUserRoles = async (userId, token, source, targetUserId, authId, roles) => {
     const currentRoles = await keycloakService.getUserRoles(authId);

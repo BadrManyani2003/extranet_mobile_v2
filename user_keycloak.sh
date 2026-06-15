@@ -2,7 +2,7 @@
 
 # --- CONFIGURATION KEYCLOAK ---
 KC_PATH="kcadm.sh"
-KC_SERVER="http://localhost:8080"
+KC_SERVER="http://localhost:8180"
 KC_REALM="ask_extranet_mobile"
 KC_USER="admin"
 KC_PASS="admin"

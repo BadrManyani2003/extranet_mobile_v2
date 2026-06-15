@@ -174,11 +174,31 @@ const confirmDelete = async () => {
   }
 }
 
+const toggleTransfere = async (doc: any) => {
+  const newStatus = doc.transfere === 'O' ? 'N' : 'O'
+  try {
+    await api.document.updateDocumentTransfere(doc.id, newStatus)
+    toast.success(t('documents.toast_transfere_success'))
+    await fetchDocuments()
+  } catch (err: any) {
+    toast.error(err?.message || t('documents.toast_transfere_error'))
+  }
+}
+
+
 const formatDate = (dateStr: string) => {
   if (!dateStr) return '—'
   return new Date(dateStr).toLocaleDateString('fr-FR', {
     day: '2-digit', month: 'short', year: 'numeric'
   })
+}
+
+const openPicker = (e: Event) => {
+  try {
+    (e.target as HTMLInputElement).showPicker()
+  } catch (err) {
+    console.error('showPicker not supported:', err)
+  }
 }
 
 onMounted(fetchDocuments)
@@ -244,9 +264,9 @@ onMounted(fetchDocuments)
         <!-- Date (dd/mm/yyyy) -->
         <div class="space-y-1.5">
           <label class="text-xs font-black text-slate-400 uppercase tracking-widest">{{ $t('documents.col_date') }}</label>
-          <div class="relative">
+          <div class="relative cursor-pointer">
             <!-- Custom styled input container showing French format -->
-            <div class="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-3 text-sm font-bold flex items-center justify-between">
+            <div class="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-3 text-sm font-bold flex items-center justify-between pointer-events-none">
               <span :class="filterDate ? 'text-slate-700' : 'text-slate-400 font-medium'">
                 {{ filterDateFormatted || 'JJ/MM/AAAA' }}
               </span>
@@ -258,6 +278,7 @@ onMounted(fetchDocuments)
               type="date"
               class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
               @change="currentPage = 1"
+              @click="openPicker"
             />
           </div>
         </div>
@@ -366,12 +387,17 @@ onMounted(fetchDocuments)
                 </td>
                 <!-- Transféré -->
                 <td class="py-4 px-6 text-center">
-                  <span v-if="doc.transfere === 'O'" class="inline-flex items-center gap-1 text-emerald-600 font-black text-xs">
-                    <CheckCircle2 class="w-4 h-4" /> {{ $t('documents.transfere_oui') }}
-                  </span>
-                  <span v-else class="inline-flex items-center gap-1 text-slate-400 font-black text-xs">
-                    <Clock class="w-4 h-4" /> {{ $t('documents.transfere_non') }}
-                  </span>
+                  <div class="flex flex-col items-center justify-center gap-1">
+                    <button 
+                      @click="toggleTransfere(doc)"
+                      :class="['w-9 h-5 rounded-full p-0.5 transition-all duration-300 relative outline-none flex shrink-0 mx-auto', doc.transfere === 'O' ? 'bg-emerald-500' : 'bg-slate-200']"
+                    >
+                      <span :class="['w-4 h-4 rounded-full bg-white shadow-md block transition-transform duration-300', doc.transfere === 'O' ? 'translate-x-4' : 'translate-x-0']"></span>
+                    </button>
+                    <span v-if="doc.transfere === 'O' && doc.transfereParNom" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mt-0.5">
+                      {{ $t('documents.transfere_par', { name: doc.transfereParNom }) }}
+                    </span>
+                  </div>
                 </td>
                 <!-- Actions -->
                 <td class="py-4 px-6 text-center whitespace-nowrap">

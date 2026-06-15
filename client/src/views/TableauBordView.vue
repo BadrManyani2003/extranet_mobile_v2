@@ -1,186 +1,411 @@
 <script setup lang="ts">
-import { onMounted, computed } from 'vue'
-import { BarChart3, TrendingUp, Activity, AlertCircle, CreditCard, PieChart, ShieldCheck, Loader2, BarChart } from 'lucide-vue-next'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import LoadingSkeleton from '@/components/shared/LoadingSkeleton.vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import PageContainer from '@/components/shared/PageContainer.vue'
+import LoadingSkeleton from '@/components/shared/LoadingSkeleton.vue'
 import { api } from '@/lib/api'
-import { useFetch } from '@/composables/useFetch'
-import { formatCurrency, formatNumber } from '@/lib/utils'
-import { useI18n } from 'vue-i18n'
-import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Filler } from 'chart.js'
-import { Bar, Doughnut, Line } from 'vue-chartjs'
+import { AlertCircle } from 'lucide-vue-next'
+// @ts-ignore
+import html2pdf from 'html2pdf.js'
+import { formatDate } from '@/lib/utils'
 
-ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Filler)
+// Sub-components
+import DashboardFilters from '@/components/dashboard/DashboardFilters.vue'
+import DashboardKPIs from '@/components/dashboard/DashboardKPIs.vue'
+import DashboardEvolution from '@/components/dashboard/DashboardEvolution.vue'
+import DashboardITTAnalysis from '@/components/dashboard/DashboardITTAnalysis.vue'
+import DashboardRepartition from '@/components/dashboard/DashboardRepartition.vue'
 
-const { t, locale } = useI18n()
-const { data: statistiques, loading: loadingStats, execute: fetchStats } = useFetch(api.data.getStats)
-const { loading: loadingContrats, execute: fetchContrats } = useFetch(api.data.getPolices)
+const contrats = ref<any[]>([])
+const loadingPolices = ref(false)
+const selectedPoliceId = ref<number | string | null>(null)
+const selectedClient = ref('')
+const selectedBranch = ref('')
 
-const loading = computed(() => loadingStats.value || loadingContrats.value)
+// Default date range: 2020-01-01 to 2026-06-10 (current system date)
+const dateDu = ref('2020-01-01')
+const dateAu = ref('2026-06-10')
 
-const chartOptions = {
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: {
-    legend: {
-      position: 'bottom' as const,
-      labels: { usePointStyle: true, padding: 20, font: { family: 'Outfit', size: 10, weight: 'bold' as const } }
-    },
-    tooltip: {
-      backgroundColor: '#0f172a',
-      padding: 12,
-      titleFont: { family: 'Outfit', size: 12, weight: 'bold' as const },
-      bodyFont: { family: 'Outfit', size: 11 },
-      cornerRadius: 8
+// Stats KPI State
+const kpis = ref<any>(null)
+const loadingKPIs = ref(false)
+
+// Stats Evolution State
+const evolutionData = ref<any[] | null>(null)
+const loadingEvolution = ref(false)
+
+// Stats Top 5 ITT State
+const top5ITTData = ref<any[] | null>(null)
+const loadingTop5 = ref(false)
+
+// Stats Repartition State
+const repartitionData = ref<any[] | null>(null)
+const loadingRepartition = ref(false)
+
+const errorMsg = ref<string | null>(null)
+
+// Format years for Card 1 subtitle (e.g. 2020 – 2026)
+const yearRange = computed(() => {
+  const startYear = dateDu.value ? dateDu.value.split('-')[0] : '2020'
+  const endYear = dateAu.value ? dateAu.value.split('-')[0] : '2026'
+  return `${startYear} – ${endYear}`
+})
+
+const uniqueClients = computed(() => {
+  if (!contrats.value) return []
+  const clients = (contrats.value as any[])
+    .map((c: any) => c.client)
+    .filter((clientName): clientName is string => !!clientName)
+  return [...new Set(clients)].sort()
+})
+
+const uniqueBranches = computed(() => {
+  if (!contrats.value) return []
+  const branches = (contrats.value as any[])
+    .map((c: any) => c.branche)
+    .filter((b): b is string => !!b)
+  return [...new Set(branches)].sort()
+})
+
+// Filter policies dynamically by selected client and selected branch
+const displayPolices = computed(() => {
+  if (!contrats.value || contrats.value.length === 0) return []
+  return contrats.value.filter((c: any) => {
+    const matchesClient = !selectedClient.value || c.client === selectedClient.value
+    const matchesBranch = !selectedBranch.value || c.branche === selectedBranch.value
+    return matchesClient && matchesBranch
+  })
+})
+
+const currentPolice = computed(() => {
+  if (selectedPoliceId.value === 'all') {
+    return { police: 'Toutes les polices', branche: selectedBranch.value || 'Multi-branches' }
+  }
+  return contrats.value.find((c: any) => c.id === selectedPoliceId.value)
+})
+
+const fetchPolices = async () => {
+  loadingPolices.value = true
+  try {
+    const data = await api.data.getPolices()
+    contrats.value = data || []
+    
+    // Auto-select first AT policy and set branch
+    const atPols = data.filter((c: any) => 
+      c.branche && (
+        c.branche.toLowerCase() === 'at' || 
+        c.branche.toLowerCase().includes('accident') || 
+        c.branche.toLowerCase().includes('travail')
+      )
+    )
+    if (atPols.length > 1) {
+      selectedPoliceId.value = 'all'
+      selectedBranch.value = atPols[0].branche || ''
+    } else if (atPols.length > 0) {
+      selectedPoliceId.value = atPols[0].id
+      selectedBranch.value = atPols[0].branche || ''
+    } else if (data.length > 1) {
+      selectedPoliceId.value = 'all'
+      selectedBranch.value = data[0].branche || ''
+    } else if (data.length > 0) {
+      selectedPoliceId.value = data[0].id
+      selectedBranch.value = data[0].branche || ''
     }
+  } catch (error: any) {
+    console.error('Erreur chargement polices:', error)
+    errorMsg.value = 'Impossible de charger la liste des polices.'
+  } finally {
+    loadingPolices.value = false
   }
 }
 
-const statsCards = computed(() => {
-  const s = (statistiques.value as any)?.[0]?.[0] || {}
-  return [
-    { title: t('tableau_bord.policies_count'), value: formatNumber(s.totalPolices || 0), icon: ShieldCheck, color: 'text-slate-900' },
-    { title: t('tableau_bord.ongoing_claims'), value: formatNumber(s.sinistresEnCours || 0), icon: AlertCircle, color: 'text-orange-600' },
-    { title: t('tableau_bord.annual_premium'), value: formatCurrency(s.primeAnnuelle || 0), icon: Activity, color: 'text-emerald-600' },
-    { title: t('tableau_bord.unpaid_premiums'), value: formatCurrency(s.totalImpayes || 0), icon: CreditCard, color: 'text-red-600' }
-  ]
-})
+const fetchAllStats = async () => {
+  if (!selectedPoliceId.value) {
+    kpis.value = null
+    evolutionData.value = null
+    top5ITTData.value = null
+    repartitionData.value = null
+    return
+  }
+  loadingKPIs.value = true
+  loadingEvolution.value = true
+  loadingTop5.value = true
+  loadingRepartition.value = true
+  errorMsg.value = null
+  try {
+    if (selectedPoliceId.value === 'all') {
+      const policyIds = displayPolices.value.map(p => p.id)
+      if (policyIds.length === 0) {
+        kpis.value = null
+        evolutionData.value = null
+        top5ITTData.value = null
+        repartitionData.value = null
+        return
+      }
 
-const evolutionData = computed(() => {
-  const items = (statistiques.value as any)?.[2] || []
-  const months = locale.value === 'fr' 
-    ? ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc']
-    : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-  
-  const totals = new Array(12).fill(0)
-  const impayes = new Array(12).fill(0)
-  items.forEach((i: any) => { 
-    if (i.month_num <= 12) {
-      totals[i.month_num - 1] = i.total
-      impayes[i.month_num - 1] = i.impayes
+      // Fetch all stats in parallel
+      const [allKpis, allEvolution, allTop5, allRepartition] = await Promise.all([
+        Promise.all(policyIds.map(id => api.data.getStatsKPIs(id, dateDu.value, dateAu.value))),
+        Promise.all(policyIds.map(id => api.data.getStatsEvolutionAnnuelle(id, dateDu.value, dateAu.value))),
+        Promise.all(policyIds.map(id => api.data.getStatsTop5ITT(id, dateDu.value, dateAu.value))),
+        Promise.all(policyIds.map(id => api.data.getStatsRepartition(id, dateDu.value, dateAu.value)))
+      ])
+
+      // 1. Aggregate KPIs
+      let nbSinistresTotal = 0
+      let coutTotal = 0
+      let totalJoursITT = 0
+      let nbSinistresWithITT = 0
+      let mntITTTotal = 0
+      let nbSinistresWithIPP = 0
+      let ccrTotal = 0
+
+      allKpis.forEach(k => {
+        if (!k) return
+        nbSinistresTotal += k.nbSinistresTotal || 0
+        coutTotal += k.coutTotal || 0
+        totalJoursITT += k.totalJoursITT || 0
+        nbSinistresWithITT += k.nbSinistresWithITT || 0
+        mntITTTotal += k.mntITTTotal || 0
+        nbSinistresWithIPP += k.nbSinistresWithIPP || 0
+        ccrTotal += k.ccrTotal || 0
+      })
+
+      kpis.value = {
+        nbSinistresTotal,
+        coutTotal,
+        coutMoyen: nbSinistresTotal > 0 ? coutTotal / nbSinistresTotal : 0,
+        totalJoursITT,
+        nbSinistresWithITT,
+        tauxITT: nbSinistresTotal > 0 ? (nbSinistresWithITT / nbSinistresTotal) * 100 : 0,
+        dureeMoyenneITT: nbSinistresWithITT > 0 ? totalJoursITT / nbSinistresWithITT : 0,
+        mntITTTotal,
+        nbSinistresWithIPP,
+        ccrTotal
+      }
+
+      // 2. Aggregate Evolution
+      const evolutionMap: Record<number, any> = {}
+      allEvolution.forEach(arr => {
+        if (!Array.isArray(arr)) return
+        arr.forEach((item: any) => {
+          const y = item.annee
+          if (!evolutionMap[y]) {
+            evolutionMap[y] = { annee: y, nbSinistres: 0, coutTotal: 0, nbITT: 0, joursITT: 0, mntITT: 0 }
+          }
+          evolutionMap[y].nbSinistres += item.nbSinistres || 0
+          evolutionMap[y].coutTotal += item.coutTotal || 0
+          evolutionMap[y].nbITT += item.nbITT || 0
+          evolutionMap[y].joursITT += item.joursITT || 0
+          evolutionMap[y].mntITT += item.mntITT || 0
+        })
+      })
+      const finalEvolution = Object.values(evolutionMap).map((item: any) => {
+        item.tauxITT = item.nbSinistres > 0 ? (item.nbITT / item.nbSinistres) * 100 : 0
+        return item
+      }).sort((a: any, b: any) => a.annee - b.annee)
+      evolutionData.value = finalEvolution.length > 0 ? finalEvolution : null
+
+      // 3. Aggregate Top 5
+      const mergedTop5: any[] = []
+      allTop5.forEach(arr => {
+        if (Array.isArray(arr)) {
+          mergedTop5.push(...arr)
+        }
+      })
+      mergedTop5.sort((a, b) => (b.joursITT || 0) - (a.joursITT || 0))
+      top5ITTData.value = mergedTop5.slice(0, 5)
+
+      // 4. Aggregate Repartition
+      const circonstancesMap: Record<string, number> = {}
+      const lesionsMap: Record<string, number> = {}
+      const typesMap: Record<string, { countVal: number }> = {}
+
+      allRepartition.forEach(rep => {
+        if (!rep || !Array.isArray(rep)) return
+        if (Array.isArray(rep[0])) {
+          rep[0].forEach((item: any) => {
+            circonstancesMap[item.categorie] = (circonstancesMap[item.categorie] || 0) + (item.countVal || 0)
+          })
+        }
+        if (Array.isArray(rep[1])) {
+          rep[1].forEach((item: any) => {
+            lesionsMap[item.categorie] = (lesionsMap[item.categorie] || 0) + (item.countVal || 0)
+          })
+        }
+        if (Array.isArray(rep[2])) {
+          rep[2].forEach((item: any) => {
+            if (!typesMap[item.categorie]) {
+              typesMap[item.categorie] = { countVal: 0 }
+            }
+            typesMap[item.categorie].countVal += item.countVal || 0
+          })
+        }
+      })
+
+      const circonstancesList = Object.entries(circonstancesMap).map(([categorie, countVal]) => ({ categorie, countVal })).sort((a, b) => b.countVal - a.countVal)
+      const lesionsList = Object.entries(lesionsMap).map(([categorie, countVal]) => ({ categorie, countVal })).sort((a, b) => b.countVal - a.countVal)
+      
+      const typeTotal = Object.values(typesMap).reduce((acc, curr) => acc + curr.countVal, 0)
+      const typesList = Object.entries(typesMap).map(([categorie, data]) => {
+        const countVal = data.countVal
+        const pourcentage = typeTotal > 0 ? (countVal / typeTotal) * 100 : 0
+        return { categorie, countVal, pourcentage }
+      }).sort((a, b) => b.countVal - a.countVal)
+
+      repartitionData.value = [circonstancesList, lesionsList, typesList]
+
+    } else {
+      const [kpiResult, evolutionResult, top5Result, repartitionResult] = await Promise.all([
+        api.data.getStatsKPIs(Number(selectedPoliceId.value), dateDu.value, dateAu.value),
+        api.data.getStatsEvolutionAnnuelle(Number(selectedPoliceId.value), dateDu.value, dateAu.value),
+        api.data.getStatsTop5ITT(Number(selectedPoliceId.value), dateDu.value, dateAu.value),
+        api.data.getStatsRepartition(Number(selectedPoliceId.value), dateDu.value, dateAu.value)
+      ])
+      kpis.value = kpiResult || null
+      evolutionData.value = evolutionResult || null
+      top5ITTData.value = top5Result || null
+      repartitionData.value = repartitionResult || null
     }
+  } catch (error: any) {
+    console.error('Erreur chargement statistiques:', error)
+    errorMsg.value = error.message || 'Erreur lors du chargement des statistiques.'
+  } finally {
+    loadingKPIs.value = false
+    loadingEvolution.value = false
+    loadingTop5.value = false
+    loadingRepartition.value = false
+  }
+}
+
+watch(displayPolices, (newPolices) => {
+  if (newPolices.length === 0) {
+    selectedPoliceId.value = null
+  } else {
+    if (newPolices.length > 1) {
+      selectedPoliceId.value = 'all'
+    } else if (!newPolices.some(p => p.id === selectedPoliceId.value)) {
+      selectedPoliceId.value = newPolices[0].id
+    }
+  }
+})
+
+watch([selectedPoliceId, dateDu, dateAu], () => {
+  fetchAllStats()
+})
+
+const exportToPdf = () => {
+  const element = document.getElementById('dashboard-content')
+  if (!element) return
+
+  element.classList.add('pdf-export-mode')
+
+  const opt = {
+    margin:       0,
+    filename:     `Dashboard_Statistiques_${new Date().toISOString().split('T')[0]}.pdf`,
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { scale: 2, useCORS: true, logging: false },
+    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+  }
+
+  html2pdf().set(opt as any).from(element).save().then(() => {
+    element.classList.remove('pdf-export-mode')
+  }).catch((err: any) => {
+    console.error('Error exporting PDF:', err)
+    element.classList.remove('pdf-export-mode')
   })
-  return {
-    labels: months,
-    datasets: [
-      {
-        label: t('tableau_bord.paid_premiums'),
-        data: totals,
-        borderColor: '#10b981', // Emerald 500
-        backgroundColor: 'rgba(16, 185, 129, 0.05)',
-        fill: true,
-        tension: 0.4
-      },
-      {
-        label: t('tableau_bord.unpaid'),
-        data: impayes,
-        borderColor: '#ef4444', // Red 500
-        backgroundColor: 'rgba(239, 68, 68, 0.05)',
-        fill: true,
-        tension: 0.4
-      }
-    ]
-  }
-})
+}
 
-const distributionData = computed(() => {
-  const items = (statistiques.value as any)?.[1] || []
-  return {
-    labels: items.map((i: any) => i.label),
-    datasets: [{
-      data: items.map((i: any) => i.value),
-      backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#0f172a', '#334155', '#64748b', '#94a3b8', '#cbd5e1'],
-      borderWidth: 0
-    }]
-  }
-})
-
-const brancheData = computed(() => {
-  const items = (statistiques.value as any)?.[3] || []
-  return {
-    labels: items.map((i: any) => i.branche),
-    datasets: [
-      {
-        label: t('tableau_bord.annual_premium'),
-        data: items.map((i: any) => i.totalPrime),
-        backgroundColor: '#10b981',
-        borderRadius: 6
-      },
-      {
-        label: t('tableau_bord.unpaid'),
-        data: items.map((i: any) => i.totalImpaye),
-        backgroundColor: '#ef4444',
-        borderRadius: 6
-      }
-    ]
-  }
-})
-
-onMounted(() => {
-  Promise.all([fetchStats(), fetchContrats()])
+onMounted(async () => {
+  await fetchPolices()
+  await fetchAllStats()
 })
 </script>
 
 <template>
-  <PageContainer :title="$t('tableau_bord.title')" :subtitle="$t('tableau_bord.subtitle')">
-    <div v-if="loading" class="flex flex-col items-center justify-center min-h-[400px] gap-4">
-      <div class="relative">
-        <Loader2 class="w-12 h-12 animate-spin text-primary" />
-        <div class="absolute inset-0 blur-xl bg-primary/20 animate-pulse rounded-full"></div>
+  <PageContainer title="Statistiques" subtitle="Vue globale">
+    
+    <!-- Filtres -->
+    <DashboardFilters 
+      v-model:selectedPoliceId="selectedPoliceId"
+      v-model:selectedClient="selectedClient"
+      v-model:selectedBranch="selectedBranch"
+      v-model:dateDu="dateDu"
+      v-model:dateAu="dateAu"
+      :displayPolices="displayPolices"
+      :uniqueClients="uniqueClients"
+      :uniqueBranches="uniqueBranches"
+      :loadingPolices="loadingPolices"
+      :loadingState="loadingKPIs || loadingEvolution || loadingTop5 || loadingRepartition"
+      @refresh="fetchAllStats"
+      @exportPdf="exportToPdf"
+      class="mb-6"
+    />
+
+    <!-- Error State -->
+    <div v-if="errorMsg" class="bg-red-50 border border-red-200/60 rounded-3xl p-6 text-red-800 flex items-start gap-4">
+      <AlertCircle class="w-6 h-6 text-red-500 shrink-0 mt-0.5" />
+      <div>
+        <h4 class="font-bold text-red-900 mb-1">Erreur de chargement</h4>
+        <p class="text-sm text-red-700 font-medium">{{ errorMsg }}</p>
       </div>
-      <p class="text-xs font-black text-slate-400 uppercase tracking-[0.2em] animate-pulse">{{ $t('commun.loading') }}</p>
     </div>
 
-    <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-      <Card v-for="stat in statsCards" :key="stat.title" class="glass-card group border-none">
-        <CardContent class="p-5 sm:p-6 flex flex-row sm:flex-col items-center sm:text-center gap-4 sm:gap-3">
-          <div :class="['w-12 h-12 rounded-2xl flex items-center justify-center bg-slate-50 transition-transform group-hover:scale-110 shrink-0', stat.color]">
-            <component :is="stat.icon" class="w-6 h-6" />
-          </div>
-          <div class="flex-1 sm:flex-none text-left sm:text-center">
-            <p class="text-[14px] sm:text-[14px] font-black text-slate-400 uppercase tracking-widest mb-0.5 sm:mb-1">{{ stat.title }}</p>
-            <h3 class="text-base sm:text-lg md:text-xl font-black text-slate-900 tracking-tight leading-tight">{{ stat.value }}</h3>
-          </div>
-        </CardContent>
-      </Card>
+    <!-- Main Loading State (Skeletons) -->
+    <div v-if="loadingKPIs || loadingEvolution || loadingTop5 || loadingRepartition" class="space-y-6">
+      <div class="w-full h-16 bg-slate-200 rounded-[2rem] animate-pulse"></div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <LoadingSkeleton v-for="i in 8" :key="i" height="h-36" class="rounded-[2rem]" />
+      </div>
+      <div class="w-full h-96 bg-slate-200 rounded-[2.5rem] animate-pulse"></div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
-      <Card class="lg:col-span-2 glass-card p-8 md:p-10 border-none">
-        <div class="flex items-center justify-between mb-8">
-          <CardTitle class="text-xl font-black text-slate-900 tracking-tight uppercase tracking-widest text-[14px]">{{ $t('tableau_bord.premium_evolution') }} & {{ $t('tableau_bord.unpaid_evolution') }}</CardTitle>
-          <TrendingUp class="w-5 h-5 text-slate-400" />
-        </div>
-        <div class="h-[250px] sm:h-[300px] w-full">
-          <Line :data="evolutionData" :options="chartOptions" />
-        </div>
-      </Card>
-
-      <Card class="lg:col-span-1 glass-card p-8 md:p-10 border-none">
-        <div class="flex items-center justify-between mb-8">
-          <CardTitle class="text-xl font-black text-slate-900 tracking-tight uppercase tracking-widest text-[14px]">{{ $t('tableau_bord.coverage_distribution') }}</CardTitle>
-          <PieChart class="w-5 h-5 text-slate-400" />
-        </div>
-        <div class="h-[250px] sm:h-[300px] w-full relative">
-          <Doughnut :data="distributionData" :options="{ ...chartOptions, cutout: '75%' }" />
-          <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-[-10px]">
-            <span class="text-3xl font-black text-slate-900 leading-none">{{ (statistiques?.[0]?.[0]?.totalPolices) || 0 }}</span>
-            <span class="text-[14px] text-slate-400 font-black uppercase tracking-widest">{{ $t('tableau_bord.total_policies') }}</span>
+    <!-- Main Dashboard Container -->
+    <div v-else id="dashboard-content" class="space-y-12 bg-white p-6 md:p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+      
+      <!-- PDF Only Header -->
+      <div class="pdf-header border-b-2 border-slate-200 pb-4 mb-6">
+        <h1 class="text-3xl font-black text-slate-900 tracking-tight" style="font-size: 28px !important; line-height: 1.2;">STATISTIQUES</h1>
+        <div class="grid grid-cols-2 gap-4 mt-4 bg-slate-50 p-4 rounded-2xl text-xs font-bold text-slate-600 border border-slate-100">
+          <div>
+            <p class="text-slate-400 uppercase text-[10px] tracking-wider mb-0.5">Client / Filiale</p>
+            <p class="text-slate-800 text-sm font-black">{{ selectedClient || 'Tous les clients' }}</p>
+          </div>
+          <div>
+            <p class="text-slate-400 uppercase text-[10px] tracking-wider mb-0.5">Branche</p>
+            <p class="text-slate-800 text-sm font-black">{{ selectedBranch || 'Toutes les branches' }}</p>
+          </div>
+          <div>
+            <p class="text-slate-400 uppercase text-[10px] tracking-wider mb-0.5">Contrat / Police</p>
+            <p class="text-slate-800 text-sm font-black">{{ selectedPoliceId === 'all' ? 'Toutes les polices' : currentPolice?.police || 'N/A' }}</p>
+          </div>
+          <div>
+            <p class="text-slate-400 uppercase text-[10px] tracking-wider mb-0.5">Période du rapport</p>
+            <p class="text-slate-800 text-sm font-black">Du {{ formatDate(dateDu) }} au {{ formatDate(dateAu) }}</p>
           </div>
         </div>
-      </Card>
-    </div>
+      </div>
+      
+      <!-- 1. KPIs Section -->
+      <DashboardKPIs 
+        :kpis="kpis"
+        :yearRange="yearRange"
+      />
+      
+      <DashboardEvolution 
+        :evolutionData="evolutionData"
+      />
 
-    <Card class="glass-card p-8 md:p-10 border-none">
-      <div class="flex items-center justify-between mb-8">
-        <CardTitle class="text-xl font-black text-slate-900 tracking-tight uppercase tracking-widest text-[14px]">{{ $t('tableau_bord.expert_analysis') }}</CardTitle>
-        <BarChart class="w-5 h-5 text-slate-400" />
-      </div>
-      <div class="h-[300px] sm:h-[400px] w-full">
-        <Bar :data="brancheData" :options="chartOptions" />
-      </div>
-    </Card>
+      <DashboardITTAnalysis 
+        :evolutionData="evolutionData"
+        :top5ITTData="top5ITTData"
+      />
+      
+      <DashboardRepartition 
+        :repartitionData="repartitionData"
+      />
+
+
+    </div>
   </PageContainer>
 </template>
-
