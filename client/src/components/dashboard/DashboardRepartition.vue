@@ -131,7 +131,7 @@ const doughnutChartOptions = computed(() => {
     <div class="w-full bg-[#0d3880] px-6 py-4 md:px-8 md:py-5 flex items-center justify-between overflow-hidden relative">
       <div class="absolute inset-0 bg-gradient-to-r from-blue-900/10 via-transparent to-blue-900/5 pointer-events-none"></div>
       <div class="space-y-0.5 z-10">
-        <h2 class="text-lg md:text-2xl font-black text-white uppercase tracking-wider">RÉPARTITION PAR CIRCONSTANCE ET NATURE DE LÉSION</h2>
+        <h2 class="text-lg md:text-2xl font-black text-white uppercase tracking-wider">{{ $t('tableau_bord.repartition_circumstance_lesion') }}</h2>
       </div>
     </div>
 
@@ -143,7 +143,7 @@ const doughnutChartOptions = computed(() => {
         <!-- Circumstances Doughnut -->
         <div class="bg-white rounded-[1.8rem] border border-slate-200/60 p-6 md:p-8 space-y-4 shadow-sm">
           <h3 class="font-extrabold text-slate-900 text-sm md:text-base tracking-tight text-center uppercase">
-            Circonstances des accidents
+            {{ $t('tableau_bord.accident_circumstances') }}
           </h3>
           <div class="relative h-72 w-full">
             <Doughnut :data="circumstancesChartData" :options="doughnutChartOptions" />
@@ -153,7 +153,7 @@ const doughnutChartOptions = computed(() => {
         <!-- Lesions Doughnut -->
         <div class="bg-white rounded-[1.8rem] border border-slate-200/60 p-6 md:p-8 space-y-4 shadow-sm">
           <h3 class="font-extrabold text-slate-900 text-sm md:text-base tracking-tight text-center uppercase">
-            Nature des lésions
+            {{ $t('tableau_bord.nature_of_lesions') }}
           </h3>
           <div class="relative h-72 w-full">
             <Doughnut :data="lesionsChartData" :options="doughnutChartOptions" />
@@ -165,7 +165,7 @@ const doughnutChartOptions = computed(() => {
       <div class="bg-white border border-slate-200/60 rounded-[1.5rem] overflow-hidden shadow-sm">
         <div class="bg-[#1e293b] px-6 py-4 text-white text-center">
           <h3 class="text-sm md:text-base font-black uppercase tracking-wider">
-            TYPE D'ACCIDENT
+            {{ $t('tableau_bord.accident_type') }}
           </h3>
         </div>
         

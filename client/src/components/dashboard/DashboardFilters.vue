@@ -54,7 +54,7 @@ const openPicker = (e: Event) => {
     
     <h2 class="font-black text-slate-900 uppercase tracking-widest text-xs mb-6 flex items-center gap-2">
       <CalendarDays class="w-4 h-4 text-primary" />
-      Filtres de recherche
+      {{ $t('tableau_bord.search_filters') }}
     </h2>
     
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
@@ -115,14 +115,14 @@ const openPicker = (e: Event) => {
             :disabled="loadingPolices"
           >
             <option v-if="loadingPolices" value="" disabled>{{ $t('contrats.loading_clients') }}</option>
-            <option v-else-if="displayPolices.length === 0" value="" disabled>Aucun contrat disponible</option>
+            <option v-else-if="displayPolices.length === 0" value="" disabled>{{ $t('tableau_bord.no_contract_available') }}</option>
             <option v-if="!loadingPolices && displayPolices.length > 1" value="all">{{ $t('contrats.all_policies') }}</option>
             <option 
               v-for="p in displayPolices" 
               :key="p.id" 
               :value="p.id"
             >
-              {{ p.police }} ({{ p.compagnie || p.branche || 'AT' }})
+              {{ p.police }} ({{ p.compagnie || p.branche || 'AT' }}{{ p.statut ? ' - ' + p.statut : '' }})
             </option>
           </select>
           <div class="pointer-events-none absolute inset-y-0 right-4 flex items-center text-slate-400">
@@ -135,7 +135,7 @@ const openPicker = (e: Event) => {
 
       <!-- Date Du -->
       <div class="space-y-2">
-        <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Période du</label>
+        <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">{{ $t('commun.date_from') }}</label>
         <div class="relative cursor-pointer">
           <div class="w-full bg-slate-50 border border-slate-200/80 rounded-2xl px-4 py-3 font-bold text-sm text-slate-800 flex items-center justify-between shadow-sm pointer-events-none">
             <span :class="dateDu ? 'text-slate-800' : 'text-slate-400 font-medium'">
@@ -154,7 +154,7 @@ const openPicker = (e: Event) => {
 
       <!-- Date Au -->
       <div class="space-y-2">
-        <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">au</label>
+        <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">{{ $t('commun.date_to') }}</label>
         <div class="flex gap-2">
           <div class="relative flex-1 cursor-pointer">
             <div class="w-full bg-slate-50 border border-slate-200/80 rounded-2xl px-4 py-3 font-bold text-sm text-slate-800 flex items-center justify-between shadow-sm pointer-events-none">

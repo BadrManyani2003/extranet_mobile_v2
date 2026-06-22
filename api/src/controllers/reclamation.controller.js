@@ -5,16 +5,9 @@ const asyncHandler = require('../middleware/asyncHandler');
 const getContext = (req) => ({
     userId: req.user.id,
     token:  req.user.token,
-    source: req.headers['x-source'] || 'M',
-    // Détermine le rôle actif pour le filtrage (admin vs commercial)
-    role:   (req.user.roles || []).includes('admin_cabinet') ? 'admin_cabinet' : 'commercial_cabinet'
-});
+    source: req.headers['x-source'] || 'E',
 
-// Route admin/commercial — résultats filtrés par rôle
-const getAdminReclamations = asyncHandler(async (req, res) => {
-    const { userId, source, token, role } = getContext(req);
-    const result = await reclamationService.getAdminReclamations(userId, source, token, role);
-    success(res, result[0] || []);
+    role:   (req.user.roles || []).includes('admin_cabinet') ? 'admin_cabinet' : 'commercial_cabinet'
 });
 
 const getReclamations = asyncHandler(async (req, res) => {
@@ -62,6 +55,13 @@ const updateStatus = asyncHandler(async (req, res) => {
 
 const deleteReclamation = asyncHandler(async (req, res) => {
     const { userId, source, token } = getContext(req);
+    const roles = req.user.roles || [];
+
+    if (roles.includes('commercial_cabinet') && !roles.includes('admin_cabinet')) {
+        res.status(403);
+        throw new Error("Action non autorisée.");
+    }
+
     const { reclamationId } = req.body;
     await reclamationService.deleteReclamation(userId, source, token, reclamationId);
     success(res, null, 'Réclamation supprimée');
@@ -75,7 +75,6 @@ const deleteMessage = asyncHandler(async (req, res) => {
 });
 
 module.exports = {
-    getAdminReclamations,
     getReclamations,
     getReclamationDetails,
     createReclamation,

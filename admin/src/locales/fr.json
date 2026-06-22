@@ -113,11 +113,18 @@
     "toast_unlink_success": "Liaison supprimée",
     "toast_options_update_success": "Options de réclamation mises à jour",
     "toast_options_update_error": "Erreur de mise à jour",
+    "toast_parent_update_success": "Client parent mis à jour avec succès",
+    "toast_parent_update_error": "Erreur lors de la mise à jour du client parent",
+    "parent_dialog_title": "Définir le client parent",
+    "parent_dialog_desc": "Sélectionnez le client parent pour {name}.",
+    "no_parent": "Aucun (Supprimer le parent)",
     "options_title": "Options Réclamations",
     "support_client": "Support Client",
     "support_client_desc": "Permettre les tickets client",
     "support_adherent": "Support Adhérent",
-    "support_adherent_desc": "Permettre les tickets adhérent"
+    "support_adherent_desc": "Permettre les tickets adhérent",
+    "emails_title": "Emails Chargés de Compte",
+    "no_emails": "Aucun email trouvé"
   },
   "adherents": {
     "title": "Gestion des Adhérents",
@@ -190,7 +197,9 @@
     "you": "VOUS",
     "download": "Télécharger",
     "previous": "Précédent",
-    "next": "Suivant"
+    "next": "Suivant",
+    "add": "Ajouter",
+    "saving": "Enregistrement..."
   },
   "reclamations": {
     "all_natures": "Toutes les natures",

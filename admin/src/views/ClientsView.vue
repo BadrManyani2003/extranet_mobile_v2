@@ -2,12 +2,14 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Building2, UserPlus, CheckCircle2, Link, X, MessageSquare, Edit } from 'lucide-vue-next'
+import { Building2, UserPlus, CheckCircle2, Link, X, MessageSquare, Edit, MailPlus } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import DataTableWrapper from '@/components/shared/DataTableWrapper.vue'
 import UserLinkDialog from '@/components/shared/UserLinkDialog.vue'
 import ConfirmModal from '@/components/shared/ConfirmModal.vue'
+import ClientEmailsDialog from '@/components/shared/ClientEmailsDialog.vue'
+import ClientParentDialog from '@/components/shared/ClientParentDialog.vue'
 import { api } from '@/lib/api'
 import { toast } from '@/components/ui/sonner'
 import { useRole } from '@/composables/useRole'
@@ -22,6 +24,53 @@ const unlinkConfirmOpen = ref(false)
 const unlinking = ref(false)
 const pendingUnlinkData = ref<{ clientId: number, userId: string } | null>(null)
 const selectedClientId = ref<number | null>(null)
+
+const emailsDialogOpen = ref(false)
+const selectedClientForEmails = ref<any>(null)
+const emailsSaving = ref(false)
+
+const parentDialogOpen = ref(false)
+const selectedClientForParent = ref<any>(null)
+const parentSaving = ref(false)
+
+const openParentDialog = (client: any) => {
+  selectedClientForParent.value = client
+  parentDialogOpen.value = true
+}
+
+const handleSaveParent = async (parentId: number | null) => {
+  if (!selectedClientForParent.value) return
+  parentSaving.value = true
+  try {
+    await api.admin.updateClientParent(selectedClientForParent.value.id, parentId)
+    toast.success(t('clients.toast_parent_update_success'))
+    parentDialogOpen.value = false
+    fetchClients()
+  } catch (e: any) {
+    toast.error(e.message || t('clients.toast_parent_update_error'))
+  } finally {
+    parentSaving.value = false
+  }
+}
+
+const openEmailsDialog = (client: any) => {
+  selectedClientForEmails.value = client
+  emailsDialogOpen.value = true
+}
+
+const handleSaveEmails = async (clientId: number, emailsString: string) => {
+  emailsSaving.value = true
+  try {
+    await api.admin.updateClientEmails(clientId, emailsString)
+    toast.success('Emails mis à jour avec succès')
+    emailsDialogOpen.value = false
+    fetchClients()
+  } catch (e: any) {
+    toast.error(e.message || 'Erreur lors de la mise à jour des emails')
+  } finally {
+    emailsSaving.value = false
+  }
+}
 
 const fetchClients = async () => {
   loading.value = true
@@ -147,7 +196,18 @@ onUnmounted(() => {
               </Badge>
             </TableCell>
             <TableCell>
-              <span class="text-sm font-medium text-slate-500">{{ client.parentClient || '-' }}</span>
+              <div class="flex items-center gap-2">
+                <span class="text-sm font-medium text-slate-500">{{ client.parentClient || '-' }}</span>
+                <Button 
+                  v-if="isAdmin || isCommercial"
+                  variant="ghost" 
+                  size="sm" 
+                  class="h-7 w-7 p-0 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100" 
+                  @click="openParentDialog(client)"
+                >
+                  <Edit class="w-3.5 h-3.5" />
+                </Button>
+              </div>
             </TableCell>
             <TableCell>
               <div v-if="client.fkUserId" class="flex flex-wrap gap-2">
@@ -160,13 +220,13 @@ onUnmounted(() => {
                    </button>
                 </div>
               </div>
-              <span v-else class="text-slate-300 font-black text-[14px] uppercase tracking-widest italic">{{ $t('commun.no_results') }}</span>
+              <span v-else class="text-slate-300 font-black text-[14px] uppercase tracking-widest italic">( - )</span>
             </TableCell>
             <TableCell class="text-right">
               <div class="flex justify-end gap-1 items-center">
                 <!-- Créer utilisateur : admin + commercial -->
                 <Button 
-                  v-if="isAdmin || isCommercial"
+                  v-if="!client.fkUserId && (isAdmin || isCommercial)"
                   variant="ghost" size="sm" class="h-9 gap-2 premium-button text-slate-600 hover:bg-primary hover:text-primary-foreground" 
                   @click="handleCreateUser(client.id)"
                 >
@@ -176,6 +236,11 @@ onUnmounted(() => {
                 <!-- Lier utilisateur : admin + commercial -->
                 <Button variant="ghost" size="sm" class="h-9 gap-2 premium-button text-emerald-600 hover:bg-emerald-50" @click="openLinkDialog(client.id)">
                   <Link class="w-4 h-4" /> {{ $t('commun.link') }}
+                </Button>
+
+                <!-- Gérer les emails chargés de compte -->
+                <Button variant="ghost" size="sm" class="h-9 w-9 p-0 premium-button text-blue-600 hover:bg-blue-50" @click="openEmailsDialog(client)">
+                  <MailPlus class="w-4 h-4" />
                 </Button>
                 
                 <!-- Options réclamation : admin + commercial -->
@@ -240,5 +305,23 @@ onUnmounted(() => {
     :loading="unlinking"
     @close="unlinkConfirmOpen = false"
     @confirm="confirmUnlinkUser"
+  />
+
+  <ClientEmailsDialog
+    :open="emailsDialogOpen"
+    :client-id="selectedClientForEmails?.id || null"
+    :client-name="selectedClientForEmails?.raisonSociale || ''"
+    :initial-emails="selectedClientForEmails?.emailChargeCompte || ''"
+    :loading="emailsSaving"
+    @update:open="emailsDialogOpen = $event"
+    @save="handleSaveEmails"
+  />
+
+  <ClientParentDialog
+    :open="parentDialogOpen"
+    :client-id="selectedClientForParent?.id || null"
+    :client-name="selectedClientForParent?.raisonSociale || ''"
+    @close="parentDialogOpen = false"
+    @select="handleSaveParent"
   />
 </template>

@@ -22,9 +22,7 @@ async function bootstrap() {
     app.use(router)
     app.use(i18n)
     
-    app.mount('#app').$nextTick(() => {
-      console.log('🚀 Client App mounted and authenticated');
-    });
+    app.mount('#app')
   })
 }
 

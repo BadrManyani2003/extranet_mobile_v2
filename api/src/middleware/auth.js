@@ -54,6 +54,33 @@ function getKey(header, callback) {
 
 const verifyToken = promisify(jwt.verify);
 
+const userCache = new Map();
+const CACHE_TTL_MS = 5 * 60 * 1000;
+
+async function getCachedUser(authId) {
+    const cached = userCache.get(authId);
+    if (cached && (Date.now() - cached.timestamp < CACHE_TTL_MS)) {
+        return cached.user;
+    }
+    const result = await authService.getUserByAuthId(authId);
+    const dbUser = result[0]?.[0];
+    if (dbUser) {
+        if (userCache.size >= 500) {
+            const now = Date.now();
+            for (const [key, val] of userCache.entries()) {
+                if (now - val.timestamp >= CACHE_TTL_MS) {
+                    userCache.delete(key);
+                }
+            }
+            if (userCache.size >= 500) {
+                userCache.clear();
+            }
+        }
+        userCache.set(authId, { user: dbUser, timestamp: Date.now() });
+    }
+    return dbUser;
+}
+
 module.exports = async (req, res, next) => {
     const authHeader = req.headers.authorization;
 
@@ -70,8 +97,7 @@ module.exports = async (req, res, next) => {
         });
 
         const source = req.headers['x-source'] || 'E';
-        const result = await authService.getUserByAuthId(decoded.sub);
-        const dbUser = result[0]?.[0];
+        const dbUser = await getCachedUser(decoded.sub);
 
         req.user = {
             ...decoded,
@@ -129,6 +155,8 @@ module.exports = async (req, res, next) => {
         if (dbUser && dbUser.token !== token && !impersonation) {
             try {
                 await authService.updateToken(token, decoded.sub);
+                dbUser.token = token; // Update cache
+                userCache.set(decoded.sub, { user: dbUser, timestamp: Date.now() });
             } catch (err) {
                 console.error('❌ Echec de la mise a jour du token en BDD:', err.message);
             }

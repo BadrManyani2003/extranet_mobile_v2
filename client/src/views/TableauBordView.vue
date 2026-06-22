@@ -41,6 +41,10 @@ const loadingTop5 = ref(false)
 const repartitionData = ref<any[] | null>(null)
 const loadingRepartition = ref(false)
 
+// Stats Top 10 Victimes State
+const top10VictimesData = ref<any[] | null>(null)
+const loadingVictimes = ref(false)
+
 const errorMsg = ref<string | null>(null)
 
 // Format years for Card 1 subtitle (e.g. 2020 – 2026)
@@ -83,6 +87,11 @@ const currentPolice = computed(() => {
   return contrats.value.find((c: any) => c.id === selectedPoliceId.value)
 })
 
+const isATBranch = computed(() => {
+  const b = currentPolice.value?.branche?.toLowerCase() || ''
+  return b === 'at' || b.includes('accident') || b.includes('travail')
+})
+
 const fetchPolices = async () => {
   loadingPolices.value = true
   try {
@@ -119,7 +128,7 @@ const fetchPolices = async () => {
 }
 
 const fetchAllStats = async () => {
-  if (!selectedPoliceId.value) {
+  if (!selectedPoliceId.value || !isATBranch.value) {
     kpis.value = null
     evolutionData.value = null
     top5ITTData.value = null
@@ -143,11 +152,12 @@ const fetchAllStats = async () => {
       }
 
       // Fetch all stats in parallel
-      const [allKpis, allEvolution, allTop5, allRepartition] = await Promise.all([
+      const [allKpis, allEvolution, allTop5, allRepartition, allSinistres] = await Promise.all([
         Promise.all(policyIds.map(id => api.data.getStatsKPIs(id, dateDu.value, dateAu.value))),
         Promise.all(policyIds.map(id => api.data.getStatsEvolutionAnnuelle(id, dateDu.value, dateAu.value))),
         Promise.all(policyIds.map(id => api.data.getStatsTop5ITT(id, dateDu.value, dateAu.value))),
-        Promise.all(policyIds.map(id => api.data.getStatsRepartition(id, dateDu.value, dateAu.value)))
+        Promise.all(policyIds.map(id => api.data.getStatsRepartition(id, dateDu.value, dateAu.value))),
+        Promise.all(policyIds.map(id => api.data.getSinistres(id)))
       ])
 
       // 1. Aggregate KPIs
@@ -254,17 +264,68 @@ const fetchAllStats = async () => {
 
       repartitionData.value = [circonstancesList, lesionsList, typesList]
 
+      // 5. Aggregate Top 10 Victimes (Multiple Sinistres)
+      const victimeCount: Record<string, number> = {}
+      allSinistres.forEach(arr => {
+        if (!Array.isArray(arr)) return
+        arr.forEach(s => {
+          const d = s.dateSinistre || s.date || s.dateDeclaration || s.dateSurvenance
+          if (d) {
+            const dateObj = new Date(d)
+            const start = new Date(dateDu.value)
+            const end = new Date(dateAu.value)
+            if (dateObj >= start && dateObj <= end) {
+              const nom = s.objet || s.victime || s.nom
+              if (nom) {
+                victimeCount[nom] = (victimeCount[nom] || 0) + 1
+              }
+            }
+          }
+        })
+      })
+      const top10 = Object.entries(victimeCount)
+        .map(([nom, count]) => ({ nom, count }))
+        .filter(item => item.count > 1) // Multiple sinistres only
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 10)
+      top10VictimesData.value = top10.length > 0 ? top10 : null
+
     } else {
-      const [kpiResult, evolutionResult, top5Result, repartitionResult] = await Promise.all([
+      const [kpiResult, evolutionResult, top5Result, repartitionResult, sinistresResult] = await Promise.all([
         api.data.getStatsKPIs(Number(selectedPoliceId.value), dateDu.value, dateAu.value),
         api.data.getStatsEvolutionAnnuelle(Number(selectedPoliceId.value), dateDu.value, dateAu.value),
         api.data.getStatsTop5ITT(Number(selectedPoliceId.value), dateDu.value, dateAu.value),
-        api.data.getStatsRepartition(Number(selectedPoliceId.value), dateDu.value, dateAu.value)
+        api.data.getStatsRepartition(Number(selectedPoliceId.value), dateDu.value, dateAu.value),
+        api.data.getSinistres(Number(selectedPoliceId.value))
       ])
       kpis.value = kpiResult || null
       evolutionData.value = evolutionResult || null
       top5ITTData.value = top5Result || null
       repartitionData.value = repartitionResult || null
+
+      const victimeCount: Record<string, number> = {}
+      if (Array.isArray(sinistresResult)) {
+        sinistresResult.forEach((s: any) => {
+          const d = s.dateSinistre || s.date || s.dateDeclaration || s.dateSurvenance
+          if (d) {
+            const dateObj = new Date(d)
+            const start = new Date(dateDu.value)
+            const end = new Date(dateAu.value)
+            if (dateObj >= start && dateObj <= end) {
+              const nom = s.objet || s.victime || s.nom
+              if (nom) {
+                victimeCount[nom] = (victimeCount[nom] || 0) + 1
+              }
+            }
+          }
+        })
+      }
+      const top10 = Object.entries(victimeCount)
+        .map(([nom, count]) => ({ nom, count }))
+        .filter(item => item.count > 1) // Multiple sinistres only
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 10)
+      top10VictimesData.value = top10.length > 0 ? top10 : null
     }
   } catch (error: any) {
     console.error('Erreur chargement statistiques:', error)
@@ -323,7 +384,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <PageContainer title="Statistiques" subtitle="Vue globale">
+  <PageContainer :title="$t('tableau_bord.statistics')" :subtitle="$t('tableau_bord.subtitle')">
     
     <!-- Filtres -->
     <DashboardFilters 
@@ -346,7 +407,7 @@ onMounted(async () => {
     <div v-if="errorMsg" class="bg-red-50 border border-red-200/60 rounded-3xl p-6 text-red-800 flex items-start gap-4">
       <AlertCircle class="w-6 h-6 text-red-500 shrink-0 mt-0.5" />
       <div>
-        <h4 class="font-bold text-red-900 mb-1">Erreur de chargement</h4>
+        <h4 class="font-bold text-red-900 mb-1">{{ $t('tableau_bord.loading_error') }}</h4>
         <p class="text-sm text-red-700 font-medium">{{ errorMsg }}</p>
       </div>
     </div>
@@ -365,23 +426,23 @@ onMounted(async () => {
       
       <!-- PDF Only Header -->
       <div class="pdf-header border-b-2 border-slate-200 pb-4 mb-6">
-        <h1 class="text-3xl font-black text-slate-900 tracking-tight" style="font-size: 28px !important; line-height: 1.2;">STATISTIQUES</h1>
+        <h1 class="text-3xl font-black text-slate-900 tracking-tight" style="font-size: 28px !important; line-height: 1.2;">{{ $t('tableau_bord.statistics') }}</h1>
         <div class="grid grid-cols-2 gap-4 mt-4 bg-slate-50 p-4 rounded-2xl text-xs font-bold text-slate-600 border border-slate-100">
           <div>
-            <p class="text-slate-400 uppercase text-[10px] tracking-wider mb-0.5">Client / Filiale</p>
-            <p class="text-slate-800 text-sm font-black">{{ selectedClient || 'Tous les clients' }}</p>
+            <p class="text-slate-400 uppercase text-[10px] tracking-wider mb-0.5">{{ $t('tableau_bord.client_subsidiary') }}</p>
+            <p class="text-slate-800 text-sm font-black">{{ selectedClient || $t('contrats.all_clients') }}</p>
           </div>
           <div>
-            <p class="text-slate-400 uppercase text-[10px] tracking-wider mb-0.5">Branche</p>
-            <p class="text-slate-800 text-sm font-black">{{ selectedBranch || 'Toutes les branches' }}</p>
+            <p class="text-slate-400 uppercase text-[10px] tracking-wider mb-0.5">{{ $t('tableau_bord.branch') }}</p>
+            <p class="text-slate-800 text-sm font-black">{{ selectedBranch || $t('contrats.all_branches') }}</p>
           </div>
           <div>
-            <p class="text-slate-400 uppercase text-[10px] tracking-wider mb-0.5">Contrat / Police</p>
-            <p class="text-slate-800 text-sm font-black">{{ selectedPoliceId === 'all' ? 'Toutes les polices' : currentPolice?.police || 'N/A' }}</p>
+            <p class="text-slate-400 uppercase text-[10px] tracking-wider mb-0.5">{{ $t('tableau_bord.policy') }}</p>
+            <p class="text-slate-800 text-sm font-black">{{ selectedPoliceId === 'all' ? $t('contrats.all_policies') : currentPolice?.police || 'N/A' }}</p>
           </div>
           <div>
-            <p class="text-slate-400 uppercase text-[10px] tracking-wider mb-0.5">Période du rapport</p>
-            <p class="text-slate-800 text-sm font-black">Du {{ formatDate(dateDu) }} au {{ formatDate(dateAu) }}</p>
+            <p class="text-slate-400 uppercase text-[10px] tracking-wider mb-0.5">{{ $t('tableau_bord.report_period') }}</p>
+            <p class="text-slate-800 text-sm font-black">{{ $t('commun.date_from') }} {{ formatDate(dateDu) }} {{ $t('commun.date_to').toLowerCase() }} {{ formatDate(dateAu) }}</p>
           </div>
         </div>
       </div>
@@ -390,18 +451,23 @@ onMounted(async () => {
       <DashboardKPIs 
         :kpis="kpis"
         :yearRange="yearRange"
+        :isATBranch="isATBranch"
       />
       
       <DashboardEvolution 
         :evolutionData="evolutionData"
+        :isATBranch="isATBranch"
       />
 
       <DashboardITTAnalysis 
+        v-if="isATBranch"
         :evolutionData="evolutionData"
         :top5ITTData="top5ITTData"
+        :top10VictimesData="top10VictimesData"
       />
       
       <DashboardRepartition 
+        v-if="isATBranch"
         :repartitionData="repartitionData"
       />
 

@@ -1,6 +1,8 @@
 const axios = require('axios');
 const qs = require('qs');
 
+const keycloakAxios = axios.create();
+
 const authServerUrl = process.env.KEYCLOAK_AUTH_SERVER_URL;
 const realm         = process.env.KEYCLOAK_REALM;
 const clientId      = process.env.KEYCLOAK_CLIENT_ID;
@@ -13,7 +15,7 @@ if (!authServerUrl || !realm || !clientId || !clientSecret) {
 let cachedToken = null;
 let tokenExpiry  = 0;
 
-axios.interceptors.response.use(
+keycloakAxios.interceptors.response.use(
     response => response,
     error => {
         console.error('❌ Erreur de l\'API Keycloak:', error.response?.data || error.message);
@@ -33,7 +35,7 @@ const getAdminToken = async () => {
         client_secret: clientSecret
     });
 
-    const response = await axios.post(url, data, {
+    const response = await keycloakAxios.post(url, data, {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
     });
 
@@ -54,48 +56,48 @@ const jsonHeader = async () => ({
 
 const getAvailableRoles = async () => {
     const url      = `${authServerUrl}/admin/realms/${realm}/roles`;
-    const response = await axios.get(url, { headers: await authHeader() });
+    const response = await keycloakAxios.get(url, { headers: await authHeader() });
     const excluded = ['offline_access', 'uma_authorization', `default-roles-${realm}`];
     return response.data.filter(role => !excluded.includes(role.name));
 };
 
 const getUserRoles = async (userIdAuth) => {
     const url      = `${authServerUrl}/admin/realms/${realm}/users/${userIdAuth}/role-mappings/realm`;
-    const response = await axios.get(url, { headers: await authHeader() });
+    const response = await keycloakAxios.get(url, { headers: await authHeader() });
     return response.data;
 };
 
 const assignUserRoles = async (userIdAuth, roles) => {
     const url = `${authServerUrl}/admin/realms/${realm}/users/${userIdAuth}/role-mappings/realm`;
-    await axios.post(url, roles, { headers: await jsonHeader() });
+    await keycloakAxios.post(url, roles, { headers: await jsonHeader() });
 };
 
 const removeUserRoles = async (userIdAuth, roles) => {
     const url = `${authServerUrl}/admin/realms/${realm}/users/${userIdAuth}/role-mappings/realm`;
-    await axios.delete(url, { headers: await jsonHeader(), data: roles });
+    await keycloakAxios.delete(url, { headers: await jsonHeader(), data: roles });
 };
 
 const findUserByEmail = async (email) => {
     const url      = `${authServerUrl}/admin/realms/${realm}/users?email=${encodeURIComponent(email)}`;
-    const response = await axios.get(url, { headers: await authHeader() });
+    const response = await keycloakAxios.get(url, { headers: await authHeader() });
     return response.data;
 };
 
 const getUserById = async (userIdAuth) => {
     const url      = `${authServerUrl}/admin/realms/${realm}/users/${userIdAuth}`;
-    const response = await axios.get(url, { headers: await authHeader() });
+    const response = await keycloakAxios.get(url, { headers: await authHeader() });
     return response.data;
 };
 
 const createUser = async (userData) => {
     const url      = `${authServerUrl}/admin/realms/${realm}/users`;
-    const response = await axios.post(url, {
+    const response = await keycloakAxios.post(url, {
         username:      userData.username || userData.email,
         email:         userData.email,
         firstName:     userData.firstName || '',
         lastName:      userData.lastName  || '',
         enabled:       true,
-        emailVerified: true
+        emailVerified: false
     }, { headers: await jsonHeader() });
 
     if (response.headers.location) {
@@ -107,14 +109,15 @@ const createUser = async (userData) => {
     throw new Error("Impossible de recuperer l'ID de l'utilisateur Keycloak cree.");
 };
 
-const sendResetPasswordEmail = async (userIdAuth) => {
-    const url = `${authServerUrl}/admin/realms/${realm}/users/${userIdAuth}/execute-actions-email`;
-    await axios.put(url, ['UPDATE_PASSWORD'], { headers: await jsonHeader() });
+const sendOnboardingEmail = async (userIdAuth, targetClientId = 'client_extranet', redirectUri = 'http://localhost:5174/') => {
+    const encodedUri = encodeURIComponent(redirectUri);
+    const url = `${authServerUrl}/admin/realms/${realm}/users/${userIdAuth}/execute-actions-email?client_id=${targetClientId}&redirect_uri=${encodedUri}`;
+    await keycloakAxios.put(url, ['VERIFY_EMAIL', 'UPDATE_PASSWORD'], { headers: await jsonHeader() });
 };
 
 const deleteUser = async (userIdAuth) => {
     const url = `${authServerUrl}/admin/realms/${realm}/users/${userIdAuth}`;
-    await axios.delete(url, { headers: await authHeader() });
+    await keycloakAxios.delete(url, { headers: await authHeader() });
 };
 
 module.exports = {
@@ -125,6 +128,6 @@ module.exports = {
     findUserByEmail,
     getUserById,
     createUser,
-    sendResetPasswordEmail,
+    sendOnboardingEmail,
     deleteUser
 };

@@ -25,7 +25,7 @@ const documentsFiltres = computed(() => {
 })
 
 const handleDownload = (doc: any) => {
-  console.log('Téléchargement du document:', doc)
+
   toast.success(t('contrats.download_simulation', { name: doc.libelle }))
 }
 </script>

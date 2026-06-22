@@ -103,7 +103,7 @@ const handleUpload = async () => {
           {{ $t('sinistres.upload_doc_title') }}
         </DialogTitle>
         <DialogDescription class="sr-only">
-          Formulaire pour charger un document justificatif pour le sinistre sélectionné.
+          {{ $t('sinistres.upload_doc_form_desc') }}
         </DialogDescription>
       </DialogHeader>
 
@@ -138,7 +138,7 @@ const handleUpload = async () => {
               </div>
               <div class="flex-1 min-w-0">
                 <p v-if="uploadFile" class="text-sm font-bold text-slate-800 truncate">{{ uploadFile.name }}</p>
-                <p v-else class="text-sm text-slate-400">PDF, JPG, PNG, DOCX... (max 20 Mo)</p>
+                <p v-else class="text-sm text-slate-400">{{ $t('sinistres.upload_doc_formats') }}</p>
               </div>
             </label>
             <input

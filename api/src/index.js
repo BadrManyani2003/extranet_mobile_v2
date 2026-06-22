@@ -11,6 +11,8 @@ if (!process.env.NODE_ENV) {
 
 const PORT = process.env.PORT;
 
+const cronService = require('./services/cron.service');
+
 const startServer = async () => {
     const dbOk = await db.checkConnection();
     
@@ -19,6 +21,9 @@ const startServer = async () => {
         console.log(`🔗 Database: ${dbOk ? 'CONNECTED' : 'FAILED'}`);
         console.log(`🌍 Mode: ${process.env.NODE_ENV}`);
         console.log(`🌐 CORS Allowed Origins: ${process.env.ALLOWED_ORIGINS}`);
+        
+        // Démarrage de la tâche d'arrière-plan pour les e-mails
+        cronService.startCron();
     });
 };
 

@@ -38,7 +38,6 @@ const qry = {
     // @3 = role (admin_cabinet | commercial_cabinet) pour filtrer les clients du commercial
     getClients:            "exec dbo.ps_GetClients            @0, @1, @2, @3",
     createUserFromClient:  "exec dbo.ps_CreateUserFromClient  @0, @1, @2, @3",
-    getAdherentsAdmin:     "exec dbo.sp_GetAdherents          @0, @1, @2, @3",
     createUserFromAdherent:"exec dbo.ps_CreateUserFromAdherent @0, @1, @2, @3",
     syncKeycloak:          "exec dbo.ps_SyncKeycloak           @0, @1, @2, @3, @4",
     // @5 = role pour vérification permission commercial
@@ -47,6 +46,8 @@ const qry = {
     linkUserToAdherent:    "exec dbo.ps_LinkUserToAdherent     @0, @1, @2, @3, @4, @5",
     // @6 = role pour vérification permission commercial
     updateClientOptions:   "exec dbo.ps_UpdateClientOptions    @0, @1, @2, @3, @4, @5, @6",
+    updateClientEmails:    "exec dbo.ps_UpdateClientEmails     @0, @1, @2, @3, @4, @5",
+    updateClientParent:    "exec dbo.ps_UpdateClientParent     @0, @1, @2, @3, @4, @5",
 
     updateToken:         "exec dbo.sp_UpdateToken @0, @1",
     getUserInfoByAuthId: "exec dbo.sp_GetUserInfoByAuthId @0",
@@ -56,6 +57,12 @@ const qry = {
     getUserById:              "exec dbo.sp_GetUserById @0",
     updateTokenById:          "exec dbo.sp_UpdateTokenById @0, @1",
     checkSimulationPermission: "exec dbo.ps_CheckSimulationPermission @0, @1",
+
+    uploadDocument:          "exec dbo.sp_UploadDocument @userId, @token, @nature, @identifiant, @type, @document",
+    getDocuments:            "exec dbo.sp_GetDocuments @userId, @token, @source, @nature, @identifiant, @dateFrom, @dateTo",
+    getDocumentById:         "exec dbo.sp_GetDocumentById @userId, @token, @source, @documentId",
+    deleteDocument:          "exec dbo.sp_DeleteDocument @userId, @token, @source, @documentId",
+    updateDocumentTransfere: "exec dbo.sp_UpdateDocumentTransfere @userId, @token, @source, @documentId, @transfere",
 };
 
 module.exports = qry;

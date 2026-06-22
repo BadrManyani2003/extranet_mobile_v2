@@ -142,6 +142,26 @@ const updateClientOptions = asyncHandler(async (req, res) => {
     success(res, null, 'Options client mises a jour');
 });
 
+const updateClientEmails = asyncHandler(async (req, res) => {
+    const { userId, source, token, role } = getContext(req);
+    const { clientId, emails } = req.body;
+    
+    if (!clientId) throw new Error('ID client manquant.');
+
+    await adminService.updateClientEmails(userId, token, source, clientId, emails || '', role);
+    success(res, null, 'Emails mis à jour');
+});
+
+const updateClientParent = asyncHandler(async (req, res) => {
+    const { userId, source, token, role } = getContext(req);
+    const { clientId, parentId } = req.body;
+    
+    if (!clientId) throw new Error('ID client manquant.');
+
+    await adminService.updateClientParent(userId, token, source, clientId, parentId, role);
+    success(res, null, 'Client parent mis à jour');
+});
+
 module.exports = {
     getUsers,
     getSimulationUsers,
@@ -160,5 +180,7 @@ module.exports = {
     linkUserToAdherent,
     getAvailableRoles,
     updateUserRoles,
-    updateClientOptions
+    updateClientOptions,
+    updateClientEmails,
+    updateClientParent
 };

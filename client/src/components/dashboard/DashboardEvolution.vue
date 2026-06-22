@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Bar } from 'vue-chartjs'
 import { 
   Chart as ChartJS, 
@@ -16,29 +17,36 @@ ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale)
 
 const props = defineProps<{
   evolutionData: any[] | null
+  isATBranch: boolean
 }>()
 
 const evolutionChartData = computed(() => {
+  const { t } = useI18n()
   const years = props.evolutionData ? props.evolutionData.map((item: any) => String(item.annee)) : []
   const nbSinistres = props.evolutionData ? props.evolutionData.map((item: any) => item.nbSinistres) : []
   const nbITT = props.evolutionData ? props.evolutionData.map((item: any) => item.nbITT) : []
 
+  const datasets = [
+    {
+      label: t('tableau_bord.nb_claims'),
+      backgroundColor: '#0d3880', // Premium deep blue
+      borderRadius: 6,
+      data: nbSinistres
+    }
+  ]
+
+  if (props.isATBranch) {
+    datasets.push({
+      label: t('tableau_bord.nb_itt'),
+      backgroundColor: '#ea580c', // Premium orange
+      borderRadius: 6,
+      data: nbITT
+    })
+  }
+
   return {
     labels: years,
-    datasets: [
-      {
-        label: 'Nb sinistres',
-        backgroundColor: '#0d3880', // Premium deep blue
-        borderRadius: 6,
-        data: nbSinistres
-      },
-      {
-        label: 'Nb ITT',
-        backgroundColor: '#ea580c', // Premium orange
-        borderRadius: 6,
-        data: nbITT
-      }
-    ]
+    datasets
   }
 })
 
@@ -83,7 +91,7 @@ const evolutionChartOptions = computed(() => {
     <div class="w-full bg-[#0d3880] px-6 py-4 md:px-8 md:py-5 flex items-center justify-between overflow-hidden relative">
       <div class="absolute inset-0 bg-gradient-to-r from-blue-900/10 via-transparent to-blue-900/5 pointer-events-none"></div>
       <div class="space-y-0.5 z-10">
-        <h2 class="text-lg md:text-2xl font-black text-white uppercase tracking-wider">ÉVOLUTION ANNUELLE DES SINISTRES</h2>
+        <h2 class="text-lg md:text-2xl font-black text-white uppercase tracking-wider">{{ $t('tableau_bord.annual_claims_evolution') }}</h2>
       </div>
     </div>
 
@@ -94,13 +102,13 @@ const evolutionChartOptions = computed(() => {
         <table class="w-full border-collapse">
           <thead>
             <tr class="bg-[#1e293b] text-white">
-              <th class="px-6 py-4 font-black uppercase tracking-wider text-xs border-b border-slate-700 text-center">Année</th>
-              <th class="px-6 py-4 font-black uppercase tracking-wider text-xs border-b border-slate-700 text-center">Nb sin.</th>
-              <th class="px-6 py-4 font-black uppercase tracking-wider text-xs border-b border-slate-700 text-center">Coût total (MAD)</th>
-              <th class="px-6 py-4 font-black uppercase tracking-wider text-xs border-b border-slate-700 text-center">Nb ITT</th>
-              <th class="px-6 py-4 font-black uppercase tracking-wider text-xs border-b border-slate-700 text-center">Taux ITT</th>
-              <th class="px-6 py-4 font-black uppercase tracking-wider text-xs border-b border-slate-700 text-center">Jours ITT</th>
-              <th class="px-6 py-4 font-black uppercase tracking-wider text-xs border-b border-slate-700 text-center">MNT ITT (MAD)</th>
+              <th class="px-6 py-4 font-black uppercase tracking-wider text-xs border-b border-slate-700 text-center">{{ $t('tableau_bord.year') }}</th>
+              <th class="px-6 py-4 font-black uppercase tracking-wider text-xs border-b border-slate-700 text-center">{{ $t('tableau_bord.nb_claims') }}</th>
+              <th class="px-6 py-4 font-black uppercase tracking-wider text-xs border-b border-slate-700 text-center">{{ $t('tableau_bord.total_cost_mad') }}</th>
+              <th v-if="isATBranch" class="px-6 py-4 font-black uppercase tracking-wider text-xs border-b border-slate-700 text-center">{{ $t('tableau_bord.nb_itt') }}</th>
+              <th v-if="isATBranch" class="px-6 py-4 font-black uppercase tracking-wider text-xs border-b border-slate-700 text-center">{{ $t('tableau_bord.itt_rate') }}</th>
+              <th v-if="isATBranch" class="px-6 py-4 font-black uppercase tracking-wider text-xs border-b border-slate-700 text-center">{{ $t('tableau_bord.itt_days') }}</th>
+              <th v-if="isATBranch" class="px-6 py-4 font-black uppercase tracking-wider text-xs border-b border-slate-700 text-center">{{ $t('tableau_bord.itt_amount_mad') }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100">
@@ -112,10 +120,10 @@ const evolutionChartOptions = computed(() => {
               <td class="px-6 py-4 font-extrabold text-slate-800 text-sm text-center">{{ row.annee }}</td>
               <td class="px-6 py-4 font-bold text-slate-700 text-sm text-center">{{ formatKPIValue(row.nbSinistres, 'number') }}</td>
               <td class="px-6 py-4 font-bold text-slate-700 text-sm text-center">{{ formatKPIValue(row.coutTotal, 'number') }}</td>
-              <td class="px-6 py-4 font-bold text-slate-700 text-sm text-center">{{ formatKPIValue(row.nbITT, 'number') }}</td>
-              <td class="px-6 py-4 font-bold text-slate-700 text-sm text-center">{{ formatKPIValue(row.tauxITT, 'percentage') }}</td>
-              <td class="px-6 py-4 font-bold text-slate-700 text-sm text-center">{{ formatKPIValue(row.joursITT, 'number') }}</td>
-              <td class="px-6 py-4 font-bold text-slate-700 text-sm text-center">{{ formatKPIValue(row.mntITT, 'number') }}</td>
+              <td v-if="isATBranch" class="px-6 py-4 font-bold text-slate-700 text-sm text-center">{{ formatKPIValue(row.nbITT, 'number') }}</td>
+              <td v-if="isATBranch" class="px-6 py-4 font-bold text-slate-700 text-sm text-center">{{ formatKPIValue(row.tauxITT, 'percentage') }}</td>
+              <td v-if="isATBranch" class="px-6 py-4 font-bold text-slate-700 text-sm text-center">{{ formatKPIValue(row.joursITT, 'number') }}</td>
+              <td v-if="isATBranch" class="px-6 py-4 font-bold text-slate-700 text-sm text-center">{{ formatKPIValue(row.mntITT, 'number') }}</td>
             </tr>
           </tbody>
         </table>

@@ -34,6 +34,42 @@ IF EXISTS (SELECT 1 FROM sys.identity_columns WHERE object_id = OBJECT_ID('dbo.R
     DBCC CHECKIDENT ('dbo.Risques', RESEED, 0);
 IF EXISTS (SELECT 1 FROM sys.identity_columns WHERE object_id = OBJECT_ID('dbo.Garanties') AND last_value IS NOT NULL)
     DBCC CHECKIDENT ('dbo.Garanties', RESEED, 0);
+USE [IBS_Extranet_Mobile];
+GO
+
+-- =====================================================
+-- NETTOYAGE COMPLET
+-- =====================================================
+DELETE FROM dbo.ReclamationsDet;
+DELETE FROM dbo.ReclamationsIdt;
+DELETE FROM dbo.StdDocument;
+DELETE FROM dbo.PolDocument;
+DELETE FROM dbo.Garanties;
+DELETE FROM dbo.sinComplement;
+DELETE FROM dbo.Sinistres;
+DELETE FROM dbo.Quittances;
+DELETE FROM dbo.PersACharge;
+DELETE FROM dbo.Adherents;
+DELETE FROM dbo.Risques;
+DELETE FROM dbo.Polices;
+DELETE FROM dbo.UserSimulationClients;
+DELETE FROM dbo.UsersXClients;
+DELETE FROM dbo.Clients;
+DELETE FROM dbo.userConnection;
+DELETE FROM dbo.Postes_Autorises;
+DELETE FROM dbo.Roles;
+UPDATE dbo.sysUser SET CreatedBy = NULL;
+DELETE FROM dbo.sysUser;
+DELETE FROM dbo.Compagnies;
+GO
+
+-- Réinitialisation des colonnes d'identité
+IF EXISTS (SELECT 1 FROM sys.identity_columns WHERE object_id = OBJECT_ID('dbo.Compagnies') AND last_value IS NOT NULL)
+    DBCC CHECKIDENT ('dbo.Compagnies', RESEED, 0);
+IF EXISTS (SELECT 1 FROM sys.identity_columns WHERE object_id = OBJECT_ID('dbo.Risques') AND last_value IS NOT NULL)
+    DBCC CHECKIDENT ('dbo.Risques', RESEED, 0);
+IF EXISTS (SELECT 1 FROM sys.identity_columns WHERE object_id = OBJECT_ID('dbo.Garanties') AND last_value IS NOT NULL)
+    DBCC CHECKIDENT ('dbo.Garanties', RESEED, 0);
 IF EXISTS (SELECT 1 FROM sys.identity_columns WHERE object_id = OBJECT_ID('dbo.ReclamationsIdt') AND last_value IS NOT NULL)
     DBCC CHECKIDENT ('dbo.ReclamationsIdt', RESEED, 0);
 IF EXISTS (SELECT 1 FROM sys.identity_columns WHERE object_id = OBJECT_ID('dbo.Postes_Autorises') AND last_value IS NOT NULL)
@@ -61,12 +97,13 @@ DECLARE @Comp5Id INT = (SELECT Id FROM dbo.Compagnies WHERE RaisonSociale = 'AXA
 -- =====================================================
 SET IDENTITY_INSERT dbo.sysUser ON;
 INSERT INTO dbo.sysUser (Id, Id_Auth, Nom, Telephone, Email, Nature, Extranet, Mobile, CreatedAt, token, CreatedBy) VALUES
-(1, 'b192749b-683c-408c-bfbc-876c045c5b4c', 'YTS', '0661223344', 'yts@ibs.ma', 'A', 'O', 'N', '20260101', 'token_admin_001', NULL),
-(2, 'commercial_keycloak_002', 'Meryem Ouazzani', '0661556677', 'com1@test.ma', 'C', 'O', 'N', '20260101', 'token_com_001', 1),
-(3, 'f823c1e8-46db-43c6-a8a7-f86b506c3fbc', 'Badr MANYANI', '0661889900', 'badr@manyani.ma', 'C', 'O', 'N', '20260101', 'token_societe1', 2),
-(4, 'client_societe2_auth', 'Taha MANYANI', '0661112233', 'amine@manyani.ma', 'C', 'O', 'N', '20260101', 'token_societe2', 1),
-(5, '6054d0c2-0f70-4b79-8635-13b8f69e4aa8', 'Amine QAMCH', '0661445566', 'amine.qamch@test.ma', 'C', 'N', 'O', '20260101', 'token_adherent1', 2),
-(6, '', 'Nadia Slaoui', '0661778899', 'adherent2@test.ma', 'C', 'N', 'O', '20260101', 'token_adherent2', 1);
+(1, 'cc7011b8-e421-48c8-a6a1-f832e17da059', 'YTS', '0661223344', '', 'A', 'O', 'N', '20260101', 'token_admin_001', NULL),
+(2, '', 'Meryem Ouazzani', '0661556677', 'com1@test.ma', 'C', 'O', 'N', '20260101', 'token_com_001', 1),
+(3, '3691308c-d3d1-46aa-b55c-0ffcd216cc9f', 'Badr MANYANI', '0661889900', 'badr@manyani.ma', 'C', 'O', 'N', '20260101', 'token_societe1', 2),
+(4, '', 'Taha MANYANI', '0661112233', 'amine@manyani.ma', 'C', 'O', 'N', '20260101', 'token_societe2', 1),
+(5, '', 'Amine QAMCH', '0661445566', 'amine.qamch@test.ma', 'C', 'N', 'O', '20260101', 'token_adherent1', 2),
+(6, '', 'Nadia Slaoui', '0661778899', 'adherent2@test.ma', 'C', 'N', 'O', '20260101', 'token_adherent2', 1),
+(7, '8c7011b8-e421-48c8-a6a1-f832e17da059', 'Imad Auto', '0661999999', 'imad@test.ma', 'E', 'O', 'N', '20260101', 'token_Client3_001', 1);
 SET IDENTITY_INSERT dbo.sysUser OFF;
 
 DECLARE @AdminId INT = 1;
@@ -75,18 +112,12 @@ DECLARE @UserClient1 INT = 3;
 DECLARE @UserClient2 INT = 4;
 DECLARE @UserAdherent1 INT = 5;
 DECLARE @UserAdherent2 INT = 6;
+DECLARE @UserClient3 INT = 7;
 
 -- Roles
 INSERT INTO dbo.Roles (FK_User_Id, Role) VALUES 
-(@AdminId, 'admin_cabinet'), 
-(@AdminId, 'GESTIONNAIRE'),
-(@CommercialId, 'COMMERCIAL'),
-(@CommercialId, 'commercial_cabinet'),
-(@UserClient1, 'CLIENT'),
-(@UserClient2, 'CLIENT'),
-(@UserAdherent1, 'CLIENT'), 
-(@UserAdherent1, 'ADHERENT'),
-(@UserAdherent2, 'ADHERENT');
+(@AdminId, 'admin_cabinet'),
+(@UserClient1, 'CLIENT');
 
 
 -- Postes autoriss
@@ -134,7 +165,9 @@ INSERT INTO dbo.UsersXClients (FK_User_Id, FK_Client_Id, Actif, CreatedAt) VALUE
 (@UserClient1, @ClientId2, 'O', '20260101'),  -- Hamza -> Digital Solutions
 (@UserClient2, @ClientId1, 'O', '20260101'),  -- Sanae -> Energies Sud
 (@UserAdherent1, @ClientId6, 'O', '20260101'), -- Anas -> Omar Tazi
-(@UserAdherent2, @ClientId7, 'O', '20260101'); -- Nadia -> Fatima El Fassi
+(@UserAdherent2, @ClientId7, 'O', '20260101'), -- Nadia -> Fatima El Fassi
+(@UserClient3, @ClientId1, 'O', '20260101'),    -- Client3 -> Energies Sud
+(@UserClient3, @ClientId2, 'O', '20260101');    -- Client3 -> Digital Solutions
 
 
 -- =====================================================
@@ -520,7 +553,7 @@ INSERT INTO dbo.Quittances (Id, FK_Police_Id, NumQuittance, DateDu, DateAu, Mont
 INSERT INTO dbo.Sinistres (Id, FK_Risque_Id, FK_Police_Id, FK_Adherent_Id, NumeroSin, DateSin, DateDeclaration, Statut, DateStatut, MT_Dommages, MT_Franchise, MT_Indemnite, Observations, CreatedAt) VALUES
 -- === SINISTRES AUTOMOBILE ===
 (8001, 1, @PolAutoDSM1, NULL, 55001, '20260215', '20260216', 'C', '20260310', 15000.00, '2500', 12500.00, 'Accident avec tiers sur Bd Mohammed V, Casablanca - Constat amiable', '20260216'),
-(8002, 2, @PolAutoDSM1, NULL, 55002, '20260420', '20260421', 'E', '20260421', 8500.00, '2000', 0.00, 'Choc arrire parking sige Rabat - En attente expertise', '20260421'),
+(8002, 2, @PolAutoDSM1, NULL, 55002, '20260420', '20260421', 'E', '20260421', 8500.00, '2000', 0.00, 'Choc arrire parking sige Rabat - En attente Client3ise', '20260421'),
 (8003, 3, @PolAutoDSM1, NULL, 55003, '20260810', '20260811', 'E', '20260811', 22000.00, '3500', 0.00, 'Accident avec taxi route Marrakech-Agadir - Rapport police attendu', '20260811'),
 (8004, 12, @PolAutoASL, NULL, 55004, '20260128', '20260129', 'C', '20260220', 28000.00, '4000', 24000.00, 'Collision avec glissire scurit A3 sortie Aroport Mohammed V', '20260129'),
 (8005, 13, @PolAutoASL, NULL, 55005, '20260315', '20260316', 'C', '20260405', 12000.00, '3000', 9000.00, 'Accrochage avec bus CTM au terminal 2 - Aroport Casa', '20260316'),
@@ -698,103 +731,115 @@ INSERT INTO dbo.UserSimulationClients (fk_user_id, fk_client_id) VALUES
 (1, 2002),
 (2, 1001),
 (2, 1002),
-(2, 2001);
+(2, 2001),
+(7, 1001),
+(7, 1002);
 GO
 
 INSERT INTO dbo.sinComplement (
     fk_sinistre_id, Ref_Sinistre, Date_Sinistre, Victime, Lieu, Type_Sinistre, Circonstances, Lesion, Etape, ITT, 
     IPP_Estime, IPP_Traitant, IPP_Conseil, IPP_Retenu, Frais_Medicaux, Frais_Transport, Indem_Jrn, Nature_indem, Montant_indem,
-    HONR_MED, IPP_EVA, Salaire, AGE, CCR_EV, COUT_TOT
+    HONR_MED, IPP_EVA, Salaire, AGE, CCR_EV, COUT_TOT, Dt_Presc_DC, Dt_Presc_Bien
 ) VALUES
 (
     8019, 55019, '20260210', 'Ahmed El Mansouri', 'Atelier 2 - Digital Solutions', 'Accident de trajet', 'Glissade sur plaque de verglas en se rendant au travail', 'Fracture fermée du radius droit', 'Arrêt', '30 jours', 
     0.00, 0.00, 0.00, 0.00, 2500.00, 150.00, 1500.00, 'Rente', 1500.00,
-    1200.00, 8.50, 6500.00, 34, 3500.00, 9850.00
+    1200.00, 8.50, 6500.00, 34, 3500.00, 9850.00, NULL, NULL
 ),
 (
     8020, 55020, '20260305', 'Said Naciri', 'Site Solaire Benguerir', 'Accident du travail', 'Chute d''une échelle lors de la pose de panneaux solaires', 'Fracture de la clavicule et traumatismes multiples', 'Guérison', '45 jours', 
     12.50, 15.00, 12.00, 12.50, 4800.00, 320.00, 3200.00, 'Rachat', 8500.00,
-    2500.00, 14.00, 8000.00, 42, 7200.00, 19320.00
+    2500.00, 14.00, 8000.00, 42, 7200.00, 19320.00, NULL, NULL
 ),
 (
     8030, 55030, '20200315', 'Ahmed El Mansouri', 'Siège Rabat', 'Accident du travail', 'Chute dans les escaliers', 'Contusion épaule', 'Guérison', '15 jours',
     0.00, 0.00, 0.00, 0.00, 1500.00, 100.00, 1500.00, 'Rachat', 3000.00,
-    800.00, 0.00, 6500.00, 28, 0.00, 12000.00
+    800.00, 0.00, 6500.00, 28, 0.00, 12000.00, NULL, NULL
 ),
 (
     8031, 55031, '20200720', 'Ahmed El Mansouri', 'Atelier Casa', 'Accident du travail', 'Entorse cheville', 'Entorse ligamentaire', 'Arrêt', '30 jours',
     5.00, 5.00, 5.00, 5.00, 5500.00, 250.00, 3000.00, 'Rente', 8000.00,
-    1800.00, 5.00, 6500.00, 28, 15000.00, 45000.00
+    1800.00, 5.00, 6500.00, 28, 15000.00, 45000.00, NULL, NULL
 ),
 (
     8032, 55032, '20210210', 'Ahmed El Mansouri', 'Site Rabat', 'Accident du travail', 'Chute d''objet', 'Contusion omoplate', 'Guérison', '45 jours',
     0.00, 0.00, 0.00, 0.00, 3200.00, 180.00, 4500.00, 'Rachat', 6000.00,
-    1100.00, 0.00, 6500.00, 29, 0.00, 25000.00
+    1100.00, 0.00, 6500.00, 29, 0.00, 25000.00, NULL, NULL
 ),
 (
     8033, 55033, '20211105', 'Ahmed El Mansouri', 'Route Casa-Rabat', 'Accident de trajet', 'Collision voiture de service', 'Traumatisme cervical', 'Arrêt', '60 jours',
     10.00, 10.00, 10.00, 10.00, 12000.00, 800.00, 9000.00, 'Rente', 1800.00,
-    3500.00, 10.00, 6500.00, 29, 40000.00, 120000.00
+    3500.00, 10.00, 6500.00, 29, 40000.00, 120000.00, NULL, NULL
 ),
 (
     8034, 55034, '20220512', 'Ahmed El Mansouri', 'Atelier Casa', 'Accident du travail', 'Coupure profonde', 'Plaie cutanée main gauche', 'Guérison', '20 jours',
     0.00, 0.00, 0.00, 0.00, 1800.00, 120.00, 2000.00, 'Rachat', 4000.00,
-    900.00, 0.00, 6500.00, 30, 0.00, 15000.00
+    900.00, 0.00, 6500.00, 30, 0.00, 15000.00, NULL, NULL
 ),
 (
     8035, 55035, '20220918', 'Ahmed El Mansouri', 'Entrepôt Casa', 'Accident du travail', 'Ecrasement pied', 'Fracture métatarse', 'Arrêt', '90 jours',
     15.00, 15.00, 15.00, 15.00, 28000.00, 1200.00, 18000.00, 'Rente', 35000.00,
-    6500.00, 15.00, 6500.00, 30, 85000.00, 250000.00
+    6500.00, 15.00, 6500.00, 30, 85000.00, 250000.00, NULL, NULL
 ),
 (
     8036, 55036, '20230401', 'Ahmed El Mansouri', 'Atelier Casa', 'Accident du travail', 'Port de charge', 'Lombalgie aiguë', 'Arrêt', '30 jours',
     5.00, 5.00, 5.00, 5.00, 4500.00, 200.00, 4500.00, 'Rente', 7500.00,
-    1500.00, 5.00, 6500.00, 31, 12000.00, 3500.00
+    1500.00, 5.00, 6500.00, 31, 12000.00, 3500.00, NULL, NULL
 ),
 (
     8037, 55037, '20231010', 'Ahmed El Mansouri', 'Bureaux Casa', 'Accident du travail', 'Glissade', 'Légère contusion genou', 'Guérison', '10 jours',
     0.00, 0.00, 0.00, 0.00, 800.00, 50.00, 1000.00, 'Rachat', 2000.00,
-    500.00, 0.00, 6500.00, 31, 0.00, 8000.00
+    500.00, 0.00, 6500.00, 31, 0.00, 8000.00, NULL, NULL
 ),
 (
     8038, 55038, '20240120', 'Ahmed El Mansouri', 'Atelier Casa', 'Accident du travail', 'Brûlure thermique', 'Brûlure 2ème degré', 'Arrêt', '40 jours',
     8.00, 8.00, 8.00, 8.00, 8500.00, 450.00, 6000.00, 'Rente', 12000.00,
-    2200.00, 8.00, 6500.00, 32, 22000.00, 65000.00
+    2200.00, 8.00, 6500.00, 32, 22000.00, 65000.00, NULL, NULL
 ),
 (
     8039, 55039, '20240615', 'Ahmed El Mansouri', 'Bureaux Casa', 'Accident du travail', 'Choc étagère', 'Légère contusion crânienne', 'Guérison', NULL,
     0.00, 0.00, 0.00, 0.00, 500.00, 0.00, 0.00, 'Rachat', 0.00,
-    300.00, 0.00, 6500.00, 32, 0.00, 3500.00
+    300.00, 0.00, 6500.00, 32, 0.00, 3500.00, NULL, NULL
 ),
 (
     8040, 55040, '20250308', 'Ahmed El Mansouri', 'Atelier Casa', 'Accident du travail', 'Entorse poignet', 'Entorse poignet droit', 'Guérison', '25 jours',
     0.00, 0.00, 0.00, 0.00, 2200.00, 150.00, 2500.00, 'Rachat', 5000.00,
-    1000.00, 0.00, 6500.00, 33, 0.00, 18000.00
+    1000.00, 0.00, 6500.00, 33, 0.00, 18000.00, NULL, NULL
 ),
 (
     8041, 55041, '20250822', 'Ahmed El Mansouri', 'Entrepôt Casa', 'Accident du travail', 'Chute faux pas', 'Fracture péroné gauche', 'Arrêt', '50 jours',
     12.00, 12.00, 12.00, 12.00, 11500.00, 500.00, 7500.00, 'Rente', 22000.00,
-    3000.00, 12.00, 6500.00, 33, 32000.00, 95000.00
+    3000.00, 12.00, 6500.00, 33, 32000.00, 95000.00, NULL, NULL
 ),
 (
     8050, 55050, '20250610', 'Karim Bensouda', 'Entrepôt principal', 'Accident du travail', 'Chute d''une palette d''emballage', 'Contusion épaule gauche', 'Guérison', '15 jours',
     0.00, 0.00, 0.00, 0.00, 1200.00, 100.00, 1500.00, 'Rachat', 2000.00,
-    500.00, 0.00, 5500.00, 29, 0.00, 4800.00
+    500.00, 0.00, 5500.00, 29, 0.00, 4800.00, NULL, NULL
 ),
 (
     8051, 55051, '20260115', 'Zineb Glaoui', 'Route de Rabat', 'Accident de trajet', 'Collision en moto en venant travailler', 'Fracture cheville gauche', 'Arrêt', '45 jours',
     5.00, 5.00, 0.00, 5.00, 8500.00, 300.00, 4500.00, 'Rente', 9000.00,
-    1800.00, 5.00, 7200.00, 31, 15000.00, 39100.00
+    1800.00, 5.00, 7200.00, 31, 15000.00, 39100.00, NULL, NULL
 ),
 (
     8060, 55060, '20241005', 'Hassan Filali', 'Atelier 1', 'Accident du travail', 'Coupure profonde sur machine d''emballage', 'Plaie cutanée main droite', 'Guérison', '20 jours',
     0.00, 0.00, 0.00, 0.00, 2500.00, 120.00, 2000.00, 'Rachat', 4000.00,
-    900.00, 0.00, 6000.00, 45, 0.00, 9520.00
+    900.00, 0.00, 6000.00, 45, 0.00, 9520.00, NULL, NULL
 ),
 (
     8061, 55061, '20251112', 'Youssef Tahiri', 'Bureaux Rabat', 'Accident du travail', 'Glissade dans les escaliers des bureaux', 'Entorse cheville droite', 'Guérison', '10 jours',
     0.00, 0.00, 0.00, 0.00, 900.00, 50.00, 1000.00, 'Rachat', 1500.00,
-    400.00, 0.00, 6800.00, 38, 0.00, 3850.00
+    400.00, 0.00, 6800.00, 38, 0.00, 3850.00, NULL, NULL
+),
+(
+    8001, 55001, '20260215', 'Conducteur', 'Casablanca', 'Auto', 'Accident de la circulation', 'Aucune', 'Client3ise', '0 jours', 
+    0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, '-', 0.00,
+    0.00, 0.00, 0.00, 30, 0.00, 0.00, '2027-02-15', '2028-02-15'
+),
+(
+    8021, 55021, '20260315', '-', 'Atelier', 'IARD', 'Incendie', 'Aucune', 'Client3ise', '0 jours', 
+    0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, '-', 0.00,
+    0.00, 0.00, 0.00, 0, 0.00, 0.00, '2027-03-15', NULL
 );
 GO
 

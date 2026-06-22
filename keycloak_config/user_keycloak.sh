@@ -3,7 +3,7 @@
 # --- CONFIGURATION KEYCLOAK ---
 KC_PATH="kcadm.sh"
 KC_SERVER="http://localhost:8180"
-KC_REALM="ask_extranet_mobile"
+KC_REALM="MyASK"
 KC_USER="admin"
 KC_PASS="admin"
 DEFAULT_PASSWORD="ABC@1234"
@@ -70,7 +70,7 @@ create_user() {
 }
 
 echo "[2/3] Creation des utilisateurs avec attribution des roles..."
-create_user "admin_cabinet@ibs.ma" "Admin Cabinet" "admin_cabinet"
+create_user "badrmeneyani87@gmail.com" "Admin Cabinet" "admin_cabinet"
 
 echo ""
 echo "[3/3] Termine. Copiez les ID_AUTH ci-dessus dans votre fichier donnee_test.sql."

@@ -30,10 +30,10 @@ const getClients = (userId, token, source, role = 'admin_cabinet') =>
     db.execute(qry.getClients, [userId, token, source, role]);
 
 const createUserFromClient = (userId, token, source, clientId) => db.execute(qry.createUserFromClient, [userId, token, source, clientId]);
-const getAdherents         = (userId, source, token, policeId) => db.execute(qry.getAdherentsAdmin, [userId, source, token, policeId]);
+const getAdherents         = (userId, source, token, policeId) => db.execute(qry.getAdherents, [userId, source, token, policeId]);
 const createUserFromAdherent = (userId, token, source, adherentId) => db.execute(qry.createUserFromAdherent, [userId, token, source, adherentId]);
 
-const resolveOrCreateKeycloakUser = async (Nom, Email) => {
+const resolveOrCreateKeycloakUser = async (Nom, Email, idToSync = null) => {
     const existing = await keycloakService.findUserByEmail(Email);
     if (existing?.length > 0) return existing[0].id;
 
@@ -45,7 +45,18 @@ const resolveOrCreateKeycloakUser = async (Nom, Email) => {
         lastName:  nameParts.slice(1).join(' ') || ''
     });
     try {
-        await keycloakService.sendResetPasswordEmail(id);
+        let targetClientId = 'client_extranet';
+        let redirectUri = 'http://localhost:5174/';
+        
+        if (idToSync) {
+            const rolesResult = await db.execute('SELECT Role FROM Roles WHERE FK_User_Id = @0', [idToSync]);
+            const roleNames = rolesResult[0]?.map(r => r.Role) || [];
+            if (roleNames.includes('admin_cabinet') || roleNames.includes('commercial_cabinet')) {
+                targetClientId = 'client_admin';
+                redirectUri = 'http://localhost:5173/';
+            }
+        }
+        await keycloakService.sendOnboardingEmail(id, targetClientId, redirectUri);
     } catch (err) {
         console.error("[Keycloak] Impossible d'envoyer l'email d'activation:", err.message);
     }
@@ -64,12 +75,12 @@ const syncKeycloak = async (userId, token, source, id) => {
     let keycloakUserId = Id_Auth;
 
     if (!keycloakUserId?.trim()) {
-        keycloakUserId = await resolveOrCreateKeycloakUser(Nom, Email);
+        keycloakUserId = await resolveOrCreateKeycloakUser(Nom, Email, id);
     } else {
         try {
             const kcUser = await keycloakService.getUserById(keycloakUserId);
             if (!kcUser) {
-                keycloakUserId = await resolveOrCreateKeycloakUser(Nom, Email);
+                keycloakUserId = await resolveOrCreateKeycloakUser(Nom, Email, id);
             }
         } catch {
             const found = await keycloakService.findUserByEmail(Email);
@@ -94,12 +105,25 @@ const linkUserToAdherent   = (userId, token, source, targetUserId, adherentId, r
 const updateClientOptions  = (userId, token, source, clientId, recClt, recAdh, role = 'admin_cabinet') =>
     db.execute(qry.updateClientOptions, [userId, token, source, clientId, recClt, recAdh, role]);
 
+const updateClientEmails   = (userId, token, source, clientId, emails, role = 'admin_cabinet') =>
+    db.execute(qry.updateClientEmails, [userId, token, source, clientId, emails, role]);
+
+const updateClientParent   = (userId, token, source, clientId, parentId, role = 'admin_cabinet') =>
+    db.execute(qry.updateClientParent, [userId, token, source, clientId, parentId, role]);
+
 const getAvailableRoles = () => keycloakService.getAvailableRoles();
 
 const updateUserRoles = async (userId, token, source, targetUserId, authId, roles) => {
-    const currentRoles = await keycloakService.getUserRoles(authId);
-    if (currentRoles.length > 0) await keycloakService.removeUserRoles(authId, currentRoles);
-    if (roles.length > 0)        await keycloakService.assignUserRoles(authId, roles);
+    let activeAuthId = authId;
+
+    if (!activeAuthId?.trim()) {
+        const syncResult = await syncKeycloak(userId, token, source, targetUserId);
+        activeAuthId = syncResult.keycloakUserId;
+    }
+
+    const currentRoles = await keycloakService.getUserRoles(activeAuthId);
+    if (currentRoles.length > 0) await keycloakService.removeUserRoles(activeAuthId, currentRoles);
+    if (roles.length > 0)        await keycloakService.assignUserRoles(activeAuthId, roles);
 
     const rolesCSV = roles.map(r => r.name).join(',');
     return db.execute(qry.updateUserRoles, [userId, token, source, targetUserId, rolesCSV]);
@@ -123,5 +147,7 @@ module.exports = {
     linkUserToAdherent,
     getAvailableRoles,
     updateUserRoles,
-    updateClientOptions
+    updateClientOptions,
+    updateClientEmails,
+    updateClientParent
 };

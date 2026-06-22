@@ -56,14 +56,14 @@ class KeycloakService {
   }
 
   private setupTokenRefresh(): void {
-    setInterval(async () => {
+    this.keycloak.onTokenExpired = async () => {
       try {
         await this.keycloak.updateToken(30);
       } catch (error) {
-        console.error('❌ Failed to refresh token:', error);
+        console.error('❌ Failed to refresh token on expiry:', error);
         this.login();
       }
-    }, 10000);
+    };
   }
 
   private cleanUrl(): void {

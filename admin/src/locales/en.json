@@ -113,11 +113,18 @@
     "toast_unlink_success": "Link removed",
     "toast_options_update_success": "Claim options updated",
     "toast_options_update_error": "Update error",
+    "toast_parent_update_success": "Parent client updated successfully",
+    "toast_parent_update_error": "Error updating parent client",
+    "parent_dialog_title": "Set Parent Client",
+    "parent_dialog_desc": "Select the parent client for {name}.",
+    "no_parent": "None (Remove parent)",
     "options_title": "Claim Options",
     "support_client": "Client Support",
     "support_client_desc": "Allow client tickets",
     "support_adherent": "Member Support",
-    "support_adherent_desc": "Allow member tickets"
+    "support_adherent_desc": "Allow member tickets",
+    "emails_title": "Account Manager Emails",
+    "no_emails": "No email found"
   },
   "adherents": {
     "title": "Member Management",
@@ -190,7 +197,9 @@
     "you": "YOU",
     "download": "Download",
     "previous": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "add": "Add",
+    "saving": "Saving..."
   },
   "reclamations": {
     "all_natures": "All natures",

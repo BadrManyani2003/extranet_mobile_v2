@@ -4,7 +4,7 @@ setlocal enabledelayedexpansion
 :: --- CONFIGURATION KEYCLOAK ---
 set KC_PATH=C:\keycloak\bin\kcadm.bat
 set KC_SERVER=http://localhost:8180
-set KC_REALM=ask_extranet_mobile
+set KC_REALM=MyASK
 set KC_USER=admin
 set KC_PASS=admin
 set DEFAULT_PASSWORD=ABC@1234

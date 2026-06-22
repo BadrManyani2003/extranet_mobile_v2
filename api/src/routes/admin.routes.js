@@ -27,6 +27,8 @@ router.post('/clients',              adminOrCom, ctrl.getClients);
 router.post('/clients/link-user',    adminOrCom, ctrl.linkUserToClient);
 router.post('/clients/unlink-user',  adminOrCom, ctrl.unlinkUserFromClient);
 router.post('/clients/options',      adminOrCom, ctrl.updateClientOptions);
+router.post('/clients/emails',       adminOrCom, ctrl.updateClientEmails);
+router.post('/clients/parent',       adminOrCom, ctrl.updateClientParent);
 
 // ── Clients — actions admin + commercial ───────────────────────────────────────
 router.post('/clients/create-user',  adminOrCom, ctrl.createUserFromClient);

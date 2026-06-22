@@ -7,7 +7,7 @@ ADMIN_USER="admin"
 read -s -p "Mot de passe : " ADMIN_PASS
 echo ""
 
-REALM_NAME="ask_extranet_mobile"
+REALM_NAME="MyASK"
 CLIENT_ADMIN="client_admin"
 CLIENT_EXTRANET="client_extranet"
 CLIENT_MOBILE="client_mobile"
@@ -92,18 +92,32 @@ if [ "$API_EXISTS" -gt 0 ]; then
     echo "Client API OK (existe deja)."
 else
     echo "Creation du client API..."
-    "$KCADM_PATH" create clients -r "$REALM_NAME" -s clientId="$CLIENT_API" -s enabled=true -s publicClient=false -s serviceAccountsEnabled=true -s clientAuthenticatorType=client-secret -s secret="mL1QMYDIhfgbrIJGCvwYW872GUa2PNV0" >/dev/null 2>&1
+    "$KCADM_PATH" create clients -r "$REALM_NAME" -s clientId="$CLIENT_API" -s enabled=true -s publicClient=false -s serviceAccountsEnabled=true -s standardFlowEnabled=true -s clientAuthenticatorType=client-secret -s secret="mL1QMYDIhfgbrIJGCvwYW872GUa2PNV0" >/dev/null 2>&1
     if [ $? -eq 0 ]; then
         echo "Client API OK."
     fi
 fi
 
 echo "[5/6] Configuration SMTP et Securite..."
-"$KCADM_PATH" update realms/"$REALM_NAME" -s smtpServer.host="$SMTP_HOST" -s smtpServer.port="$SMTP_PORT" -s smtpServer.from="$SMTP_FROM" -s smtpServer.auth=true -s smtpServer.user="$SMTP_USER" -s smtpServer.password="$SMTP_PASS" -s verifyEmail=true -s resetPasswordAllowed=true -s editUsernameAllowed=false
+"$KCADM_PATH" update realms/"$REALM_NAME" \
+    -s smtpServer.host="$SMTP_HOST" \
+    -s smtpServer.port="$SMTP_PORT" \
+    -s smtpServer.from="$SMTP_FROM" \
+    -s smtpServer.auth=true \
+    -s smtpServer.user="$SMTP_USER" \
+    -s smtpServer.password="$SMTP_PASS" \
+    -s smtpServer.starttls=true \
+    -s verifyEmail=true \
+    -s resetPasswordAllowed=true \
+    -s editUsernameAllowed=false \
+    -s bruteForceProtected=true \
+    -s sslRequired=external \
+    -s "passwordPolicy=length(8) and digits(1) and lowerCase(1) and upperCase(1) and specialChars(1)"
 
-echo "Activation de l'action requise : UPDATE_PASSWORD (par defaut)..."
+echo "Activation des actions requises (Mdp, Email, 2FA)..."
 "$KCADM_PATH" update authentication/required-actions/UPDATE_PASSWORD -r "$REALM_NAME" -s defaultAction=true -s enabled=true
 "$KCADM_PATH" update authentication/required-actions/VERIFY_EMAIL -r "$REALM_NAME" -s defaultAction=true -s enabled=true
+"$KCADM_PATH" update authentication/required-actions/CONFIGURE_TOTP -r "$REALM_NAME" -s defaultAction=true -s enabled=true
 "$KCADM_PATH" update authentication/required-actions/UPDATE_PROFILE -r "$REALM_NAME" -s defaultAction=false -s enabled=false
 echo "Actions requises OK."
 
@@ -119,6 +133,8 @@ fi
 echo "------------------------------------------------------------"
 echo "CONFIGURATION TERMINEE AVEC SUCCES"
 echo "------------------------------------------------------------"
-echo "Note: Tous les nouveaux utilisateurs devront changer leur mot de passe"
-echo "      et verifier leur email lors de leur premiere connexion."
+echo "Note: Tous les nouveaux utilisateurs devront :"
+echo "      1. Verifier leur adresse email."
+echo "      2. Changer leur mot de passe (8 car. min, maj, min, chiffre, special)."
+echo "      3. Configurer l'authentification a deux facteurs (Google Authenticator)."
 echo "------------------------------------------------------------"

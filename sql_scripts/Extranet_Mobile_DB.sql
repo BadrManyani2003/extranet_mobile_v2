@@ -315,6 +315,7 @@ CREATE TABLE dbo.ReclamationsIdt
     Statut CHAR(1) NOT NULL  DEFAULT 'E',
     DateStatut DATETIME2 NULL,
     Nature CHAR(1) NULL,
+    DateDernierMessage DATETIME2 NULL,
     CreatedAt DATETIME2 NOT NULL  DEFAULT GETDATE(),
     CONSTRAINT PK_ReclamationsIdt PRIMARY KEY CLUSTERED (Id),
     CONSTRAINT FK_ReclamIdt_User FOREIGN KEY (FK_User_Client) REFERENCES dbo.sysUser(Id)
@@ -329,6 +330,7 @@ CREATE TABLE dbo.ReclamationsDet
     DateMessage DATETIME2 NOT NULL  DEFAULT GETDATE(),
     Nature CHAR(1) NULL,
     Message VARCHAR(2000) NULL,
+    MailEnvoye CHAR(1) NOT NULL DEFAULT 'N',
     CONSTRAINT PK_ReclamationsDet PRIMARY KEY CLUSTERED (Id),
     CONSTRAINT FK_ReclamDet_Reclamation FOREIGN KEY (FK_Reclamation_Id) REFERENCES dbo.ReclamationsIdt(Id) ON DELETE CASCADE,
     CONSTRAINT FK_ReclamDet_User FOREIGN KEY (FK_User_Id) REFERENCES dbo.sysUser(Id)
@@ -363,6 +365,8 @@ CREATE TABLE dbo.sinComplement
     AGE INT NULL,
     CCR_EV DECIMAL(18,2) NULL,
     COUT_TOT DECIMAL(18,2) NULL,
+    Dt_Presc_DC DATE NULL,
+    Dt_Presc_Bien DATE NULL,
     CONSTRAINT PK_sinComplement PRIMARY KEY CLUSTERED (id),
     CONSTRAINT FK_sinComplement_Sinistre FOREIGN KEY (fk_sinistre_id) REFERENCES dbo.Sinistres(Id) ON DELETE CASCADE
 );

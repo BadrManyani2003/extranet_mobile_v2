@@ -101,7 +101,7 @@ onMounted(() => {
             <TableHead class="table-header-text min-w-[260px]">{{ $t('users.table.name') }}</TableHead>
             <TableHead class="table-header-text">{{ $t('users.table.email') }}</TableHead>
             <TableHead class="table-header-text">{{ $t('users.table.nature') }}</TableHead>
-            <TableHead class="table-header-text">{{ $t('users.table.roles', 'Rôles') }}</TableHead>
+            <TableHead class="table-header-text">{{ $t('users.table.roles') }}</TableHead>
             <TableHead class="table-header-text">{{ $t('users.table.status') }}</TableHead>
             <TableHead class="text-right table-header-text pr-8">{{ $t('users.table.actions') }}</TableHead>
           </TableRow>
@@ -137,7 +137,7 @@ onMounted(() => {
                   class="bg-white border border-slate-100 text-slate-500 text-[14px] font-black uppercase tracking-tight py-0.5 px-1.5 shadow-sm">
                   {{ role }}
                 </Badge>
-                <span v-if="!user.roles" class="text-[14px] text-slate-300 font-bold uppercase tracking-widest italic">{{ $t('statuts.standard') }}</span>
+                <span v-if="!user.roles" class="text-[14px] text-slate-300 font-bold uppercase tracking-widest italic">( - )</span>
               </div>
             </TableCell>
             <TableCell>
@@ -151,7 +151,7 @@ onMounted(() => {
                 </Button>
                 <div v-else class="flex items-center gap-2">
                   <div class="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
-                  <span class="text-slate-400 text-[14px] font-black uppercase tracking-widest">{{ $t('statuts.inactif', 'Inactif') }}</span>
+                  <span class="text-slate-400 text-[14px] font-black uppercase tracking-widest">{{ $t('statuts.inactif') }}</span>
                 </div>
               </div>
             </TableCell>
@@ -161,7 +161,7 @@ onMounted(() => {
                   <Users class="w-4 h-4 mr-2" /> {{ $t('statuts.simulations') }}
                 </Button>
                 <Button v-if="isAdmin && user.idAuth" variant="ghost" size="sm" class="h-9 px-3 premium-button text-slate-600 hover:bg-primary hover:text-primary-foreground" @click="openRoles(user)">
-                  <ShieldCheck class="w-4 h-4 mr-2" /> {{ $t('users.table.roles', 'Rôles') }}
+                  <ShieldCheck class="w-4 h-4 mr-2" /> {{ $t('users.table.roles') }}
                 </Button>
                 <Button v-if="user.canManage !== 0" variant="ghost" size="icon" class="h-9 w-9 rounded-xl hover:bg-slate-200" @click="openEdit(user)"><Edit class="w-4 h-4 text-slate-600" /></Button>
                 <Button v-if="user.canManage !== 0" variant="ghost" size="icon" class="h-9 w-9 rounded-xl hover:bg-red-50 text-red-500" @click="activeUser = user; dialogs.delete = true"><Trash2 class="w-4 h-4" /></Button>
@@ -177,7 +177,7 @@ onMounted(() => {
   <ConfirmModal 
     :open="dialogs.sync" 
     :title="$t('commun.sync') + ' ?'" 
-    :description="$t('users.sync_desc', 'Lier ce compte pour activer les accès.')"
+    :description="$t('users.sync_desc')"
     :confirm-text="$t('commun.sync')"
     variant="warning"
     :loading="processing"
@@ -188,7 +188,7 @@ onMounted(() => {
   <ConfirmModal 
     :open="dialogs.delete" 
     :title="$t('commun.delete') + ' ?'" 
-    :description="$t('users.delete_desc', 'Cette action est définitive et supprimera l\'utilisateur de la base.')"
+    :description="$t('users.delete_desc')"
     :confirm-text="$t('commun.delete')"
     variant="danger"
     :loading="processing"

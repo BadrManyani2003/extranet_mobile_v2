@@ -21,7 +21,7 @@ const emit = defineEmits(['select'])
 
       <div v-else-if="reclamations.length === 0" class="flex flex-col items-center justify-center h-64 text-center p-12 opacity-50">
         <MessageSquare class="w-10 h-10 text-slate-200 mb-4" />
-        <p class="text-xs font-black uppercase tracking-widest text-slate-400">{{ $t('commun.no_results', 'Aucun résultat') }}</p>
+        <p class="text-xs font-black uppercase tracking-widest text-slate-400">{{ $t('commun.no_results') }}</p>
       </div>
 
       <div v-else class="space-y-3">

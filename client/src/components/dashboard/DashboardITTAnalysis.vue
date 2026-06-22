@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Bar, Line } from 'vue-chartjs'
 import { 
   Chart as ChartJS, 
@@ -19,7 +20,10 @@ ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale,
 const props = defineProps<{
   evolutionData: any[] | null
   top5ITTData: any[] | null
+  top10VictimesData: any[] | null
 }>()
+
+const { t } = useI18n()
 
 // ----------------------------------------------------
 // 2. Chart 2: ITT Rate and Avg ITT Days (Line)
@@ -35,7 +39,7 @@ const lineChartData = computed(() => {
     labels: years,
     datasets: [
       {
-        label: 'Taux ITT (%)',
+        label: t('tableau_bord.itt_rate'),
         borderColor: '#ea580c', // Orange
         backgroundColor: '#ea580c',
         data: tauxITT,
@@ -104,7 +108,7 @@ const barMntChartData = computed(() => {
     labels: years,
     datasets: [
       {
-        label: 'Montant ITT (MAD)',
+        label: t('tableau_bord.itt_amount_mad'),
         backgroundColor: '#ea580c', // Orange
         borderRadius: 6,
         data: mntITT
@@ -154,7 +158,7 @@ const barMntChartOptions = computed(() => {
     <div class="w-full bg-[#ea580c] px-6 py-4 md:px-8 md:py-5 flex items-center justify-between overflow-hidden relative">
       <div class="absolute inset-0 bg-gradient-to-r from-orange-950/10 via-transparent to-orange-950/5 pointer-events-none"></div>
       <div class="space-y-0.5 z-10">
-        <h2 class="text-lg md:text-2xl font-black text-white uppercase tracking-wider">ANALYSE ITT — INCAPACITÉ TEMPORAIRE DE TRAVAIL</h2>
+        <h2 class="text-lg md:text-2xl font-black text-white uppercase tracking-wider">{{ $t('tableau_bord.itt_analysis') }}</h2>
       </div>
     </div>
 
@@ -166,17 +170,17 @@ const barMntChartOptions = computed(() => {
         <!-- Line Chart: Taux ITT & Durée moyenne -->
         <div class="bg-white rounded-[1.8rem] border border-slate-200/60 p-6 md:p-8 space-y-4 shadow-sm">
           <h3 class="font-extrabold text-slate-900 text-sm md:text-base tracking-tight text-center uppercase">
-            Taux ITT (%) et durée moy. (j) par année
+            {{ $t('tableau_bord.itt_rate_and_avg_duration') }}
           </h3>
           <div class="relative h-72 w-full">
             <Line :data="lineChartData" :options="lineChartOptions" />
           </div>
         </div>
 
-        <!-- Bar Chart: Montant ITT par année -->
+        <!-- Bar Chart: {{ $t('tableau_bord.itt_amount_per_year') }} -->
         <div class="bg-white rounded-[1.8rem] border border-slate-200/60 p-6 md:p-8 space-y-4 shadow-sm">
           <h3 class="font-extrabold text-slate-900 text-sm md:text-base tracking-tight text-center uppercase">
-            Montant ITT par année
+            {{ $t('tableau_bord.itt_amount_per_year') }}
           </h3>
           <div class="relative h-72 w-full">
             <Bar :data="barMntChartData" :options="barMntChartOptions" />
@@ -196,11 +200,11 @@ const barMntChartOptions = computed(() => {
           <table class="w-full border-collapse">
             <thead>
               <tr class="bg-[#1e293b] text-white">
-                <th class="px-6 py-3.5 font-black uppercase tracking-wider text-xs border-b border-slate-700 text-center">Année</th>
-                <th class="px-6 py-3.5 font-black uppercase tracking-wider text-xs border-b border-slate-700 text-left">Victime</th>
-                <th class="px-6 py-3.5 font-black uppercase tracking-wider text-xs border-b border-slate-700 text-center">Jours ITT</th>
-                <th class="px-6 py-3.5 font-black uppercase tracking-wider text-xs border-b border-slate-700 text-center">MNT ITT (MAD)</th>
-                <th class="px-6 py-3.5 font-black uppercase tracking-wider text-xs border-b border-slate-700 text-center">Coût total (MAD)</th>
+                <th class="px-6 py-3.5 font-black uppercase tracking-wider text-xs border-b border-slate-700 text-center">{{ $t('tableau_bord.year') }}</th>
+                <th class="px-6 py-3.5 font-black uppercase tracking-wider text-xs border-b border-slate-700 text-left">{{ $t('tableau_bord.victim') }}</th>
+                <th class="px-6 py-3.5 font-black uppercase tracking-wider text-xs border-b border-slate-700 text-center">{{ $t('tableau_bord.itt_days') }}</th>
+                <th class="px-6 py-3.5 font-black uppercase tracking-wider text-xs border-b border-slate-700 text-center">{{ $t('tableau_bord.itt_amount_mad') }}</th>
+                <th class="px-6 py-3.5 font-black uppercase tracking-wider text-xs border-b border-slate-700 text-center">{{ $t('tableau_bord.total_cost_mad') }}</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
@@ -214,6 +218,38 @@ const barMntChartOptions = computed(() => {
                 <td class="px-6 py-3.5 font-black text-[#b30000] text-sm text-center">{{ formatKPIValue(row.joursITT, 'number') }}</td>
                 <td class="px-6 py-3.5 font-bold text-slate-700 text-sm text-center">{{ formatKPIValue(row.mntITT, 'number') }}</td>
                 <td class="px-6 py-3.5 font-bold text-slate-700 text-sm text-center">{{ formatKPIValue(row.coutTotal, 'number') }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Top 10 Victimes (Multiple Sinistres) table -->
+      <div v-if="top10VictimesData && top10VictimesData.length > 0" class="bg-white border border-slate-200/60 rounded-[1.5rem] overflow-hidden shadow-sm mt-8">
+        <div class="bg-[#ea580c] px-6 py-4 text-white">
+          <h3 class="text-sm md:text-base font-black uppercase tracking-wider text-center md:text-left">
+            TOP 10 — sinistre récidives
+          </h3>
+        </div>
+        
+        <div class="p-4 md:p-6 overflow-x-auto">
+          <table class="w-full border-collapse">
+            <thead>
+              <tr class="bg-orange-50 text-orange-950">
+                <th class="px-6 py-3.5 font-black uppercase tracking-wider text-xs border-b border-orange-200/50 text-center w-16">#</th>
+                <th class="px-6 py-3.5 font-black uppercase tracking-wider text-xs border-b border-orange-200/50 text-left">{{ $t('tableau_bord.victim_name') }}</th>
+                <th class="px-6 py-3.5 font-black uppercase tracking-wider text-xs border-b border-orange-200/50 text-center">{{ $t('tableau_bord.nb_claims_full') }}</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              <tr 
+                v-for="(row, index) in top10VictimesData" 
+                :key="row.nom"
+                class="hover:bg-slate-50/50 transition-colors duration-150"
+              >
+                <td class="px-6 py-3.5 font-extrabold text-slate-400 text-sm text-center">{{ index + 1 }}</td>
+                <td class="px-6 py-3.5 font-bold text-slate-800 text-sm text-left">{{ row.nom }}</td>
+                <td class="px-6 py-3.5 font-black text-[#ea580c] text-base text-center">{{ row.count }}</td>
               </tr>
             </tbody>
           </table>

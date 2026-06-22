@@ -88,7 +88,7 @@ onMounted(fetchAdherents)
                 <CheckCircle2 class="w-3.5 h-3.5" />
                 {{ adherent.userNom }}
               </div>
-              <span v-else class="text-slate-300 font-black text-[14px] uppercase tracking-widest italic">{{ $t('commun.no_results') }}</span>
+              <span v-else class="text-slate-300 font-black text-[14px] uppercase tracking-widest italic">( - )</span>
             </TableCell>
             <TableCell class="text-right">
               <div v-if="!adherent.fkUserId" class="flex justify-end gap-1">

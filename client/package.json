@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc -b && vite build && node -e \"const fs = require('fs'); if (fs.existsSync('.env')) fs.copyFileSync('.env', 'dist/.env')\"",
+    "build": "vue-tsc -b && vite build",
     "preview": "vite preview"
   },
   "dependencies": {

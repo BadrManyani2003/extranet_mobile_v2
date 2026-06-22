@@ -146,6 +146,7 @@ const gererMiseAJourRecherche = (onglet: string, requete: string) => {
             <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5 mt-2 text-xs sm:text-sm text-slate-500 font-medium">
               <span class="flex items-center gap-1.5 px-2 py-0.5 bg-slate-100 rounded-md whitespace-nowrap"><Tag class="w-3.5 h-3.5" /> {{ police.branche }}</span>
               <span class="flex items-center gap-1.5 px-2 py-0.5 bg-slate-100 rounded-md whitespace-nowrap"><Building2 class="w-3.5 h-3.5" /> {{ police.compagnie }}</span>
+              <span v-if="police.client" class="flex items-center gap-1.5 px-2 py-0.5 bg-slate-100 rounded-md whitespace-nowrap"><Users class="w-3.5 h-3.5" /> {{ police.client }}</span>
             </div>
           </div>
         </div>

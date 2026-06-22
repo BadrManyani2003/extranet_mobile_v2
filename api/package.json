@@ -21,6 +21,7 @@
     "jsonwebtoken": "^9.0.2",
     "jwks-rsa": "^4.0.1",
     "mssql": "^12.5.0",
+    "nodemailer": "^9.0.0",
     "qs": "^6.15.1"
   },
   "devDependencies": {

@@ -1,5 +1,6 @@
 const sql       = require('mssql');
 const { getPool } = require('./db.service');
+const qry         = require('../sql/qryExtranet');
 
 /**
  * Upload un document dans StdDocument.
@@ -16,9 +17,7 @@ const upload = async (userId, token, nature, identifiant, type, documentBuffer) 
     request.input('type',        sql.VarChar(255),   type);
     request.input('document',    sql.VarBinary(sql.MAX), documentBuffer);
 
-    const result = await request.query(
-        `exec dbo.sp_UploadDocument @userId, @token, @nature, @identifiant, @type, @document`
-    );
+    const result = await request.query(qry.uploadDocument);
     return result.recordsets;
 };
 
@@ -37,9 +36,7 @@ const getDocuments = async (userId, token, source, nature, identifiant, dateFrom
     request.input('dateFrom',    sql.Date,             dateFrom || null);
     request.input('dateTo',      sql.Date,             dateTo   || null);
 
-    const result = await request.query(
-        `exec dbo.sp_GetDocuments @userId, @token, @source, @nature, @identifiant, @dateFrom, @dateTo`
-    );
+    const result = await request.query(qry.getDocuments);
     return result.recordsets;
 };
 
@@ -55,9 +52,7 @@ const getDocumentById = async (userId, token, source, documentId) => {
     request.input('source',     sql.VarChar(10),      source);
     request.input('documentId', sql.Int,              documentId);
 
-    const result = await request.query(
-        `exec dbo.sp_GetDocumentById @userId, @token, @source, @documentId`
-    );
+    const result = await request.query(qry.getDocumentById);
     return result.recordsets;
 };
 
@@ -73,9 +68,7 @@ const deleteDocument = async (userId, token, source, documentId) => {
     request.input('source',     sql.VarChar(10),      source);
     request.input('documentId', sql.Int,              documentId);
 
-    const result = await request.query(
-        `exec dbo.sp_DeleteDocument @userId, @token, @source, @documentId`
-    );
+    const result = await request.query(qry.deleteDocument);
     return result.recordsets;
 };
 
@@ -92,9 +85,7 @@ const updateDocumentTransfere = async (userId, token, source, documentId, transf
     request.input('documentId', sql.Int,              documentId);
     request.input('transfere',  sql.Char(1),          transfere);
 
-    const result = await request.query(
-        `exec dbo.sp_UpdateDocumentTransfere @userId, @token, @source, @documentId, @transfere`
-    );
+    const result = await request.query(qry.updateDocumentTransfere);
     return result.recordsets;
 };
 

@@ -17,7 +17,7 @@ router.post('/add-message',    allRoles, ctrl.addMessage);
 
 // Mise à jour statut & suppression : admin + commercial (leurs clients)
 router.post('/update-statut',  adminOrCom, ctrl.updateStatus);
-router.post('/delete',         adminOrCom, ctrl.deleteReclamation);
+router.post('/delete',         allRoles, ctrl.deleteReclamation);
 router.post('/delete-message', adminOrCom, ctrl.deleteMessage);
 
 module.exports = router;

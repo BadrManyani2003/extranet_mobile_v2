@@ -31,6 +31,12 @@ export const AdminService = {
   updateClientOptions: (clientId: number, recClt: string, recAdh: string) => 
     request<any>('/admin/clients/options', { method: 'POST', body: JSON.stringify({ clientId, recClt, recAdh }) }),
 
+  updateClientEmails: (clientId: number, emails: string) => 
+    request<any>('/admin/clients/emails', { method: 'POST', body: JSON.stringify({ clientId, emails }) }),
+
+  updateClientParent: (clientId: number, parentId: number | null) => 
+    request<any>('/admin/clients/parent', { method: 'POST', body: JSON.stringify({ clientId, parentId }) }),
+
   getAdherents: (filters = {}) => 
     request<any[]>('/admin/adherents', { method: 'POST', body: JSON.stringify(filters) }),
 
