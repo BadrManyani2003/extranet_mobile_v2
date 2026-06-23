@@ -10,16 +10,21 @@ set KC_PASS=admin
 set DEFAULT_PASSWORD=ABC@1234
 
 echo [1/3] Connexion au serveur Keycloak...
-call %KC_PATH% config credentials --server %KC_SERVER% --realm master --user %KC_USER% --password %KC_PASS%
+call %KC_PATH% config credentials --server %KC_SERVER% --realm master --user %KC_USER% --password %KC_PASS% >nul 2>&1
 if %ERRORLEVEL% neq 0 (
-    echo ERREUR: Impossible de se connecter. Verifiez vos identifiants admin Keycloak.
-    pause
-    exit /b
+    echo Connexion avec le mot de passe par defaut echouee.
+    set /p KC_PASS=Entrez le mot de passe administrateur Keycloak : 
+    call %KC_PATH% config credentials --server %KC_SERVER% --realm master --user %KC_USER% --password !KC_PASS!
+    if !ERRORLEVEL! neq 0 (
+        echo ERREUR: Impossible de se connecter. Verifiez vos identifiants admin Keycloak.
+        pause
+        exit /b 1
+    fi
 )
 
 echo [2/3] Creation des utilisateurs avec attribution des roles...
 
-call :create_user "admin_cabinet@ibs.ma" "Admin Cabinet" "admin_cabinet"
+call :create_user "admin@myask.ma" "Admin MyASK" "admin_cabinet"
 
 echo.
 echo [3/3] Termine.

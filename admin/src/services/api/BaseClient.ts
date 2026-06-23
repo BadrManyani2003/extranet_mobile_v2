@@ -1,7 +1,8 @@
 import keycloak from '../keycloak'
 
 function getBaseUrl(): string {
-  const baseUrl = (window as any).APP_ENV?.VITE_API_URL || import.meta.env.VITE_API_URL;
+  const env = (window as any).APP_ENV || {};
+  const baseUrl = env.VITE_API_URL;
   if (!baseUrl) {
     throw new Error("La configuration de l'API (VITE_API_URL) est manquante dans l'environnement.");
   }

@@ -20,9 +20,9 @@ class KeycloakService {
     if (this.keycloak) return;
 
     const env      = (window as any).APP_ENV || {};
-    const url      = env.VITE_KEYCLOAK_URL || import.meta.env.VITE_KEYCLOAK_URL;
-    const realm    = env.VITE_KEYCLOAK_REALM || import.meta.env.VITE_KEYCLOAK_REALM;
-    const clientId = env.VITE_KEYCLOAK_CLIENT_ID || import.meta.env.VITE_KEYCLOAK_CLIENT_ID;
+    const url      = env.VITE_KEYCLOAK_URL;
+    const realm    = env.VITE_KEYCLOAK_REALM;
+    const clientId = env.VITE_KEYCLOAK_CLIENT_ID;
 
     if (!url || !realm || !clientId) {
       throw new Error("La configuration Keycloak (VITE_KEYCLOAK_URL, VITE_KEYCLOAK_REALM, VITE_KEYCLOAK_CLIENT_ID) est manquante dans l'environnement.");

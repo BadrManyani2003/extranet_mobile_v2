@@ -1,4 +1,22 @@
-require('dotenv').config({ override: true });
+const fs = require('fs');
+const path = require('path');
+
+const getEnvPath = () => {
+    const paths = [
+        path.join(__dirname, '.env'),
+        path.join(process.cwd(), '.env'),
+        path.join(__dirname, '..', '.env'),
+        path.join(__dirname, '..', '..', '.env')
+    ];
+    for (const p of paths) {
+        if (fs.existsSync(p)) {
+            return p;
+        }
+    }
+    return undefined;
+};
+
+require('dotenv').config({ path: getEnvPath(), override: true });
 const app  = require('./app');
 const db   = require('./services/db.service');
 

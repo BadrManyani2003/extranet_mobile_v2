@@ -18,11 +18,17 @@ if ! command -v "$KC_PATH" &> /dev/null; then
 fi
 
 echo "[1/3] Connexion au serveur Keycloak..."
-"$KC_PATH" config credentials --server "$KC_SERVER" --realm master --user "$KC_USER" --password "$KC_PASS"
+"$KC_PATH" config credentials --server "$KC_SERVER" --realm master --user "$KC_USER" --password "$KC_PASS" >/dev/null 2>&1
 if [ $? -ne 0 ]; then
-    echo "ERREUR: Impossible de se connecter. Verifiez vos identifiants admin Keycloak."
-    read -p "Appuyez sur Entree pour quitter..."
-    exit 1
+    echo "Connexion avec le mot de passe par defaut echouee."
+    read -s -p "Entrez le mot de passe administrateur Keycloak : " KC_PASS
+    echo ""
+    "$KC_PATH" config credentials --server "$KC_SERVER" --realm master --user "$KC_USER" --password "$KC_PASS"
+    if [ $? -ne 0 ]; then
+        echo "ERREUR: Impossible de se connecter. Verifiez vos identifiants admin Keycloak."
+        read -p "Appuyez sur Entree pour quitter..."
+        exit 1
+    fi
 fi
 
 create_user() {
@@ -70,7 +76,7 @@ create_user() {
 }
 
 echo "[2/3] Creation des utilisateurs avec attribution des roles..."
-create_user "badrmeneyani87@gmail.com" "Admin Cabinet" "admin_cabinet"
+create_user "admin@myask.ma" "Admin MyASK" "admin_cabinet"
 
 echo ""
 echo "[3/3] Termine. Copiez les ID_AUTH ci-dessus dans votre fichier donnee_test.sql."

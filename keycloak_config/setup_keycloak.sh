@@ -12,20 +12,32 @@ CLIENT_ADMIN="client_admin"
 CLIENT_EXTRANET="client_extranet"
 CLIENT_MOBILE="client_mobile"
 CLIENT_API="client_api"
+CLIENT_API_SECRET="5LMx5RWmWVefy4APRBqp0SjLethYoJ6L"
 
 REDIRECT_ADMIN="\"http://localhost:5173/*\",\"http://192.168.20.110:8003/*\""
 REDIRECT_EXTRANET="\"http://localhost:5174/*\",\"http://192.168.20.110:8004/*\""
 REDIRECT_MOBILE="\"assurplus://*\""
 
-# Modifier ce chemin selon votre installation de Keycloak sur Linux/macOS
-KCADM_PATH="/opt/keycloak/bin/kcadm.sh"
+# Détection automatique du chemin vers kcadm.sh
+if [ -z "$KCADM_PATH" ]; then
+    if command -v kcadm.sh &> /dev/null; then
+        KCADM_PATH="kcadm.sh"
+    elif [ -f "/opt/keycloak/bin/kcadm.sh" ]; then
+        KCADM_PATH="/opt/keycloak/bin/kcadm.sh"
+    elif [ -f "./kcadm.sh" ]; then
+        KCADM_PATH="./kcadm.sh"
+    else
+        KCADM_PATH="/opt/keycloak/bin/kcadm.sh"
+    fi
+fi
 
 # ================= SMTP CONFIG =================
-SMTP_HOST="smtp.gmail.com"
-SMTP_PORT="587"
-SMTP_FROM="myask@example.com"
-SMTP_USER="myask@example.com"
-SMTP_PASS="your_password"
+SMTP_HOST=""
+SMTP_PORT=""
+SMTP_FROM=""
+SMTP_USER=""
+SMTP_PASS=""
+SMTP_FROM_DISPLAY=""
 
 clear
 echo "------------------------------------------------------------"
@@ -73,8 +85,8 @@ CREATE_CLIENT() {
     local REDIRECT="$2"
     local PUBLIC="$3"
     
-    local EXISTS=$("$KCADM_PATH" get clients -r "$REALM_NAME" 2>/dev/null | grep -c "\"clientId\" : \"$NAME\"")
-    if [ "$EXISTS" -gt 0 ]; then
+    local CLIENT_UUID=$("$KCADM_PATH" get clients -r "$REALM_NAME" -q clientId="$NAME" --fields id --format csv --noquotes 2>/dev/null | tail -n +2 | tr -d '"\r\n')
+    if [ -n "$CLIENT_UUID" ]; then
         echo "Le client $NAME existe deja (IGNORER)."
     else
         "$KCADM_PATH" create clients -r "$REALM_NAME" -s clientId="$NAME" -s enabled=true -s publicClient="$PUBLIC" -s "redirectUris=[$REDIRECT]" -s "webOrigins=[\"*\"]" -s standardFlowEnabled=true >/dev/null 2>&1
@@ -87,32 +99,37 @@ CREATE_CLIENT "$CLIENT_EXTRANET" "$REDIRECT_EXTRANET" "true"
 CREATE_CLIENT "$CLIENT_MOBILE" "$REDIRECT_MOBILE" "true"
 
 # API Client
-API_EXISTS=$("$KCADM_PATH" get clients -r "$REALM_NAME" 2>/dev/null | grep -c "\"clientId\" : \"$CLIENT_API\"")
-if [ "$API_EXISTS" -gt 0 ]; then
+API_UUID=$("$KCADM_PATH" get clients -r "$REALM_NAME" -q clientId="$CLIENT_API" --fields id --format csv --noquotes 2>/dev/null | tail -n +2 | tr -d '"\r\n')
+if [ -n "$API_UUID" ]; then
     echo "Client API OK (existe deja)."
 else
     echo "Creation du client API..."
-    "$KCADM_PATH" create clients -r "$REALM_NAME" -s clientId="$CLIENT_API" -s enabled=true -s publicClient=false -s serviceAccountsEnabled=true -s standardFlowEnabled=true -s clientAuthenticatorType=client-secret -s secret="mL1QMYDIhfgbrIJGCvwYW872GUa2PNV0" >/dev/null 2>&1
+    "$KCADM_PATH" create clients -r "$REALM_NAME" -s clientId="$CLIENT_API" -s enabled=true -s publicClient=false -s serviceAccountsEnabled=true -s standardFlowEnabled=true -s clientAuthenticatorType=client-secret -s secret="$CLIENT_API_SECRET" >/dev/null 2>&1
     if [ $? -eq 0 ]; then
         echo "Client API OK."
     fi
 fi
 
 echo "[5/6] Configuration SMTP et Securite..."
+if [ -n "$SMTP_HOST" ]; then
+    "$KCADM_PATH" update realms/"$REALM_NAME" \
+        -s smtpServer.host="$SMTP_HOST" \
+        -s smtpServer.port="$SMTP_PORT" \
+        -s smtpServer.from="$SMTP_FROM" \
+        -s smtpServer.fromDisplayName="$SMTP_FROM_DISPLAY" \
+        -s smtpServer.auth=true \
+        -s smtpServer.user="$SMTP_USER" \
+        -s smtpServer.password="$SMTP_PASS" \
+        -s smtpServer.starttls=true >/dev/null 2>&1
+fi
+
 "$KCADM_PATH" update realms/"$REALM_NAME" \
-    -s smtpServer.host="$SMTP_HOST" \
-    -s smtpServer.port="$SMTP_PORT" \
-    -s smtpServer.from="$SMTP_FROM" \
-    -s smtpServer.auth=true \
-    -s smtpServer.user="$SMTP_USER" \
-    -s smtpServer.password="$SMTP_PASS" \
-    -s smtpServer.starttls=true \
     -s verifyEmail=true \
     -s resetPasswordAllowed=true \
     -s editUsernameAllowed=false \
     -s bruteForceProtected=true \
     -s sslRequired=external \
-    -s "passwordPolicy=length(8) and digits(1) and lowerCase(1) and upperCase(1) and specialChars(1)"
+    -s "passwordPolicy=length(8) and digits(1) and lowerCase(1) and upperCase(1) and specialChars(1)" >/dev/null 2>&1
 
 echo "Activation des actions requises (Mdp, Email, 2FA)..."
 "$KCADM_PATH" update authentication/required-actions/UPDATE_PASSWORD -r "$REALM_NAME" -s defaultAction=true -s enabled=true

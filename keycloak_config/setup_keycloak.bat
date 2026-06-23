@@ -24,12 +24,12 @@ set "KCADM_PATH=C:\keycloak\bin\kcadm.bat"
 :: set "SMTP_USER=myask@example.com"
 :: set "SMTP_PASS=SMTP_PASS"
 :: ================= SMTP CONFIG =================
-set "SMTP_HOST=smtp.gmail.com"
-set "SMTP_PORT=587"
-set "SMTP_FROM=badrmeneyani87@gmail.com"
-set "SMTP_USER=badrmeneyani87@gmail.com"
-set "SMTP_PASS=qyizfrdfbklzmmki"
-set "SMTP_FROM_DISPLAY=MyASK"
+set "SMTP_HOST="
+set "SMTP_PORT="
+set "SMTP_FROM="
+set "SMTP_USER="
+set "SMTP_PASS="
+set "SMTP_FROM_DISPLAY="
 
 cls
 echo ------------------------------------------------------------
@@ -72,14 +72,17 @@ set "FIND_ERR=%ERRORLEVEL%"
 del tmp_clients.json 2>nul
 if %FIND_ERR% EQU 0 goto :SKIP_CLIENT_API
 echo Creation du client API...
-call "%KCADM_PATH%" create clients -r %REALM_NAME% -s clientId=%CLIENT_API% -s enabled=true -s publicClient=false -s serviceAccountsEnabled=true -s standardFlowEnabled=true -s clientAuthenticatorType=client-secret >nul 2>&1
+call "%KCADM_PATH%" create clients -r %REALM_NAME% -s clientId=%CLIENT_API% -s enabled=true -s publicClient=false -s serviceAccountsEnabled=true -s standardFlowEnabled=true -s clientAuthenticatorType=client-secret -s secret=5LMx5RWmWVefy4APRBqp0SjLethYoJ6L >nul 2>&1
 :SKIP_CLIENT_API
 if %ERRORLEVEL% EQU 0 echo Client API OK.
 
 :STEP5
 echo [5/6] Configuration SMTP et Securite...
 :: Configuration du serveur SMTP, Securite de production
-call "%KCADM_PATH%" update realms/%REALM_NAME% -s smtpServer.host=%SMTP_HOST% -s smtpServer.port=%SMTP_PORT% -s smtpServer.from=%SMTP_FROM% -s smtpServer.fromDisplayName="%SMTP_FROM_DISPLAY%" -s smtpServer.auth=true -s smtpServer.user=%SMTP_USER% -s smtpServer.password=%SMTP_PASS% -s smtpServer.starttls=true -s verifyEmail=true -s resetPasswordAllowed=true -s editUsernameAllowed=false -s bruteForceProtected=true -s sslRequired=external -s "passwordPolicy=length(8) and digits(1) and lowerCase(1) and upperCase(1) and specialChars(1)"
+if not "%SMTP_HOST%"=="" (
+    call "%KCADM_PATH%" update realms/%REALM_NAME% -s smtpServer.host=%SMTP_HOST% -s smtpServer.port=%SMTP_PORT% -s smtpServer.from=%SMTP_FROM% -s smtpServer.fromDisplayName="%SMTP_FROM_DISPLAY%" -s smtpServer.auth=true -s smtpServer.user=%SMTP_USER% -s smtpServer.password=%SMTP_PASS% -s smtpServer.starttls=true >nul 2>&1
+)
+call "%KCADM_PATH%" update realms/%REALM_NAME% -s verifyEmail=true -s resetPasswordAllowed=true -s editUsernameAllowed=false -s bruteForceProtected=true -s sslRequired=external -s "passwordPolicy=length(8) and digits(1) and lowerCase(1) and upperCase(1) and specialChars(1)" >nul 2>&1
 
 :: Force les actions (Mdp, Email, 2FA) au premier login pour TOUS les nouveaux utilisateurs
 echo Activation des actions requises (UPDATE_PASSWORD, VERIFY_EMAIL, CONFIGURE_TOTP)...
