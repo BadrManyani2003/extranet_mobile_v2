@@ -4,9 +4,8 @@ import PageContainer from '@/components/shared/PageContainer.vue'
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton.vue'
 import { api } from '@/lib/api'
 import { AlertCircle } from 'lucide-vue-next'
-// @ts-ignore
-import html2pdf from 'html2pdf.js'
 import { formatDate } from '@/lib/utils'
+import { exportDashboardToPdf } from '@/utils/pdfExport'
 
 // Sub-components
 import DashboardFilters from '@/components/dashboard/DashboardFilters.vue'
@@ -151,14 +150,31 @@ const fetchAllStats = async () => {
         return
       }
 
-      // Fetch all stats in parallel
-      const [allKpis, allEvolution, allTop5, allRepartition, allSinistres] = await Promise.all([
-        Promise.all(policyIds.map(id => api.data.getStatsKPIs(id, dateDu.value, dateAu.value))),
-        Promise.all(policyIds.map(id => api.data.getStatsEvolutionAnnuelle(id, dateDu.value, dateAu.value))),
-        Promise.all(policyIds.map(id => api.data.getStatsTop5ITT(id, dateDu.value, dateAu.value))),
-        Promise.all(policyIds.map(id => api.data.getStatsRepartition(id, dateDu.value, dateAu.value))),
-        Promise.all(policyIds.map(id => api.data.getSinistres(id)))
-      ])
+      // Fetch all stats in batches to avoid rate limits and connection pooling issues
+      const allKpis = []
+      const allEvolution = []
+      const allTop5 = []
+      const allRepartition = []
+      const allTop10 = []
+
+      const chunkSize = 5
+      for (let i = 0; i < policyIds.length; i += chunkSize) {
+        const batchIds = policyIds.slice(i, i + chunkSize)
+        
+        const [batchKpis, batchEvolution, batchTop5, batchRepartition, batchTop10Result] = await Promise.all([
+          Promise.all(batchIds.map(id => api.data.getStatsKPIs(id, dateDu.value, dateAu.value))),
+          Promise.all(batchIds.map(id => api.data.getStatsEvolutionAnnuelle(id, dateDu.value, dateAu.value))),
+          Promise.all(batchIds.map(id => api.data.getStatsTop5ITT(id, dateDu.value, dateAu.value))),
+          Promise.all(batchIds.map(id => api.data.getStatsRepartition(id, dateDu.value, dateAu.value))),
+          Promise.all(batchIds.map(id => api.data.getStatsTop10Victimes(id, dateDu.value, dateAu.value)))
+        ])
+
+        allKpis.push(...batchKpis)
+        allEvolution.push(...batchEvolution)
+        allTop5.push(...batchTop5)
+        allRepartition.push(...batchRepartition)
+        allTop10.push(...batchTop10Result)
+      }
 
       // 1. Aggregate KPIs
       let nbSinistresTotal = 0
@@ -266,66 +282,33 @@ const fetchAllStats = async () => {
 
       // 5. Aggregate Top 10 Victimes (Multiple Sinistres)
       const victimeCount: Record<string, number> = {}
-      allSinistres.forEach(arr => {
+      allTop10.forEach(arr => {
         if (!Array.isArray(arr)) return
-        arr.forEach(s => {
-          const d = s.dateSinistre || s.date || s.dateDeclaration || s.dateSurvenance
-          if (d) {
-            const dateObj = new Date(d)
-            const start = new Date(dateDu.value)
-            const end = new Date(dateAu.value)
-            if (dateObj >= start && dateObj <= end) {
-              const nom = s.objet || s.victime || s.nom
-              if (nom) {
-                victimeCount[nom] = (victimeCount[nom] || 0) + 1
-              }
-            }
+        arr.forEach((item: any) => {
+          if (item.nom) {
+            victimeCount[item.nom] = (victimeCount[item.nom] || 0) + (item.count || 0)
           }
         })
       })
       const top10 = Object.entries(victimeCount)
         .map(([nom, count]) => ({ nom, count }))
-        .filter(item => item.count > 1) // Multiple sinistres only
         .sort((a, b) => b.count - a.count)
         .slice(0, 10)
       top10VictimesData.value = top10.length > 0 ? top10 : null
 
     } else {
-      const [kpiResult, evolutionResult, top5Result, repartitionResult, sinistresResult] = await Promise.all([
+      const [kpiResult, evolutionResult, top5Result, repartitionResult, top10Result] = await Promise.all([
         api.data.getStatsKPIs(Number(selectedPoliceId.value), dateDu.value, dateAu.value),
         api.data.getStatsEvolutionAnnuelle(Number(selectedPoliceId.value), dateDu.value, dateAu.value),
         api.data.getStatsTop5ITT(Number(selectedPoliceId.value), dateDu.value, dateAu.value),
         api.data.getStatsRepartition(Number(selectedPoliceId.value), dateDu.value, dateAu.value),
-        api.data.getSinistres(Number(selectedPoliceId.value))
+        api.data.getStatsTop10Victimes(Number(selectedPoliceId.value), dateDu.value, dateAu.value)
       ])
       kpis.value = kpiResult || null
       evolutionData.value = evolutionResult || null
       top5ITTData.value = top5Result || null
       repartitionData.value = repartitionResult || null
-
-      const victimeCount: Record<string, number> = {}
-      if (Array.isArray(sinistresResult)) {
-        sinistresResult.forEach((s: any) => {
-          const d = s.dateSinistre || s.date || s.dateDeclaration || s.dateSurvenance
-          if (d) {
-            const dateObj = new Date(d)
-            const start = new Date(dateDu.value)
-            const end = new Date(dateAu.value)
-            if (dateObj >= start && dateObj <= end) {
-              const nom = s.objet || s.victime || s.nom
-              if (nom) {
-                victimeCount[nom] = (victimeCount[nom] || 0) + 1
-              }
-            }
-          }
-        })
-      }
-      const top10 = Object.entries(victimeCount)
-        .map(([nom, count]) => ({ nom, count }))
-        .filter(item => item.count > 1) // Multiple sinistres only
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 10)
-      top10VictimesData.value = top10.length > 0 ? top10 : null
+      top10VictimesData.value = top10Result && Array.isArray(top10Result) && top10Result.length > 0 ? top10Result : null
     }
   } catch (error: any) {
     console.error('Erreur chargement statistiques:', error)
@@ -355,25 +338,12 @@ watch([selectedPoliceId, dateDu, dateAu], () => {
 })
 
 const exportToPdf = () => {
-  const element = document.getElementById('dashboard-content')
-  if (!element) return
-
-  element.classList.add('pdf-export-mode')
-
-  const opt = {
-    margin:       0,
-    filename:     `Dashboard_Statistiques_${new Date().toISOString().split('T')[0]}.pdf`,
-    image:        { type: 'jpeg', quality: 0.98 },
-    html2canvas:  { scale: 2, useCORS: true, logging: false },
-    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-    pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
-  }
-
-  html2pdf().set(opt as any).from(element).save().then(() => {
-    element.classList.remove('pdf-export-mode')
-  }).catch((err: any) => {
-    console.error('Error exporting PDF:', err)
-    element.classList.remove('pdf-export-mode')
+  exportDashboardToPdf({
+    elementId: 'dashboard-content',
+    filename: `Statistiques_${new Date().toISOString().split('T')[0]}.pdf`,
+    onError: (err) => {
+      errorMsg.value = 'Erreur lors de la génération du PDF.'
+    }
   })
 }
 

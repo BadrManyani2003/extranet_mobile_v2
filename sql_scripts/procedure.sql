@@ -2971,3 +2971,73 @@ BEGIN
     END CATCH
 END;
 GO
+
+CREATE OR ALTER PROCEDURE dbo.sp_GetStatsTop10Victimes
+    @FK_User_Id   INT,
+    @Source       CHAR(1),
+    @Token        VARCHAR(MAX),
+    @FK_Police_Id INT,
+    @DateDu       DATE = NULL,
+    @DateAu       DATE = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF NOT EXISTS (SELECT 1 FROM dbo.sysUser WHERE Id = @FK_User_Id AND token = @Token)
+    BEGIN
+        RAISERROR('Session expiree', 16, 1);
+        RETURN;
+    END
+
+    DECLARE @UserNature CHAR(1);
+    SELECT @UserNature = Nature FROM dbo.sysUser WHERE Id = @FK_User_Id;
+
+    SELECT TOP 10
+        ISNULL(
+            CASE 
+                WHEN p.Branche LIKE '%AT%' OR p.Branche LIKE '%Accident%' THEN ISNULL(r.Libelle, ISNULL(sc.Victime, '-'))
+                ELSE ISNULL(r.Libelle, '-')
+            END, 
+            ISNULL(sc.Victime, '-')
+        ) AS nom,
+        COUNT(*) AS count
+    FROM dbo.Sinistres s
+    INNER JOIN dbo.Polices p ON s.FK_Police_Id = p.Id
+    INNER JOIN dbo.Clients c ON p.Fk_Client_Id = c.Id
+    LEFT JOIN dbo.Risques r ON s.FK_Risque_Id = r.Id
+    LEFT JOIN dbo.Adherents a ON s.FK_Adherent_Id = a.Id
+    OUTER APPLY (
+        SELECT TOP 1 x.FK_User_Id
+        FROM dbo.UsersXClients x
+        WHERE x.FK_User_Id = @FK_User_Id
+          AND x.Actif = 'O'
+          AND (x.FK_Client_Id = c.Id OR x.FK_Client_Id = c.Fk_Client_Id)
+    ) uxc
+    LEFT JOIN dbo.sinComplement sc ON s.Id = sc.fk_sinistre_id
+    WHERE (@FK_Police_Id IS NULL OR s.FK_Police_Id = @FK_Police_Id)
+      AND (p.Branche LIKE '%AT%' OR p.Branche LIKE '%Accident%' OR p.Branche LIKE '%Travail%')
+      AND (
+          (@DateDu IS NULL AND @DateAu IS NULL) OR
+          (COALESCE(sc.Date_Sinistre, s.DateSin, s.DateDeclaration) BETWEEN @DateDu AND @DateAu)
+      )
+      AND
+      (
+          (@Source = 'A' AND @UserNature IN ('A'))
+          OR
+          (@Source = 'E' AND @UserNature IN ('C', 'E') AND c.Particulier = 'N' AND uxc.FK_User_Id IS NOT NULL)
+          OR
+          (@Source = 'M' AND @UserNature = 'C' AND c.Particulier = 'O' AND uxc.FK_User_Id IS NOT NULL)
+          OR
+          (s.FK_Adherent_Id IN (SELECT Id FROM dbo.Adherents WHERE FK_User_Id = @FK_User_Id AND Actif = 'O'))
+      )
+    GROUP BY ISNULL(
+            CASE 
+                WHEN p.Branche LIKE '%AT%' OR p.Branche LIKE '%Accident%' THEN ISNULL(r.Libelle, ISNULL(sc.Victime, '-'))
+                ELSE ISNULL(r.Libelle, '-')
+            END, 
+            ISNULL(sc.Victime, '-')
+        )
+    HAVING COUNT(*) > 1
+    ORDER BY count DESC;
+END;
+GO

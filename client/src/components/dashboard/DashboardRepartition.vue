@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { Doughnut } from 'vue-chartjs'
-import { 
-  Chart as ChartJS, 
-  Title, 
-  Tooltip, 
-  Legend, 
+import {
+  Chart as ChartJS,
+  Title,
+  Tooltip,
+  Legend,
   ArcElement
 } from 'chart.js'
 import { Card } from '@/components/ui/card'
@@ -27,17 +27,17 @@ const typeAccidentDataList = computed(() => props.repartitionData?.[2] || [])
 // Type of Accident Cards configuration with database percentages
 const typeAccidentCards = computed(() => {
   const list = typeAccidentDataList.value
-  
+
   const siteItem = list.find((item: any) => !item.categorie.toLowerCase().includes('trajet'))
   const trajetItem = list.find((item: any) => item.categorie.toLowerCase().includes('trajet'))
-  
+
   const siteCount = siteItem ? siteItem.countVal : 0
   const trajetCount = trajetItem ? trajetItem.countVal : 0
   const total = siteCount + trajetCount
-  
+
   const sitePct = siteItem && siteItem.pourcentage !== undefined ? siteItem.pourcentage : (total > 0 ? (siteCount / total) * 100.0 : 0)
   const trajetPct = trajetItem && trajetItem.pourcentage !== undefined ? trajetItem.pourcentage : (total > 0 ? (trajetCount / total) * 100.0 : 0)
-  
+
   return [
     {
       categorie: 'Accident sur site',
@@ -58,7 +58,7 @@ const circumstancesChartData = computed(() => {
   const list = circumstancesDataList.value
   const labels = list.map((item: any) => item.categorie)
   const data = list.map((item: any) => item.countVal)
-  
+
   return {
     labels,
     datasets: [
@@ -76,7 +76,7 @@ const lesionsChartData = computed(() => {
   const list = lesionsDataList.value
   const labels = list.map((item: any) => item.categorie)
   const data = list.map((item: any) => item.countVal)
-  
+
   return {
     labels,
     datasets: [
@@ -111,7 +111,7 @@ const doughnutChartOptions = computed(() => {
         cornerRadius: 8,
         backgroundColor: 'rgba(15, 23, 42, 0.95)',
         callbacks: {
-          label: function(context: any) {
+          label: function (context: any) {
             const dataset = context.dataset
             const total = dataset.data.reduce((acc: number, val: number) => acc + val, 0)
             const value = dataset.data[context.dataIndex]
@@ -127,19 +127,18 @@ const doughnutChartOptions = computed(() => {
 </script>
 
 <template>
-  <div v-if="repartitionData && circumstancesDataList.length > 0" class="bg-white rounded-[2rem] border border-slate-200/80 shadow-sm overflow-hidden transition-all duration-300">
-    <div class="w-full bg-[#0d3880] px-6 py-4 md:px-8 md:py-5 flex items-center justify-between overflow-hidden relative">
-      <div class="absolute inset-0 bg-gradient-to-r from-blue-900/10 via-transparent to-blue-900/5 pointer-events-none"></div>
-      <div class="space-y-0.5 z-10">
-        <h2 class="text-lg md:text-2xl font-black text-white uppercase tracking-wider">{{ $t('tableau_bord.repartition_circumstance_lesion') }}</h2>
-      </div>
-    </div>
+  <div v-if="repartitionData && circumstancesDataList.length > 0" class="pdf-page-break mb-12 space-y-6">
 
-    <!-- Content Body -->
-    <div class="p-6 md:p-8 bg-slate-50/50 space-y-8">
+    <div class="pdf-avoid-break space-y-6">
+      <div class="flex items-center gap-4">
+        <div class="w-1.5 h-8 bg-[#0d3880] rounded-full"></div>
+        <h2 class="text-xl md:text-2xl font-black text-slate-800 uppercase tracking-wider">{{
+          $t('tableau_bord.repartition_circumstance_lesion') }}</h2>
+      </div>
+
       <!-- Doughnut Charts -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        
+
         <!-- Circumstances Doughnut -->
         <div class="bg-white rounded-[1.8rem] border border-slate-200/60 p-6 md:p-8 space-y-4 shadow-sm">
           <h3 class="font-extrabold text-slate-900 text-sm md:text-base tracking-tight text-center uppercase">
@@ -162,21 +161,17 @@ const doughnutChartOptions = computed(() => {
       </div>
 
       <!-- Type of Accident Sub-Section -->
-      <div class="bg-white border border-slate-200/60 rounded-[1.5rem] overflow-hidden shadow-sm">
+      <div class="bg-white border border-slate-200/60 rounded-[1.5rem] overflow-hidden shadow-sm pdf-avoid-break">
         <div class="bg-[#1e293b] px-6 py-4 text-white text-center">
           <h3 class="text-sm md:text-base font-black uppercase tracking-wider">
             {{ $t('tableau_bord.accident_type') }}
           </h3>
         </div>
-        
+
         <div class="p-6 md:p-8 bg-slate-50/30">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card 
-              v-for="card in typeAccidentCards" 
-              :key="card.categorie"
-              :class="card.classes"
-              class="rounded-[1.8rem] p-6 shadow-sm flex items-center justify-center min-h-[90px] transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
-            >
+            <Card v-for="card in typeAccidentCards" :key="card.categorie" :class="card.classes"
+              class="rounded-[1.8rem] p-6 shadow-sm flex items-center justify-center min-h-[90px] transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
               <p class="text-base md:text-lg font-black tracking-wide text-center">
                 {{ card.categorie }} — {{ card.countVal }} sin. ({{ formatKPIValue(card.pourcentage, 'percentage') }})
               </p>

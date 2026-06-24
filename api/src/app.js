@@ -8,7 +8,7 @@ const app = express();
 
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, 
-    max: process.env.NODE_ENV === 'production' ? 100 : 1000, 
+    max: process.env.NODE_ENV === 'production' ? 5000 : 10000, 
     message: { success: false, message: 'Trop de requetes. Veuillez reessayer plus tard.' },
     standardHeaders: true,
     legacyHeaders: false,

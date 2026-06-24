@@ -11,17 +11,14 @@ defineProps<{
 </script>
 
 <template>
-  <div v-if="kpis" class="bg-white rounded-[2rem] border border-slate-200/80 shadow-sm overflow-hidden transition-all duration-300">
-    <div class="w-full bg-[#0d3880] px-6 py-4 md:px-8 md:py-5 flex items-center justify-between overflow-hidden relative">
-      <div class="absolute inset-0 bg-gradient-to-r from-blue-900/10 via-transparent to-blue-900/5 pointer-events-none"></div>
-      <div class="space-y-0.5 z-10">
-        <h2 class="text-lg md:text-2xl font-black text-white uppercase tracking-wider">{{ $t('tableau_bord.kpi') }}</h2>
-      </div>
+  <div v-if="kpis" class="pdf-avoid-break mb-12 space-y-6">
+    <div class="flex items-center gap-4">
+      <div class="w-1.5 h-8 bg-[#0d3880] rounded-full"></div>
+      <h2 class="text-xl md:text-2xl font-black text-slate-800 uppercase tracking-wider">{{ $t('tableau_bord.kpi') }}</h2>
     </div>
 
-    <!-- KPI cards grid inside container -->
-    <div class="p-6 md:p-8 bg-slate-50/50">
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    <!-- KPI cards grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         
         <!-- Card 1: {{ $t('tableau_bord.total_nb_claims') }} (Blue theme) -->
         <Card class="bg-[#e6f0fa] border-[#cce0f5]/80 text-[#0d3880] rounded-[1.8rem] p-6 shadow-sm flex flex-col justify-between min-h-[140px] transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
@@ -94,7 +91,6 @@ defineProps<{
           </div>
           <p class="text-xs font-bold opacity-60 mt-4">CCR: {{ formatKPIValue(kpis.ccrTotal, 'currency') }}</p>
         </Card>
-      </div>
     </div>
   </div>
   

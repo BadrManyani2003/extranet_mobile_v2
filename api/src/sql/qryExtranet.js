@@ -13,6 +13,7 @@ const qry = {
     getStatsKPIs:         "exec dbo.sp_GetStatsKPIs         @0, @1, @2, @3, @4, @5",
     getStatsEvolutionAnnuelle: "exec dbo.sp_GetStatsEvolutionAnnuelle @0, @1, @2, @3, @4, @5",
     getStatsTop5ITT:      "exec dbo.sp_GetStatsTop5ITT      @0, @1, @2, @3, @4, @5",
+    getStatsTop10Victimes: "exec dbo.sp_GetStatsTop10Victimes @0, @1, @2, @3, @4, @5",
     getStatsRepartition:  "exec dbo.sp_GetStatsRepartition  @0, @1, @2, @3, @4, @5",
     getStatsByPolice:     "exec dbo.ps_GetStatsByPolice     @0, @1, @2, @3",
     getDocumentsByPolice: "exec dbo.sp_GetDocumentsByPolice @0, @1, @2, @3",

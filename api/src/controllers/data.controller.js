@@ -108,6 +108,13 @@ const getStatsTop5ITT = asyncHandler(async (req, res) => {
     success(res, result[0] || []);
 });
 
+const getStatsTop10Victimes = asyncHandler(async (req, res) => {
+    const { userId, source, token } = getContext(req);
+    const { policeId, dateDu, dateAu } = req.query;
+    const result = await dataService.getStatsTop10Victimes(userId, source, token, policeId, dateDu, dateAu);
+    success(res, result[0] || []);
+});
+
 const getStatsRepartition = asyncHandler(async (req, res) => {
     const { userId, source, token } = getContext(req);
     const { policeId, dateDu, dateAu } = req.query;
@@ -136,6 +143,7 @@ module.exports = {
     getStatsKPIs,
     getStatsEvolutionAnnuelle,
     getStatsTop5ITT,
+    getStatsTop10Victimes,
     getStatsRepartition,
     getStatsByPolice,
     getDocumentsByPolice

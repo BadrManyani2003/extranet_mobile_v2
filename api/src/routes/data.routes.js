@@ -14,6 +14,7 @@ router.get('/stats/police',       ctrl.getStatsByPolice);
 router.get('/stats/kpis',         ctrl.getStatsKPIs);
 router.get('/stats/evolution-annuelle', ctrl.getStatsEvolutionAnnuelle);
 router.get('/stats/top5-itt',     ctrl.getStatsTop5ITT);
+router.get('/stats/top10-victimes', ctrl.getStatsTop10Victimes);
 router.get('/stats/repartition',  ctrl.getStatsRepartition);
 router.get('/risques',            ctrl.getRisques);
 router.get('/garanties',          ctrl.getGaranties);

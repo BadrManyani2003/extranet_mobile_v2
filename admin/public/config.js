@@ -1,0 +1,7 @@
+window.APP_ENV = {
+  VITE_API_URL: "http://192.168.20.110:3000/api",
+  VITE_KEYCLOAK_URL: "http://192.168.20.110:8080",
+  VITE_KEYCLOAK_REALM: "MyASK",
+  VITE_KEYCLOAK_CLIENT_ID: "client_admin",
+  VITE_SOURCE: "A"
+};

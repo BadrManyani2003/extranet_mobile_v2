@@ -87,50 +87,50 @@ const evolutionChartOptions = computed(() => {
 </script>
 
 <template>
-  <div v-if="evolutionData && evolutionData.length > 0" class="bg-white rounded-[2rem] border border-slate-200/80 shadow-sm overflow-hidden transition-all duration-300">
-    <div class="w-full bg-[#0d3880] px-6 py-4 md:px-8 md:py-5 flex items-center justify-between overflow-hidden relative">
-      <div class="absolute inset-0 bg-gradient-to-r from-blue-900/10 via-transparent to-blue-900/5 pointer-events-none"></div>
-      <div class="space-y-0.5 z-10">
-        <h2 class="text-lg md:text-2xl font-black text-white uppercase tracking-wider">{{ $t('tableau_bord.annual_claims_evolution') }}</h2>
+  <div v-if="evolutionData && evolutionData.length > 0" class="pdf-page-break mb-12 space-y-6">
+    
+    <div class="pdf-avoid-break space-y-6">
+      <div class="flex items-center gap-4">
+        <div class="w-1.5 h-8 bg-[#0d3880] rounded-full"></div>
+        <h2 class="text-xl md:text-2xl font-black text-slate-800 uppercase tracking-wider">{{ $t('tableau_bord.annual_claims_evolution') }}</h2>
       </div>
+
+      <!-- Table Content -->
+      <div class="overflow-x-auto rounded-[1.5rem] border border-slate-200/60 shadow-sm bg-white">
+      <table class="w-full border-collapse">
+        <thead>
+          <tr class="bg-[#1e293b] text-white">
+            <th class="px-6 py-4 font-black uppercase tracking-wider text-xs border-b border-slate-700 text-center">{{ $t('tableau_bord.year') }}</th>
+            <th class="px-6 py-4 font-black uppercase tracking-wider text-xs border-b border-slate-700 text-center">{{ $t('tableau_bord.nb_claims') }}</th>
+            <th class="px-6 py-4 font-black uppercase tracking-wider text-xs border-b border-slate-700 text-center">{{ $t('tableau_bord.total_cost_mad') }}</th>
+            <th v-if="isATBranch" class="px-6 py-4 font-black uppercase tracking-wider text-xs border-b border-slate-700 text-center">{{ $t('tableau_bord.nb_itt') }}</th>
+            <th v-if="isATBranch" class="px-6 py-4 font-black uppercase tracking-wider text-xs border-b border-slate-700 text-center">{{ $t('tableau_bord.itt_rate') }}</th>
+            <th v-if="isATBranch" class="px-6 py-4 font-black uppercase tracking-wider text-xs border-b border-slate-700 text-center">{{ $t('tableau_bord.itt_days') }}</th>
+            <th v-if="isATBranch" class="px-6 py-4 font-black uppercase tracking-wider text-xs border-b border-slate-700 text-center">{{ $t('tableau_bord.itt_amount_mad') }}</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          <tr 
+            v-for="row in evolutionData" 
+            :key="row.annee"
+            class="hover:bg-slate-50/50 transition-colors duration-150"
+          >
+            <td class="px-6 py-4 font-extrabold text-slate-800 text-sm text-center">{{ row.annee }}</td>
+            <td class="px-6 py-4 font-bold text-slate-700 text-sm text-center">{{ formatKPIValue(row.nbSinistres, 'number') }}</td>
+            <td class="px-6 py-4 font-bold text-slate-700 text-sm text-center">{{ formatKPIValue(row.coutTotal, 'number') }}</td>
+            <td v-if="isATBranch" class="px-6 py-4 font-bold text-slate-700 text-sm text-center">{{ formatKPIValue(row.nbITT, 'number') }}</td>
+            <td v-if="isATBranch" class="px-6 py-4 font-bold text-slate-700 text-sm text-center">{{ formatKPIValue(row.tauxITT, 'percentage') }}</td>
+            <td v-if="isATBranch" class="px-6 py-4 font-bold text-slate-700 text-sm text-center">{{ formatKPIValue(row.joursITT, 'number') }}</td>
+            <td v-if="isATBranch" class="px-6 py-4 font-bold text-slate-700 text-sm text-center">{{ formatKPIValue(row.mntITT, 'number') }}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
+  </div>
 
-    <!-- Table & Chart Content -->
-    <div class="p-6 md:p-8 space-y-8">
-      <!-- Table -->
-      <div class="overflow-x-auto rounded-[1.5rem] border border-slate-200/60 shadow-sm">
-        <table class="w-full border-collapse">
-          <thead>
-            <tr class="bg-[#1e293b] text-white">
-              <th class="px-6 py-4 font-black uppercase tracking-wider text-xs border-b border-slate-700 text-center">{{ $t('tableau_bord.year') }}</th>
-              <th class="px-6 py-4 font-black uppercase tracking-wider text-xs border-b border-slate-700 text-center">{{ $t('tableau_bord.nb_claims') }}</th>
-              <th class="px-6 py-4 font-black uppercase tracking-wider text-xs border-b border-slate-700 text-center">{{ $t('tableau_bord.total_cost_mad') }}</th>
-              <th v-if="isATBranch" class="px-6 py-4 font-black uppercase tracking-wider text-xs border-b border-slate-700 text-center">{{ $t('tableau_bord.nb_itt') }}</th>
-              <th v-if="isATBranch" class="px-6 py-4 font-black uppercase tracking-wider text-xs border-b border-slate-700 text-center">{{ $t('tableau_bord.itt_rate') }}</th>
-              <th v-if="isATBranch" class="px-6 py-4 font-black uppercase tracking-wider text-xs border-b border-slate-700 text-center">{{ $t('tableau_bord.itt_days') }}</th>
-              <th v-if="isATBranch" class="px-6 py-4 font-black uppercase tracking-wider text-xs border-b border-slate-700 text-center">{{ $t('tableau_bord.itt_amount_mad') }}</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-100">
-            <tr 
-              v-for="row in evolutionData" 
-              :key="row.annee"
-              class="hover:bg-slate-50/50 transition-colors duration-150"
-            >
-              <td class="px-6 py-4 font-extrabold text-slate-800 text-sm text-center">{{ row.annee }}</td>
-              <td class="px-6 py-4 font-bold text-slate-700 text-sm text-center">{{ formatKPIValue(row.nbSinistres, 'number') }}</td>
-              <td class="px-6 py-4 font-bold text-slate-700 text-sm text-center">{{ formatKPIValue(row.coutTotal, 'number') }}</td>
-              <td v-if="isATBranch" class="px-6 py-4 font-bold text-slate-700 text-sm text-center">{{ formatKPIValue(row.nbITT, 'number') }}</td>
-              <td v-if="isATBranch" class="px-6 py-4 font-bold text-slate-700 text-sm text-center">{{ formatKPIValue(row.tauxITT, 'percentage') }}</td>
-              <td v-if="isATBranch" class="px-6 py-4 font-bold text-slate-700 text-sm text-center">{{ formatKPIValue(row.joursITT, 'number') }}</td>
-              <td v-if="isATBranch" class="px-6 py-4 font-bold text-slate-700 text-sm text-center">{{ formatKPIValue(row.mntITT, 'number') }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Chart representation -->
-      <div class="relative h-80 md:h-[400px] w-full pt-4">
+    <!-- Chart representation -->
+    <div class="bg-white rounded-[1.5rem] border border-slate-200/60 shadow-sm p-6 md:p-8 pdf-avoid-break">
+      <div class="relative h-80 md:h-[400px] w-full">
         <Bar :data="evolutionChartData" :options="evolutionChartOptions" />
       </div>
     </div>

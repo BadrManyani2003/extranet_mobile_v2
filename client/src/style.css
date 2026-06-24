@@ -165,14 +165,13 @@
   display: none !important;
 }
 
-/* Enabled only during PDF generation */
 .pdf-export-mode {
-  width: 800px !important;
-  max-width: 800px !important;
-  min-width: 800px !important;
+  width: 1200px !important;
+  max-width: 1200px !important;
+  min-width: 1200px !important;
   background-color: #ffffff !important;
   color: #0f172a !important;
-  padding: 40px !important; /* Acts as A4 page margins when html2pdf margins are 0 */
+  padding: 10px !important;
   margin: 0 auto !important;
   box-sizing: border-box !important;
   border: none !important;
@@ -190,13 +189,13 @@
 
 /* Force KPI grid: 2 columns to fit currency text nicely */
 .pdf-export-mode .grid.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-4 {
-  grid-template-columns: repeat(2, 1fr) !important;
+  grid-template-columns: 1fr 1fr !important;
   gap: 16px !important;
 }
 
 /* Force repartition grids: 2 columns */
 .pdf-export-mode .grid.grid-cols-1.lg\:grid-cols-2 {
-  grid-template-columns: repeat(2, 1fr) !important;
+  grid-template-columns: 1fr 1fr !important;
   gap: 16px !important;
 }
 
@@ -276,7 +275,14 @@
 
 /* Prevent breaking inside cards */
 .pdf-export-mode .glass-card,
-.pdf-export-mode > div {
+.pdf-export-mode .pdf-avoid-break {
   page-break-inside: avoid !important;
   break-inside: avoid !important;
 }
+
+/* Force breaking before specific sections */
+.pdf-export-mode .pdf-page-break {
+  page-break-before: always !important;
+  break-before: page !important;
+}
+

@@ -154,41 +154,40 @@ const barMntChartOptions = computed(() => {
 </script>
 
 <template>
-  <div v-if="evolutionData && evolutionData.length > 0" class="bg-white rounded-[2rem] border border-slate-200/80 shadow-sm overflow-hidden transition-all duration-300">
-    <div class="w-full bg-[#ea580c] px-6 py-4 md:px-8 md:py-5 flex items-center justify-between overflow-hidden relative">
-      <div class="absolute inset-0 bg-gradient-to-r from-orange-950/10 via-transparent to-orange-950/5 pointer-events-none"></div>
-      <div class="space-y-0.5 z-10">
-        <h2 class="text-lg md:text-2xl font-black text-white uppercase tracking-wider">{{ $t('tableau_bord.itt_analysis') }}</h2>
+  <div v-if="evolutionData && evolutionData.length > 0" class="pdf-page-break mb-12 space-y-6">
+    
+    <div class="pdf-avoid-break space-y-6">
+      <div class="flex items-center gap-4">
+        <div class="w-1.5 h-8 bg-[#ea580c] rounded-full"></div>
+        <h2 class="text-xl md:text-2xl font-black text-slate-800 uppercase tracking-wider">{{ $t('tableau_bord.itt_analysis') }}</h2>
       </div>
+
+      <!-- Charts Block -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <!-- Line Chart -->
+          <div class="bg-white rounded-[1.8rem] border border-slate-200/60 p-6 md:p-8 space-y-4 shadow-sm">
+            <h3 class="font-extrabold text-slate-900 text-sm md:text-base tracking-tight text-center uppercase">
+              {{ $t('tableau_bord.itt_rate_and_avg_duration') }}
+            </h3>
+            <div class="relative h-72 w-full">
+              <Line :data="lineChartData" :options="lineChartOptions" />
+            </div>
+          </div>
+
+          <!-- Bar Chart -->
+          <div class="bg-white rounded-[1.8rem] border border-slate-200/60 p-6 md:p-8 space-y-4 shadow-sm">
+            <h3 class="font-extrabold text-slate-900 text-sm md:text-base tracking-tight text-center uppercase">
+              {{ $t('tableau_bord.itt_amount_per_year') }}
+            </h3>
+            <div class="relative h-72 w-full">
+              <Bar :data="barMntChartData" :options="barMntChartOptions" />
+            </div>
+          </div>
+        </div>
     </div>
 
-    <!-- Content Body -->
-    <div class="p-6 md:p-8 bg-slate-50/50 space-y-8">
-      <!-- Side-by-side Charts -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        
-        <!-- Line Chart: Taux ITT & Durée moyenne -->
-        <div class="bg-white rounded-[1.8rem] border border-slate-200/60 p-6 md:p-8 space-y-4 shadow-sm">
-          <h3 class="font-extrabold text-slate-900 text-sm md:text-base tracking-tight text-center uppercase">
-            {{ $t('tableau_bord.itt_rate_and_avg_duration') }}
-          </h3>
-          <div class="relative h-72 w-full">
-            <Line :data="lineChartData" :options="lineChartOptions" />
-          </div>
-        </div>
-
-        <!-- Bar Chart: {{ $t('tableau_bord.itt_amount_per_year') }} -->
-        <div class="bg-white rounded-[1.8rem] border border-slate-200/60 p-6 md:p-8 space-y-4 shadow-sm">
-          <h3 class="font-extrabold text-slate-900 text-sm md:text-base tracking-tight text-center uppercase">
-            {{ $t('tableau_bord.itt_amount_per_year') }}
-          </h3>
-          <div class="relative h-72 w-full">
-            <Bar :data="barMntChartData" :options="barMntChartOptions" />
-          </div>
-        </div>
-      </div>
-
-      <!-- Top 5 Longest ITT claims table -->
+    <!-- Top 5 Block -->
+    <div class="pdf-page-break pdf-avoid-break">
       <div v-if="top5ITTData && top5ITTData.length > 0" class="bg-white border border-slate-200/60 rounded-[1.5rem] overflow-hidden shadow-sm">
         <div class="bg-[#1e293b] px-6 py-4 text-white">
           <h3 class="text-sm md:text-base font-black uppercase tracking-wider text-center md:text-left">
@@ -223,8 +222,10 @@ const barMntChartOptions = computed(() => {
           </table>
         </div>
       </div>
+    </div>
 
-      <!-- Top 10 Victimes (Multiple Sinistres) table -->
+    <!-- Top 10 Block -->
+    <div class="pdf-avoid-break">
       <div v-if="top10VictimesData && top10VictimesData.length > 0" class="bg-white border border-slate-200/60 rounded-[1.5rem] overflow-hidden shadow-sm mt-8">
         <div class="bg-[#ea580c] px-6 py-4 text-white">
           <h3 class="text-sm md:text-base font-black uppercase tracking-wider text-center md:text-left">
