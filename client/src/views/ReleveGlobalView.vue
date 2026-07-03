@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { onMounted, ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { FileDown, Building2, Tag, FileText } from 'lucide-vue-next'
+import { FileDown, Building2, Tag } from 'lucide-vue-next'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import DataTableWrapper from '@/components/shared/DataTableWrapper.vue'
+import DatePicker from '@/components/ui/date-picker/DatePicker.vue'
 import { api } from '@/lib/api'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import * as XLSX from 'xlsx-js-style'
@@ -82,32 +83,6 @@ const filteredQuittances = computed(() => {
     return true
   })
 })
-
-const dateDuFormatted = computed(() => {
-  if (!dateDu.value) return ''
-  const parts = dateDu.value.split('-') // YYYY-MM-DD
-  if (parts.length === 3) {
-    return `${parts[2]}/${parts[1]}/${parts[0]}`
-  }
-  return dateDu.value
-})
-
-const dateAuFormatted = computed(() => {
-  if (!dateAu.value) return ''
-  const parts = dateAu.value.split('-') // YYYY-MM-DD
-  if (parts.length === 3) {
-    return `${parts[2]}/${parts[1]}/${parts[0]}`
-  }
-  return dateAu.value
-})
-
-const openPicker = (e: Event) => {
-  try {
-    (e.target as HTMLInputElement).showPicker()
-  } catch (err) {
-    console.error('showPicker not supported:', err)
-  }
-}
 
 
 
@@ -206,7 +181,7 @@ onMounted(() => {
     </template>
 
     <template #filters>
-      <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto mt-2 sm:mt-0">
+      <div class="flex flex-wrap items-center gap-3 lg:w-auto mt-2 sm:mt-0 flex-1 lg:flex-initial">
         <!-- Client Filter -->
         <div class="relative min-w-[160px] flex-1 sm:flex-initial">
           <Building2 class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
@@ -265,32 +240,18 @@ onMounted(() => {
         </div>
 
         <!-- Date Du -->
-        <div class="relative flex items-center gap-2 bg-white border border-slate-200 rounded-2xl px-4 py-3.5 shadow-sm flex-1 sm:flex-initial min-w-[160px] cursor-pointer">
-          <span class="text-xs font-black text-slate-400 uppercase tracking-wider shrink-0 mr-1 pointer-events-none">{{ $t('commun.date_from') }}</span>
-          <span :class="dateDu ? 'text-slate-800 font-bold text-sm' : 'text-slate-400 font-medium text-sm'" class="pointer-events-none">
-            {{ dateDuFormatted || 'JJ/MM/AAAA' }}
-          </span>
-          <input 
-            type="date" 
-            v-model="dateDu" 
-            class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-            @click="openPicker"
-          />
-        </div>
+        <DatePicker 
+          v-model="dateDu" 
+          :label="$t('commun.date_from')" 
+          expert-type="from"
+        />
 
         <!-- Date Au -->
-        <div class="relative flex items-center gap-2 bg-white border border-slate-200 rounded-2xl px-4 py-3.5 shadow-sm flex-1 sm:flex-initial min-w-[160px] cursor-pointer">
-          <span class="text-xs font-black text-slate-400 uppercase tracking-wider shrink-0 mr-1 pointer-events-none">{{ $t('commun.date_to') }}</span>
-          <span :class="dateAu ? 'text-slate-800 font-bold text-sm' : 'text-slate-400 font-medium text-sm'" class="pointer-events-none">
-            {{ dateAuFormatted || 'JJ/MM/AAAA' }}
-          </span>
-          <input 
-            type="date" 
-            v-model="dateAu" 
-            class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-            @click="openPicker"
-          />
-        </div>
+        <DatePicker 
+          v-model="dateAu" 
+          :label="$t('commun.date_to')" 
+          expert-type="to"
+        />
       </div>
     </template>
 

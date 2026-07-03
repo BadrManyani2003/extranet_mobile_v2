@@ -23,10 +23,10 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:searchQuery'])
 
-const isSante = props.police.branche && props.police.branche.toLowerCase().includes('sant')
-const isAuto = props.police.branche && props.police.branche.toLowerCase().includes('auto')
-const isAT = props.police.branche && (props.police.branche.toLowerCase() === 'at' || props.police.branche.toLowerCase().includes('accident') || props.police.branche.toLowerCase().includes('travail'))
-const isIARD = props.police.branche && props.police.branche.toLowerCase().includes('iard')
+const isSante = props.police.module === 'D'
+const isAuto = props.police.module === 'A'
+const isAT = props.police.module === 'C'
+const isIARD = props.police.module === 'B'
 
 const ongletActif = ref('')
 const risques = ref<any[]>([])
@@ -35,12 +35,13 @@ const quittances = ref<any[]>([])
 const documents = ref<any[]>([])
 const stats = ref<any>({})
 const chargementDetails = ref(false)
+const dataLoaded = ref(false) // Track if data has been fetched
 
 const chargerDonnees = async () => {
-  if (chargementDetails.value) return
+  if (chargementDetails.value || dataLoaded.value) return
   chargementDetails.value = true
   try {
-    const isSante = props.police.branche && props.police.branche.toLowerCase().includes('sant')
+    const isSante = props.police.module === 'D'
     const fetchRisques = isSante 
       ? api.data.getAdherents(props.police.id) 
       : api.data.getRisques(props.police.id)
@@ -77,12 +78,11 @@ const chargerDonnees = async () => {
     console.error('Erreur lors du chargement des détails de la police:', error)
   } finally {
     chargementDetails.value = false
+    dataLoaded.value = true
   }
 }
 
-onMounted(() => {
-  chargerDonnees()
-})
+// Remove onMounted(() => { chargerDonnees() }) to avoid eager loading
 
 const basculerOnglet = (onglet: string) => {
   ongletActif.value = ongletActif.value === onglet ? '' : onglet
@@ -100,13 +100,13 @@ const obtenirElementsGrille = (p: any) => {
       type: 'action', 
       value: isAT 
         ? (risques.value.length > 0 ? t('contrats.liste_nominative') : t('contrats.ensemble_personnel')) 
-        : formatNumber(risques.value.length), 
+        : (risques.value.length > 0 ? formatNumber(risques.value.length) : 'N/A'),
       icon: isAuto ? Car : (isSante ? HeartPulse : (isAT ? Briefcase : (isIARD ? Factory : Shield))), 
       defaultColor: 'bg-slate-100 text-slate-800' 
     },  
     { id: 'sinistres', title: t('contrats.sinistres'), type: 'action', value: formatNumber(sinistres.value.length), icon: LifeBuoy, defaultColor: 'bg-slate-100 text-slate-800' },
     { id: 'sinistres-encours', title: t('contrats.sinistres_encours'), type: 'action', value: formatNumber(sinistres.value.filter((s: any) => s.statut === 'En cours' || s.statut === 'E').length), icon: Clock, defaultColor: 'bg-slate-100 text-slate-800' },
-    { id: 'prime', title: t('contrats.prime_annuelle'), type: 'action', value: formatCurrency(stats.value.primeAnnuelle || 0), icon: Wallet, defaultColor: 'bg-slate-200 text-slate-900' },
+    { id: 'prime', title: `${t('contrats.prime_annuelle')} (${new Date().getFullYear()})`, type: 'action', value: formatCurrency(stats.value.primeAnnuelle || 0), icon: Wallet, defaultColor: 'bg-slate-200 text-slate-900' },
     { id: 'impayes', title: t('contrats.impayes'), type: 'action', value: formatCurrency(stats.value.impayes || 0), icon: Receipt, defaultColor: (stats.value.impayes || 0) > 0 ? 'bg-red-50 text-red-500' : 'bg-slate-100 text-slate-400', isRedAlert: (stats.value.impayes || 0) > 0 },
     { id: 'documents', title: t('contrats.documents'), type: 'action', value: formatNumber(documents.value.length), icon: FileText, defaultColor: 'bg-slate-100 text-slate-800' }
   ]
@@ -132,7 +132,7 @@ const gererMiseAJourRecherche = (onglet: string, requete: string) => {
     :value="`police-${police.id}`"
     class="bg-white border border-slate-200/60 rounded-2xl shadow-[0_4px_15px_-3px_rgba(14,165,233,0.08)] overflow-hidden transition-all duration-300 hover:shadow-[0_10px_25px_-5px_rgba(14,165,233,0.15)]"
   >
-    <AccordionTrigger class="hover:no-underline px-5 py-5 transition-all group data-[state=open]:bg-slate-50/50">
+    <AccordionTrigger @click="chargerDonnees" class="hover:no-underline px-5 py-5 transition-all group data-[state=open]:bg-slate-50/50">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between w-full pr-2 sm:pr-4 text-left gap-4">
         <div class="flex items-start sm:items-center gap-4">
           <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300 shadow-sm">
@@ -196,15 +196,18 @@ const gererMiseAJourRecherche = (onglet: string, requete: string) => {
                 v-if="ongletActif === 'risque'" 
                 :risques="risques" 
                 :branche="police.branche"
+                :module="police.module"
                 :searchQuery="detailedSearchQueries[`${police.id}-risque`] || ''"
                 @update:searchQuery="gererMiseAJourRecherche('risque', $event)"
               />
               <ListeSinistresAT 
-                v-if="(ongletActif === 'sinistres' || ongletActif === 'sinistres-encours') && (police.branche && (police.branche.toLowerCase() === 'at' || police.branche.toLowerCase().includes('accident') || police.branche.toLowerCase().includes('travail')))" 
+                v-if="(ongletActif === 'sinistres' || ongletActif === 'sinistres-encours') && police.module === 'C'"
                 :sinistres="sinistres"
                 :risques="risques"
                 :branche="police.branche"
+                :module="police.module"
                 :activeTab="ongletActif"
+                :policeId="police.id"
                 :searchQuery="detailedSearchQueries[`${police.id}-${ongletActif}`] || ''"
                 @update:searchQuery="gererMiseAJourRecherche(ongletActif, $event)"
               />
@@ -213,6 +216,7 @@ const gererMiseAJourRecherche = (onglet: string, requete: string) => {
                 :sinistres="sinistres"
                 :risques="risques"
                 :branche="police.branche"
+                :module="police.module"
                 :activeTab="ongletActif"
                 :searchQuery="detailedSearchQueries[`${police.id}-${ongletActif}`] || ''"
                 @update:searchQuery="gererMiseAJourRecherche(ongletActif, $event)"

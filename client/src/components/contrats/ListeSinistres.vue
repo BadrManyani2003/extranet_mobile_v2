@@ -21,6 +21,7 @@ const props = defineProps<{
   sinistres: any[]
   risques: any[]
   branche: string
+  module?: string
   activeTab: string
   searchQuery: string
 }>()
@@ -64,22 +65,35 @@ const sinistresFiltres = computed(() => {
     String(s.objet || '').toLowerCase().includes(requete)
   )
 })
+
+const itemsLimit = ref(20)
+
+const sinistresPagines = computed(() => {
+  return sinistresFiltres.value.slice(0, itemsLimit.value)
+})
+
+const hasMore = computed(() => itemsLimit.value < sinistresFiltres.value.length)
+
+const loadMore = () => {
+  itemsLimit.value += 20
+}
+
+import { watch } from 'vue'
+watch(() => [props.searchQuery, props.activeTab], () => {
+  itemsLimit.value = 20
+})
 const { t } = useI18n()
 
 const checkIsSante = (sin: any) => {
-  return !!((sin && sin.branche && sin.branche.toLowerCase().includes('sant')) ||
-    (props.branche && props.branche.toLowerCase().includes('sant')))
+  return sin?.module === 'D' || props.module === 'D'
 }
 
-
 const isAuto = (sin: any) => {
-  const b = (sin.branche || props.branche || '').toLowerCase()
-  return b.includes('auto')
+  return sin?.module === 'A' || props.module === 'A'
 }
 
 const isIard = (sin: any) => {
-  const b = (sin.branche || props.branche || '').toLowerCase()
-  return b.includes('iard') || b.includes('diver') || b.includes('incendie') || b.includes('multirisque')
+  return sin?.module === 'B' || props.module === 'B'
 }
 
 const checkHasAdherent = (sin: any) => {
@@ -88,8 +102,7 @@ const checkHasAdherent = (sin: any) => {
 
 const getLibelleRisque = (sin: any) => {
   if (checkIsSante(sin)) return t('risques.adherent')
-  const b = (sin.branche || props.branche || '').toLowerCase()
-  if (b.includes('auto')) return t('risques.vehicle')
+  if (isAuto(sin)) return t('risques.vehicle')
   return t('sinistres.object')
 }
 </script>
@@ -106,7 +119,7 @@ const getLibelleRisque = (sin: any) => {
       <div v-if="sinistresFiltres.length > 0"
         class="max-h-[650px] overflow-y-auto px-4 pb-8 pt-2 scrollbar-thin scrollbar-thumb-slate-200">
         <Accordion type="single" collapsible class="w-full space-y-3 pt-4">
-          <AccordionItem v-for="sin in sinistresFiltres" :key="sin.numero" :value="String(sin.numero)"
+          <AccordionItem v-for="sin in sinistresPagines" :key="sin.numero" :value="String(sin.numero)"
             class="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow">
             <AccordionTrigger class="px-5 py-4 hover:no-underline group">
               <div class="flex flex-col sm:flex-row sm:items-center justify-between w-full text-left gap-4">
@@ -239,6 +252,12 @@ const getLibelleRisque = (sin: any) => {
             </AccordionContent>
           </AccordionItem>
         </Accordion>
+        
+        <div v-if="hasMore" class="flex justify-center mt-6">
+          <Button variant="outline" class="font-bold rounded-full px-8 text-slate-600 hover:text-slate-900" @click="loadMore">
+            {{ $t('commun.load_more') || 'Charger plus' }}
+          </Button>
+        </div>
       </div>
 
       <EmptyState v-else :title="searchQuery ? undefined : $t('sinistres.empty')"

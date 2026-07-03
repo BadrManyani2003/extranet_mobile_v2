@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue'
 import { useUserStore } from '@/store/user'
 import { useI18n } from 'vue-i18n'
-import { AlertCircle, Calendar, Clock, Info, Shield, Wallet, FileText, User, MapPin, Activity, ShieldAlert, Upload } from 'lucide-vue-next'
+import { AlertCircle, Calendar, Clock, Info, Shield, Wallet, FileText, User, MapPin, Activity, ShieldAlert, Upload, FileSpreadsheet } from 'lucide-vue-next'
 import { CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import {
@@ -16,13 +16,17 @@ import StatusBadge from '@/components/shared/StatusBadge.vue'
 import EmptyState from '@/components/shared/EmptyState.vue'
 import UploadDocumentDialog from '@/components/shared/UploadDocumentDialog.vue'
 import { formatCurrency, formatDate } from '@/lib/utils'
+import { api } from '@/lib/api'
+import * as XLSX from 'xlsx'
 
 const props = defineProps<{
   sinistres: any[]
   risques: any[]
   branche: string
+  module?: string
   activeTab: string
   searchQuery: string
+  policeId?: number
 }>()
 
 const userStore = useUserStore()
@@ -53,7 +57,53 @@ const sinistresFiltres = computed(() => {
     String(s.objet || '').toLowerCase().includes(requete)
   )
 })
+
+import { watch } from 'vue'
+
+const itemsLimit = ref(20)
+
+const sinistresPagines = computed(() => {
+  return sinistresFiltres.value.slice(0, itemsLimit.value)
+})
+
+const hasMore = computed(() => itemsLimit.value < sinistresFiltres.value.length)
+
+const loadMore = () => {
+  itemsLimit.value += 20
+}
+
+watch(() => [props.searchQuery, props.activeTab], () => {
+  itemsLimit.value = 20
+})
+
 const { t } = useI18n()
+
+const isExporting = ref(false)
+
+const exportSynthesis = async () => {
+  if (isExporting.value) return
+  isExporting.value = true
+  try {
+    const pid = props.policeId ? props.policeId : 'all'
+    const data = await api.data.getSyntheseSinistresAT(pid)
+    
+    if (!data || data.length === 0) {
+      alert(t('commun.no_results'))
+      return
+    }
+    
+    const worksheet = XLSX.utils.json_to_sheet(data)
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Synthese AT")
+    XLSX.writeFile(workbook, `Synthese_Sinistres_AT_${new Date().toISOString().split('T')[0]}.xlsx`)
+  } catch (err) {
+    console.error('Failed to export synthesis', err)
+    alert('Failed to export synthesis')
+  } finally {
+    isExporting.value = false
+  }
+}
+
 
 </script>
 
@@ -67,13 +117,25 @@ const { t } = useI18n()
       :searchModel="searchQuery"
       :searchPlaceholder="$t('sinistres.search')"
       @update:searchModel="emit('update:searchQuery', $event)"
-    />
+    >
+      <template #actions>
+        <Button 
+          variant="outline" 
+          class="flex items-center gap-2 border-slate-200 text-slate-700 hover:bg-slate-50"
+          @click="exportSynthesis"
+          :disabled="isExporting"
+        >
+          <FileSpreadsheet class="w-4 h-4" />
+          {{ isExporting ? $t('commun.loading') : $t('commun.download') }}
+        </Button>
+      </template>
+    </SectionHeader>
     
     <CardContent class="p-0 flex-1 overflow-hidden">
       <div v-if="sinistresFiltres.length > 0" class="max-h-[650px] overflow-y-auto px-4 pb-8 pt-2 scrollbar-thin scrollbar-thumb-slate-200">
         <Accordion type="single" collapsible class="w-full space-y-3 pt-4">
           <AccordionItem 
-            v-for="sin in sinistresFiltres" 
+            v-for="sin in sinistresPagines" 
             :key="sin.numero" 
             :value="String(sin.numero)"
             class="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow"
@@ -296,6 +358,12 @@ const { t } = useI18n()
             </AccordionContent>
           </AccordionItem>
         </Accordion>
+        
+        <div v-if="hasMore" class="flex justify-center mt-6">
+          <Button variant="outline" class="font-bold rounded-full px-8 text-slate-600 hover:text-slate-900" @click="loadMore">
+            {{ $t('commun.load_more') || 'Charger plus' }}
+          </Button>
+        </div>
       </div>
       
       <EmptyState 

@@ -191,7 +191,7 @@ const barMntChartOptions = computed(() => {
       <div v-if="top5ITTData && top5ITTData.length > 0" class="bg-white border border-slate-200/60 rounded-[1.5rem] overflow-hidden shadow-sm">
         <div class="bg-[#1e293b] px-6 py-4 text-white">
           <h3 class="text-sm md:text-base font-black uppercase tracking-wider text-center md:text-left">
-            TOP 5 — SINISTRES ITT LES PLUS LONGS
+            {{ $t('tableau_bord.top_5_itt') }}
           </h3>
         </div>
         
@@ -229,7 +229,7 @@ const barMntChartOptions = computed(() => {
       <div v-if="top10VictimesData && top10VictimesData.length > 0" class="bg-white border border-slate-200/60 rounded-[1.5rem] overflow-hidden shadow-sm mt-8">
         <div class="bg-[#ea580c] px-6 py-4 text-white">
           <h3 class="text-sm md:text-base font-black uppercase tracking-wider text-center md:text-left">
-            TOP 10 — sinistre récidives
+            {{ $t('tableau_bord.top_10_repeat_claims') }}
           </h3>
         </div>
         

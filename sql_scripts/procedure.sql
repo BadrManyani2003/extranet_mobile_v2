@@ -1203,6 +1203,7 @@ BEGIN
         p.PBistime AS PBistime,
         p.bp AS bp,
         p.bpconsome AS bpconsome,
+        p.DateEffet AS dateEffet,
         c.RaisonSociale AS client,
         c.Particulier AS particulier,
         com.RaisonSociale AS compagnie
@@ -1513,7 +1514,8 @@ BEGIN
             (@Source = 'A' AND @UserNature IN ('A'))
             OR (uxc.FK_User_Id IS NOT NULL AND ((@Source = 'M' AND c.Particulier = 'O') OR (@Source = 'E' AND c.Particulier = 'N')))
         )
-    );
+    )
+    ORDER BY q.DateDu DESC;
 
     RETURN;
 END
@@ -1565,7 +1567,8 @@ BEGIN
             AND (
                 (@Source = 'A' AND @UserNature IN ('A'))
                 OR (uxc.FK_User_Id IS NOT NULL AND ((@Source = 'M' AND c.Particulier = 'O') OR (@Source = 'E' AND c.Particulier = 'N')))
-            );
+            )
+        ORDER BY q.DateDu DESC;
     END
     ELSE
     BEGIN
@@ -1594,7 +1597,8 @@ BEGIN
             AND (
                 (@Source = 'A' AND @UserNature IN ('A'))
                 OR (uxc.FK_User_Id IS NOT NULL AND ((@Source = 'M' AND c.Particulier = 'O') OR (@Source = 'E' AND c.Particulier = 'N')))
-            );
+            )
+        ORDER BY q.DateDu DESC;
     END
 
     RETURN;
@@ -1703,7 +1707,8 @@ BEGIN
           (@Source = 'M' AND @UserNature = 'C' AND c.Particulier = 'O' AND uxc.FK_User_Id IS NOT NULL)
           OR
           (s.FK_Adherent_Id IN (SELECT Id FROM dbo.Adherents WHERE FK_User_Id = @FK_User_Id AND Actif = 'O'))
-      );
+      )
+    ORDER BY s.DateSin DESC;
 
     RETURN;
 END;
@@ -1799,7 +1804,8 @@ BEGIN
             (@Source = 'M' AND @UserNature = 'C' AND c.Particulier = 'O' AND uxc.FK_User_Id IS NOT NULL)
             OR
             (s.FK_Adherent_Id IN (SELECT Id FROM dbo.Adherents WHERE FK_User_Id = @FK_User_Id AND Actif = 'O'))
-        );
+        )
+    ORDER BY s.DateSin DESC;
 
     RETURN;
 END
@@ -2007,7 +2013,7 @@ BEGIN
         RETURN;
     END
 
-    RAISERROR('Document introuvable ou accès refusé', 16, 1);
+    RAISERROR('Document introuvable ou accÃ¨s refusÃ©', 16, 1);
     RETURN;
 END
 GO
@@ -2903,7 +2909,7 @@ BEGIN
                 WHEN sc.Circonstances LIKE '%robot%'
                   OR sc.Circonstances LIKE '%machine%'
                   OR sc.Circonstances LIKE '%outillage%'       THEN 'Machine'
-                WHEN sc.Circonstances LIKE '%brûl%'
+                WHEN sc.Circonstances LIKE '%brÃ»l%'
                   OR sc.Circonstances LIKE '%feu%'
                   OR sc.Circonstances LIKE '%explosion%'       THEN 'Autre choc'
                 ELSE 'Autres'
@@ -2917,7 +2923,7 @@ BEGIN
                   OR sc.Lesion LIKE '%choc%'                   THEN 'Contusion'
                 WHEN sc.Lesion LIKE '%entors%'
                   OR sc.Lesion LIKE '%ligament%'               THEN 'Entorse'
-                WHEN sc.Lesion LIKE '%brûl%'                   THEN 'Brûlures'
+                WHEN sc.Lesion LIKE '%brÃ»l%'                   THEN 'BrÃ»lures'
                 WHEN sc.Lesion LIKE '%trauma%'
                   OR sc.Lesion LIKE '%lombal%'
                   OR sc.Lesion LIKE '%lumb%'                   THEN 'Traumatisme'
@@ -3039,5 +3045,71 @@ BEGIN
         )
     HAVING COUNT(*) > 1
     ORDER BY count DESC;
+END;
+GO
+
+
+CREATE OR ALTER PROCEDURE dbo.sp_GetSyntheseSinistresAT
+    @PoliceId INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT 
+        c.RaisonSociale AS 'client',
+        p.Police AS 'police',
+        comp.RaisonSociale AS 'compagnie',
+        ISNULL(r.Identifiant + ' - ' + r.Libelle, 'Ensemble de personnelle') AS 'risque',
+        ISNULL(sc.Victime, ad.NomComplet) AS 'victime',
+        
+        -- Sinistre data
+        s.NumeroSin AS 'Numero Sinistre',
+        CAST(s.DateSin AS DATE) AS 'Date Sinistre',
+        CAST(s.DateDeclaration AS DATE) AS 'Date Declaration',
+        CASE UPPER(s.Statut)
+            WHEN 'E' THEN 'EN COURS'
+            WHEN 'C' THEN 'CLOTURE'
+            WHEN 'R' THEN 'REGLE'
+            WHEN 'S' THEN 'SANS SUITE'
+            WHEN 'A' THEN 'ANNULE'
+            ELSE s.Statut
+        END AS 'Statut Sinistre',
+        s.Observations AS 'Observations',
+        
+        -- sinComplement data
+        sc.Lieu AS 'Lieu',
+        sc.Type_Sinistre AS 'Type Sinistre',
+        sc.Circonstances AS 'Circonstances',
+        sc.Lesion AS 'Nature Lesion',
+        sc.Etape AS 'Etape',
+        sc.ITT AS 'ITT',
+        sc.IPP_Estime AS 'IPP Estime',
+        sc.IPP_Traitant AS 'IPP Traitant',
+        sc.IPP_Conseil AS 'IPP Conseil',
+        sc.IPP_Retenu AS 'IPP Retenu',
+        sc.Frais_Medicaux AS 'Frais Medicaux',
+        sc.Frais_Transport AS 'Frais Transport',
+        sc.Indem_Jrn AS 'Indemnite Journaliere',
+        sc.Nature_indem AS 'Nature Indemnite',
+        sc.Montant_indem AS 'Montant Indemnite',
+        sc.HONR_MED AS 'Honoraires Med',
+        sc.IPP_EVA AS 'IPP EVA',
+        sc.Salaire AS 'Salaire',
+        sc.AGE AS 'Age',
+        sc.CCR_EV AS 'CCR EV',
+        sc.COUT_TOT AS 'Cout Total'
+    FROM 
+        dbo.Sinistres s
+    INNER JOIN dbo.Polices p ON s.FK_Police_Id = p.Id
+    INNER JOIN dbo.Clients c ON p.Fk_Client_Id = c.Id
+    INNER JOIN dbo.Compagnies comp ON p.FK_Compagnie_Id = comp.Id
+    LEFT JOIN dbo.Risques r ON s.FK_Risque_Id = r.Id
+    LEFT JOIN dbo.Adherents ad ON s.FK_Adherent_Id = ad.Id
+    LEFT JOIN dbo.sinComplement sc ON sc.fk_sinistre_id = s.Id
+    WHERE 
+        (@PoliceId = -1 OR s.FK_Police_Id = @PoliceId)
+        AND p.Module = 'C'
+    ORDER BY 
+        s.DateSin DESC;
 END;
 GO

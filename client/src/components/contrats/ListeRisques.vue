@@ -14,6 +14,7 @@ import { formatDate, formatNumber } from '@/lib/utils'
 const props = defineProps<{
   risques: any[]
   branche: string
+  module?: string
   searchQuery: string
 }>()
 
@@ -23,9 +24,9 @@ const risqueSelectionne = ref<any>(null)
 const estDialogueOuvert = ref(false)
 const chargementDetails = ref(false)
 
-const isSante = computed(() => !!(props.branche && props.branche.toLowerCase().includes('sant')))
-const isAuto = computed(() => !!(props.branche && props.branche.toLowerCase().includes('auto')))
-const isAT = computed(() => !!(props.branche && (props.branche.toLowerCase() === 'at' || props.branche.toLowerCase().includes('accident') || props.branche.toLowerCase().includes('travail'))))
+const isSante = computed(() => props.module === 'D')
+const isAuto = computed(() => props.module === 'A')
+const isAT = computed(() => props.module === 'C')
 
 const ouvrirDetails = async (risque: any) => {
   risqueSelectionne.value = risque
@@ -75,11 +76,28 @@ const risquesFiltres = computed(() => {
   )
 })
 
+import { watch } from 'vue'
+
+const itemsLimit = ref(20)
+
+const risquesPagines = computed(() => {
+  return risquesFiltres.value.slice(0, itemsLimit.value)
+})
+
+const hasMore = computed(() => itemsLimit.value < risquesFiltres.value.length)
+
+const loadMore = () => {
+  itemsLimit.value += 20
+}
+
+watch(() => props.searchQuery, () => {
+  itemsLimit.value = 20
+})
+
 const iconeBranche = computed(() => {
-  const b = (props.branche || '').toLowerCase()
-  if (b.includes('auto')) return Car
-  if (b.includes('sant')) return HeartPulse
-  if (b.includes('chantier') || b.includes('tout risque')) return HardHat
+  if (props.module === 'A') return Car
+  if (props.module === 'D') return HeartPulse
+  if (props.module === 'C' || props.module === 'B') return HardHat
   return Shield
 })
 </script>
@@ -126,7 +144,7 @@ const iconeBranche = computed(() => {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(risque, idx) in risquesFiltres" :key="idx"
+            <tr v-for="(risque, idx) in risquesPagines" :key="idx"
               class="border-b border-slate-50 hover:bg-slate-50 transition-colors group">
               
               <template v-if="isSante">
@@ -166,6 +184,12 @@ const iconeBranche = computed(() => {
             </tr>
           </tbody>
         </table>
+        
+        <div v-if="hasMore" class="flex justify-center mt-6 mb-6">
+          <Button variant="outline" class="font-bold rounded-full px-8 text-slate-600 hover:text-slate-900" @click="loadMore">
+            {{ $t('commun.load_more') || 'Charger plus' }}
+          </Button>
+        </div>
       </div>
 
       <div v-else class="text-center p-12 text-slate-500 italic">

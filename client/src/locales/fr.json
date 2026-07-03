@@ -58,6 +58,33 @@
     "victim_name": "Nom de la victime",
     "kpi": "INDICATEURS CLÉS DE PERFORMANCE",
     "total_nb_claims": "Nb sinistres total",
+    "nb_adherents": "Nombre d'adhérents",
+    "adherents": "Adhérents",
+    "mixed": {
+      "global_stats": "Statistiques Globales",
+      "total_contracts": "Total Contrats",
+      "all_policies": "Toutes polices",
+      "auto_fleet": "Parc Auto",
+      "insured_vehicles": "Véhicules assurés",
+      "total_adherents": "Total Adhérents",
+      "health_insurance": "Assurance Santé",
+      "total_claims": "Total Sinistres",
+      "ongoing_claims": "Sinistres En Cours",
+      "open_files": "Dossiers ouverts",
+      "status_distribution": "Répartition par statut",
+      "not_specified": "Non renseigné",
+      "no_status_data": "Aucune donnée de statut"
+    },
+    "top_10": {
+      "vehicles": "Top 10 Véhicules (Sinistres multiples)",
+      "adherents": "Top 10 Adhérents (Sinistres multiples)",
+      "risks": "Top 10 Risques (Sinistres multiples)",
+      "col_vehicle": "Immatriculation / Véhicule",
+      "col_adherent": "Adhérent / Bénéficiaire",
+      "col_risk": "Identifiant / Risque",
+      "col_nb_claims": "Nombre de sinistres",
+      "no_data": "Aucun élément avec de multiples sinistres."
+    },
     "total_cost": "Coût total",
     "global_charge": "charge globale",
     "avg_cost_per_claim": "Coût moyen / sinistre",
@@ -72,16 +99,21 @@
     "claims_with_ipp": "Sinistres avec IPP",
     "no_statistics": "Aucune statistique",
     "repartition_circumstance_lesion": "RÉPARTITION PAR CIRCONSTANCE ET NATURE DE LÉSION",
-    "accident_circumstances": "Circonstances des accidents",
+    "accident_circumstances": "Circonstances de l'accident",
     "nature_of_lesions": "Nature des lésions",
     "accident_type": "TYPE D'ACCIDENT",
-    "sur_n_sinistres": "sur {n} sinistre | sur {n} sinistres"
+    "sur_n_sinistres": "sur {n} sinistre | sur {n} sinistres",
+    "top_5_itt": "TOP 5 — SINISTRES ITT LES PLUS LONGS",
+    "top_10_repeat_claims": "TOP 10 — SINISTRES RÉCIDIVES",
+    "on_site_accident": "Accident sur site",
+    "commuting_accident": "Accident de trajet",
+    "claims_short": "sin."
   },
   "contrats": {
     "title": "Mes polices",
     "subtitle": "Consultez l'ensemble de vos contrats.",
     "search_placeholder": "Rechercher une police...",
-    "prime_annuelle": "Prime annuelle",
+    "prime_annuelle": "Prime annuelle émise",
     "impayes": "Impayés",
     "sinistres": "Sinistres",
     "sinistres_encours": "Sinistres en cours",
@@ -297,7 +329,8 @@
     "search_placeholder": "Rechercher...",
     "total_count": "{count} au total",
     "date_from": "Du",
-    "date_to": "Au"
+    "date_to": "Au",
+    "load_more": "Charger plus"
   },
   "statuts": {
     "actif": "Actif",

@@ -10,8 +10,11 @@ import {
 } from 'chart.js'
 import { Card } from '@/components/ui/card'
 import { formatKPIValue } from '@/lib/utils'
+import { useI18n } from 'vue-i18n'
 
 ChartJS.register(Title, Tooltip, Legend, ArcElement)
+
+const { t } = useI18n()
 
 const props = defineProps<{
   repartitionData: any[] | null
@@ -40,13 +43,13 @@ const typeAccidentCards = computed(() => {
 
   return [
     {
-      categorie: 'Accident sur site',
+      categorie: t('tableau_bord.on_site_accident'),
       countVal: siteCount,
       pourcentage: sitePct,
       classes: 'bg-[#e6f0fa] border-[#cce0f5]/80 text-[#0d3880]'
     },
     {
-      categorie: 'Accident de trajet',
+      categorie: t('tableau_bord.commuting_accident'),
       countVal: trajetCount,
       pourcentage: trajetPct,
       classes: 'bg-[#fffbe6] border-[#fef08a]/80 text-[#826a00]'
@@ -173,7 +176,7 @@ const doughnutChartOptions = computed(() => {
             <Card v-for="card in typeAccidentCards" :key="card.categorie" :class="card.classes"
               class="rounded-[1.8rem] p-6 shadow-sm flex items-center justify-center min-h-[90px] transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
               <p class="text-base md:text-lg font-black tracking-wide text-center">
-                {{ card.categorie }} — {{ card.countVal }} sin. ({{ formatKPIValue(card.pourcentage, 'percentage') }})
+                {{ card.categorie }} — {{ card.countVal }} {{ $t('tableau_bord.claims_short') }} ({{ formatKPIValue(card.pourcentage, 'percentage') }})
               </p>
             </Card>
           </div>

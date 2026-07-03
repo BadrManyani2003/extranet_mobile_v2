@@ -58,6 +58,33 @@
     "victim_name": "Victim's Name",
     "kpi": "KEY PERFORMANCE INDICATORS",
     "total_nb_claims": "Total nb claims",
+    "nb_adherents": "Number of adherents",
+    "adherents": "Adherents",
+    "mixed": {
+      "global_stats": "Global Statistics",
+      "total_contracts": "Total Contracts",
+      "all_policies": "All policies",
+      "auto_fleet": "Auto Fleet",
+      "insured_vehicles": "Insured vehicles",
+      "total_adherents": "Total Adherents",
+      "health_insurance": "Health Insurance",
+      "total_claims": "Total Claims",
+      "ongoing_claims": "Ongoing Claims",
+      "open_files": "Open files",
+      "status_distribution": "Status Distribution",
+      "not_specified": "Not specified",
+      "no_status_data": "No status data"
+    },
+    "top_10": {
+      "vehicles": "Top 10 Vehicles (Multiple claims)",
+      "adherents": "Top 10 Adherents (Multiple claims)",
+      "risks": "Top 10 Risks (Multiple claims)",
+      "col_vehicle": "Registration / Vehicle",
+      "col_adherent": "Adherent / Beneficiary",
+      "col_risk": "Identifier / Risk",
+      "col_nb_claims": "Number of claims",
+      "no_data": "No item with multiple claims."
+    },
     "total_cost": "Total cost",
     "global_charge": "global charge",
     "avg_cost_per_claim": "Avg cost / claim",
@@ -75,13 +102,18 @@
     "accident_circumstances": "Accident Circumstances",
     "nature_of_lesions": "Nature of Injuries",
     "accident_type": "ACCIDENT TYPE",
-    "sur_n_sinistres": "out of {n} claim | out of {n} claims"
+    "sur_n_sinistres": "out of {n} claim | out of {n} claims",
+    "top_5_itt": "TOP 5 — LONGEST TTI CLAIMS",
+    "top_10_repeat_claims": "TOP 10 — REPEAT CLAIMS",
+    "on_site_accident": "On-site accident",
+    "commuting_accident": "Commuting accident",
+    "claims_short": "claims"
   },
   "contrats": {
     "title": "My Insurance Policies",
     "subtitle": "View and manage all your contracts.",
     "search_placeholder": "Search for a policy...",
-    "prime_annuelle": "Annual Premium",
+    "prime_annuelle": "Issued Annual Premium",
     "impayes": "Unpaid",
     "sinistres": "Claims",
     "sinistres_encours": "Ongoing Claims",
@@ -297,7 +329,8 @@
     "search_placeholder": "Search...",
     "total_count": "{count} total",
     "date_from": "From",
-    "date_to": "To"
+    "date_to": "To",
+    "load_more": "Load more"
   },
   "statuts": {
     "actif": "Active",

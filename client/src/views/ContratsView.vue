@@ -65,6 +65,23 @@ const handleDetailedSearch = ({ policeId, onglet, requete }: any) => {
   detailedSearchQueries.value[`${policeId}-${onglet}`] = requete
 }
 
+const itemsLimit = ref(20)
+
+const displayedContrats = computed(() => {
+  return filteredContrats.value.slice(0, itemsLimit.value)
+})
+
+const hasMore = computed(() => itemsLimit.value < filteredContrats.value.length)
+
+const loadMore = () => {
+  itemsLimit.value += 20
+}
+
+import { watch } from 'vue'
+watch([search, selectedClient, selectedBranch], () => {
+  itemsLimit.value = 20
+})
+
 onMounted(fetchContrats)
 </script>
 
@@ -171,16 +188,23 @@ onMounted(fetchContrats)
 
       <LoadingSkeleton v-if="chargementEnCours" :count="4" height="h-24" class="rounded-2xl" />
       
-      <Accordion v-else-if="filteredContrats.length > 0" type="single" collapsible class="space-y-4">
-        <ContratItem 
-          v-for="contrat in filteredContrats" 
-          :key="contrat.id" 
-          :police="contrat"
-          :getStatusBadge="getStatusBadge"
-          :detailedSearchQueries="detailedSearchQueries"
-          @update:searchQuery="handleDetailedSearch"
-        />
-      </Accordion>
+      <div v-else-if="filteredContrats.length > 0">
+        <Accordion type="single" collapsible class="space-y-4">
+          <ContratItem 
+            v-for="contrat in displayedContrats" 
+            :key="contrat.id" 
+            :police="contrat"
+            :getStatusBadge="getStatusBadge"
+            :detailedSearchQueries="detailedSearchQueries"
+            @update:searchQuery="handleDetailedSearch"
+          />
+        </Accordion>
+        <div v-if="hasMore" class="flex justify-center mt-6">
+          <Button variant="outline" class="font-bold rounded-full px-8 text-slate-600 hover:text-slate-900" @click="loadMore">
+            {{ $t('commun.load_more') || 'Charger plus' }}
+          </Button>
+        </div>
+      </div>
 
       <EmptyState v-else :description="$t('commun.no_results')" class="bg-white rounded-[2rem] border-none shadow-sm" />
     </div>

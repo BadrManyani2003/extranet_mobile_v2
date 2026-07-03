@@ -26,6 +26,24 @@ const quittancesFiltrees = computed(() => {
     String(q.numero || '').toLowerCase().includes(requete)
   )
 })
+
+import { ref, watch } from 'vue'
+
+const itemsLimit = ref(20)
+
+const quittancesPagines = computed(() => {
+  return quittancesFiltrees.value.slice(0, itemsLimit.value)
+})
+
+const hasMore = computed(() => itemsLimit.value < quittancesFiltrees.value.length)
+
+const loadMore = () => {
+  itemsLimit.value += 20
+}
+
+watch(() => props.searchQuery, () => {
+  itemsLimit.value = 20
+})
 </script>
 
 <template>
@@ -43,7 +61,7 @@ const quittancesFiltrees = computed(() => {
     <CardContent class="p-0 flex-1 overflow-hidden">
       <div v-if="quittancesFiltrees.length > 0" class="max-h-[360px] overflow-y-auto px-4 pb-8 pt-4 scrollbar-thin scrollbar-thumb-slate-200">
         <div class="space-y-3">
-          <div v-for="quit in quittancesFiltrees" :key="quit.numero" 
+          <div v-for="quit in quittancesPagines" :key="quit.numero" 
             class="bg-white border border-slate-200 rounded-xl p-4 transition-all hover:shadow-sm hover:border-slate-300"
           >
             <div class="grid grid-cols-1 md:grid-cols-5 items-center gap-4">
@@ -92,6 +110,12 @@ const quittancesFiltrees = computed(() => {
               </div>
             </div>
           </div>
+        </div>
+        
+        <div v-if="hasMore" class="flex justify-center mt-6">
+          <Button variant="outline" class="font-bold rounded-full px-8 text-slate-600 hover:text-slate-900" @click="loadMore">
+            {{ $t('commun.load_more') || 'Charger plus' }}
+          </Button>
         </div>
       </div>
       

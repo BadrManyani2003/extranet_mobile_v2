@@ -260,7 +260,7 @@ CREATE TABLE dbo.Quittances
 (
     Id INT NOT NULL,
     FK_Police_Id INT NOT NULL,
-    NumQuittance INT NULL,
+    NumQuittance VARCHAR(255) NULL,
     DateDu DATE NULL,
     DateAu DATE NULL,
     Montant DECIMAL(18,2) NULL,

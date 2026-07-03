@@ -45,3 +45,8 @@ Thumbs.db
 
 # Databases (if local)
 api-extranet-mobile-ibs/db.sql
+
+# Rollup bundle visualizer report
+stats.html
+**/stats.html
+

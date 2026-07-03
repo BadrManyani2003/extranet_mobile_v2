@@ -28,6 +28,7 @@ const getStatsRepartition = (userId, source, token, policeId, dateDu, dateAu) =>
 
 const getStatsByPolice = (userId, source, token, policeId) => db.execute(qry.getStatsByPolice, [userId, token, source, policeId]);
 const getDocumentsByPolice = (userId, source, token, policeId) => db.execute(qry.getDocumentsByPolice, [userId, source, token, policeId]);
+const getSyntheseSinistresAT = (policeId) => db.execute(qry.getSyntheseSinistresAT, [policeId]);
 
 module.exports = {
     getPolices,
@@ -46,5 +47,6 @@ module.exports = {
     getStatsTop10Victimes,
     getStatsRepartition,
     getStatsByPolice,
-    getDocumentsByPolice
+    getDocumentsByPolice,
+    getSyntheseSinistresAT
 };

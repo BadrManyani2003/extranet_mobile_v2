@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { CalendarDays, RefreshCw, Building2, Tag, FileText, FileDown } from 'lucide-vue-next'
+import DatePicker from '@/components/ui/date-picker/DatePicker.vue'
 
 const selectedPoliceId = defineModel<number | string | null>('selectedPoliceId', { required: true })
 const selectedClient = defineModel<string>('selectedClient', { required: true })
@@ -21,31 +22,7 @@ defineEmits<{
   (e: 'exportPdf'): void
 }>()
 
-const dateDuFormatted = computed(() => {
-  if (!dateDu.value) return ''
-  const parts = dateDu.value.split('-') // YYYY-MM-DD
-  if (parts.length === 3) {
-    return `${parts[2]}/${parts[1]}/${parts[0]}`
-  }
-  return dateDu.value
-})
-
-const dateAuFormatted = computed(() => {
-  if (!dateAu.value) return ''
-  const parts = dateAu.value.split('-') // YYYY-MM-DD
-  if (parts.length === 3) {
-    return `${parts[2]}/${parts[1]}/${parts[0]}`
-  }
-  return dateAu.value
-})
-
-const openPicker = (e: Event) => {
-  try {
-    (e.target as HTMLInputElement).showPicker()
-  } catch (err) {
-    console.error('showPicker not supported:', err)
-  }
-}
+// Native date inputs format their display internally according to browser locale
 </script>
 
 <template>
@@ -136,43 +113,26 @@ const openPicker = (e: Event) => {
       <!-- Date Du -->
       <div class="space-y-2">
         <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">{{ $t('commun.date_from') }}</label>
-        <div class="relative cursor-pointer">
-          <div class="w-full bg-slate-50 border border-slate-200/80 rounded-2xl px-4 py-3 font-bold text-sm text-slate-800 flex items-center justify-between shadow-sm pointer-events-none">
-            <span :class="dateDu ? 'text-slate-800' : 'text-slate-400 font-medium'">
-              {{ dateDuFormatted || 'JJ/MM/AAAA' }}
-            </span>
-            <CalendarDays class="w-4 h-4 text-slate-400" />
-          </div>
-          <input 
-            type="date" 
-            v-model="dateDu" 
-            class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-            @click="openPicker"
-          />
-        </div>
+        <DatePicker 
+          v-model="dateDu" 
+          expert-type="from"
+          placeholder="jj/mm/aaaa"
+        />
       </div>
 
       <!-- Date Au -->
       <div class="space-y-2">
         <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">{{ $t('commun.date_to') }}</label>
-        <div class="flex gap-2">
-          <div class="relative flex-1 cursor-pointer">
-            <div class="w-full bg-slate-50 border border-slate-200/80 rounded-2xl px-4 py-3 font-bold text-sm text-slate-800 flex items-center justify-between shadow-sm pointer-events-none">
-              <span :class="dateAu ? 'text-slate-800' : 'text-slate-400 font-medium'">
-                {{ dateAuFormatted || 'JJ/MM/AAAA' }}
-              </span>
-              <CalendarDays class="w-4 h-4 text-slate-400" />
-            </div>
-            <input 
-              type="date" 
-              v-model="dateAu" 
-              class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-              @click="openPicker"
-            />
-          </div>
+        <div class="flex gap-2 items-center">
+          <DatePicker 
+            v-model="dateAu" 
+            expert-type="to"
+            placeholder="jj/mm/aaaa"
+            class="flex-1"
+          />
           <button 
             @click="$emit('refresh')"
-            class="p-3 bg-slate-100 hover:bg-slate-200/70 text-slate-600 rounded-2xl transition-all duration-200 shadow-sm shrink-0 flex items-center justify-center hover:scale-105"
+            class="p-3 bg-slate-100 hover:bg-slate-200/70 text-slate-600 rounded-2xl transition-all duration-200 shadow-sm shrink-0 flex items-center justify-center hover:scale-105 h-[46px] w-[46px]"
             title="Rafraîchir"
           >
             <RefreshCw class="w-5 h-5" :class="{ 'animate-spin': loadingState }" />

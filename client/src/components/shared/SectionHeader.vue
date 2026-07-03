@@ -23,12 +23,15 @@ const emit = defineEmits(['update:searchModel'])
         </CardTitle>
         
       </div>
-      <div v-if="searchModel !== undefined" class="w-full md:w-64">
-        <SearchInput 
-          :modelValue="searchModel" 
-          @update:modelValue="emit('update:searchModel', $event)"
-          :placeholder="searchPlaceholder" 
-        />
+      <div class="flex items-center gap-4">
+        <slot name="actions"></slot>
+        <div v-if="searchModel !== undefined" class="w-full md:w-64">
+          <SearchInput 
+            :modelValue="searchModel" 
+            @update:modelValue="emit('update:searchModel', $event)"
+            :placeholder="searchPlaceholder" 
+          />
+        </div>
       </div>
     </div>
   </CardHeader>

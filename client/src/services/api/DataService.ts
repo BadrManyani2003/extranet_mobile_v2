@@ -19,4 +19,6 @@ export const DataService = {
   getPersACharge: (adherentId: number) => request<any[]>('/data/adherents/famille', { method: 'GET', body: JSON.stringify({ adherentId }) }),
   getStats: () => request<any[]>('/data/stats', { method: 'GET' }),
   getDocuments: (policeId: number) => request<any[]>('/data/documents', { method: 'GET', body: JSON.stringify({ policeId }) }),
+  getSyntheseSinistresAT: (policeId: number | 'all') => request<any[]>('/data/sinistres/synthese/at', { method: 'GET', body: JSON.stringify({ policeId }) }),
+  getDashboardBatchStats: (payload: any) => request<any>('/data/stats/dashboard-batch', { method: 'POST', body: JSON.stringify(payload) }),
 }

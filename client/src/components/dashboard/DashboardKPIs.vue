@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import { Card } from '@/components/ui/card'
-import { FileText } from 'lucide-vue-next'
+import { FileText, Car, FileSignature } from 'lucide-vue-next'
 import { formatKPIValue } from '@/lib/utils'
 
 defineProps<{
   kpis: any
   yearRange: string
   isATBranch: boolean
+  moduleType?: string
+  nombreContratsFiltre?: number
+  nombreRisquesFiltre?: number
 }>()
 </script>
 
@@ -39,12 +42,37 @@ defineProps<{
         </Card>
 
         <!-- Card 3: {{ $t('tableau_bord.avg_cost_per_claim') }} (Blue theme) -->
-        <Card class="bg-[#e6f0fa] border-[#cce0f5]/80 text-[#0d3880] rounded-[1.8rem] p-6 shadow-sm flex flex-col justify-between min-h-[140px] transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
+        <Card v-if="isATBranch" class="bg-[#e6f0fa] border-[#cce0f5]/80 text-[#0d3880] rounded-[1.8rem] p-6 shadow-sm flex flex-col justify-between min-h-[140px] transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
           <div class="space-y-1.5">
             <p class="text-[13px] font-extrabold uppercase tracking-wide opacity-80">{{ $t('tableau_bord.avg_cost_per_claim') }}</p>
             <h3 class="text-3xl font-black tracking-tight mt-1">{{ formatKPIValue(kpis.coutMoyen, 'currency') }}</h3>
           </div>
           <p class="text-xs font-bold opacity-60 mt-4">{{ $t('tableau_bord.per_file') }}</p>
+        </Card>
+
+        <!-- Card: Nombre de contrats (Generic for non-AT) -->
+        <Card v-if="!isATBranch" class="bg-[#f0f9ff] border-[#bae6fd]/80 text-[#0369a1] rounded-[1.8rem] p-6 shadow-sm flex flex-col justify-between min-h-[140px] transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
+          <div class="space-y-1.5">
+            <p class="text-[13px] font-extrabold uppercase tracking-wide opacity-80">{{ $t('tableau_bord.nb_contrats', 'Nombre de contrats') }}</p>
+            <h3 class="text-3xl font-black tracking-tight mt-1">{{ formatKPIValue(nombreContratsFiltre || 0, 'number') }}</h3>
+          </div>
+          <div class="flex items-center gap-2 mt-4">
+            <FileSignature class="w-4 h-4 opacity-60" />
+            <p class="text-xs font-bold opacity-60">{{ yearRange }}</p>
+          </div>
+        </Card>
+
+        <!-- Card: Nombre de risques (Generic for non-AT) -->
+        <Card v-if="!isATBranch" class="bg-[#f0fdf4] border-[#bbf7d0]/80 text-[#15803d] rounded-[1.8rem] p-6 shadow-sm flex flex-col justify-between min-h-[140px] transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
+          <div class="space-y-1.5">
+            <p class="text-[13px] font-extrabold uppercase tracking-wide opacity-80">{{ moduleType === 'A' ? $t('tableau_bord.nb_vehicules', 'Nombre de véhicules') : (moduleType === 'D' ? $t('tableau_bord.nb_adherents') : $t('tableau_bord.nb_risques', 'Nombre de risques')) }}</p>
+            <h3 class="text-3xl font-black tracking-tight mt-1">{{ formatKPIValue(nombreRisquesFiltre || 0, 'number') }}</h3>
+          </div>
+          <div class="flex items-center gap-2 mt-4">
+            <Car v-if="moduleType === 'A'" class="w-4 h-4 opacity-60" />
+            <FileText v-else class="w-4 h-4 opacity-60" />
+            <p class="text-xs font-bold opacity-60">{{ moduleType === 'A' ? $t('tableau_bord.parc_auto', 'Parc automobile') : (moduleType === 'D' ? $t('tableau_bord.adherents') : $t('tableau_bord.risques_assures', 'Risques assurés')) }}</p>
+          </div>
         </Card>
 
         <!-- Card 4: {{ $t('tableau_bord.total_itt_days') }} (Green theme) -->
