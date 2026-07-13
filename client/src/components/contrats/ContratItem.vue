@@ -106,7 +106,7 @@ const obtenirElementsGrille = (p: any) => {
     },  
     { id: 'sinistres', title: t('contrats.sinistres'), type: 'action', value: formatNumber(sinistres.value.length), icon: LifeBuoy, defaultColor: 'bg-slate-100 text-slate-800' },
     { id: 'sinistres-encours', title: t('contrats.sinistres_encours'), type: 'action', value: formatNumber(sinistres.value.filter((s: any) => s.statut === 'En cours' || s.statut === 'E').length), icon: Clock, defaultColor: 'bg-slate-100 text-slate-800' },
-    { id: 'prime', title: `${t('contrats.prime_annuelle')} (${new Date().getFullYear()})`, type: 'action', value: formatCurrency(stats.value.primeAnnuelle || 0), icon: Wallet, defaultColor: 'bg-slate-200 text-slate-900' },
+    { id: 'prime', title: `${t('contrats.prime_annuelle')}`, type: 'action', value: formatCurrency(stats.value.primeAnnuelle || 0), icon: Wallet, defaultColor: 'bg-slate-200 text-slate-900' },
     { id: 'impayes', title: t('contrats.impayes'), type: 'action', value: formatCurrency(stats.value.impayes || 0), icon: Receipt, defaultColor: (stats.value.impayes || 0) > 0 ? 'bg-red-50 text-red-500' : 'bg-slate-100 text-slate-400', isRedAlert: (stats.value.impayes || 0) > 0 },
     { id: 'documents', title: t('contrats.documents'), type: 'action', value: formatNumber(documents.value.length), icon: FileText, defaultColor: 'bg-slate-100 text-slate-800' }
   ]

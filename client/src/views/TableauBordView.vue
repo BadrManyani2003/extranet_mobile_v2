@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
+import { useDebounceFn } from '@vueuse/core'
 import PageContainer from '@/components/shared/PageContainer.vue'
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton.vue'
 import { api } from '@/lib/api'
@@ -290,8 +291,10 @@ watch(displayPolices, (newPolices) => {
   }
 })
 
+const debouncedFetchAllStats = useDebounceFn(fetchAllStats, 600)
+
 watch([selectedPoliceId, dateDu, dateAu, selectedClient, selectedBranch], () => {
-  fetchAllStats()
+  debouncedFetchAllStats()
 })
 
 const exportToPdf = () => {
