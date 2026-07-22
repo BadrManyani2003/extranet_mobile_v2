@@ -120,6 +120,49 @@ const deleteUser = async (userIdAuth) => {
     await keycloakAxios.delete(url, { headers: await authHeader() });
 };
 
+const changePassword = async (userIdAuth, newPassword) => {
+    const url = `${authServerUrl}/admin/realms/${realm}/users/${userIdAuth}/reset-password`;
+    await keycloakAxios.put(url, {
+        type: 'password',
+        value: newPassword,
+        temporary: false
+    }, { headers: await jsonHeader() });
+};
+
+const verifyUserPassword = async (email, preferredUsername, password) => {
+    const url  = `${authServerUrl}/realms/${realm}/protocol/openid-connect/token`;
+    
+    const tryLogin = async (username) => {
+        if (!username) return false;
+        const data = qs.stringify({
+            grant_type:    'password',
+            client_id:     clientId,
+            client_secret: clientSecret,
+            username:      username,
+            password:      password
+        });
+        try {
+            await axios.post(url, data, {
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+            });
+            return true;
+        } catch (err) {
+            if (err.response?.status === 401 || (err.response?.status === 400 && err.response?.data?.error === 'invalid_grant')) {
+                return false;
+            }
+            throw new Error('KEYCLOAK_REJECTED: ' + (err.response?.data?.error_description || 'Erreur inconnue Keycloak'));
+        }
+    };
+
+    const emailSuccess = await tryLogin(email);
+    if (emailSuccess) return true;
+    
+    const prefSuccess = await tryLogin(preferredUsername);
+    if (prefSuccess) return true;
+
+    return false;
+};
+
 module.exports = {
     getAvailableRoles,
     getUserRoles,
@@ -129,5 +172,7 @@ module.exports = {
     getUserById,
     createUser,
     sendOnboardingEmail,
-    deleteUser
+    deleteUser,
+    changePassword,
+    verifyUserPassword
 };

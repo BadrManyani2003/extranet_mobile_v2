@@ -22,10 +22,13 @@ export const useUserStore = defineStore('user', () => {
     loading.value = true
     error.value = null
     try {
+      console.log('--- Appel API  ---')
       const userData = await api.admin.getMe()
+      console.log('--- Réponse API getMe() ---', userData)
       user.value = userData
       return userData
     } catch (e: any) {
+      console.error('--- Erreur API getMe() ---', e)
       error.value = e.message
       user.value = null
       throw e

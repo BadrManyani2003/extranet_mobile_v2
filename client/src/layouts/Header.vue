@@ -1,12 +1,18 @@
 <script setup lang="ts">
-import { Menu, X, User, Languages, LogOut } from 'lucide-vue-next'
+import { ref, onMounted, onUnmounted } from 'vue'
+import { Menu, X, User, Languages, LogOut, KeyRound, ChevronDown } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { useI18n } from 'vue-i18n'
 import keycloak from '@/services/keycloak'
 import { useUserStore } from '@/store/user'
+import ChangePasswordModal from '@/components/ChangePasswordModal.vue'
 
 const { locale } = useI18n()
 const userStore = useUserStore()
+const isDropdownOpen = ref(false)
+const dropdownRef = ref<HTMLElement | null>(null)
+
+const showPasswordModal = ref(false)
 
 defineProps<{
   isSidebarOpen: boolean
@@ -22,6 +28,25 @@ const handleLogout = () => {
   userStore.clearUser()
   keycloak.logout()
 }
+
+const handleChangePassword = () => {
+  isDropdownOpen.value = false
+  showPasswordModal.value = true
+}
+
+const closeDropdown = (e: MouseEvent) => {
+  if (dropdownRef.value && !dropdownRef.value.contains(e.target as Node)) {
+    isDropdownOpen.value = false
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', closeDropdown)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', closeDropdown)
+})
 </script>
 
 <template>
@@ -45,22 +70,63 @@ const handleLogout = () => {
         <span class="text-sm font-black uppercase tracking-widest text-slate-600">{{ locale }}</span>
       </button> -->
 
-      <div class="flex items-center gap-3">
-        <div class="flex items-center gap-3 bg-background/50 px-4 py-2 rounded-xl border border-slate-100 shadow-sm">
+      <div class="flex items-center gap-3 relative" ref="dropdownRef">
+        <button 
+          @click="isDropdownOpen = !isDropdownOpen"
+          class="flex items-center gap-2 sm:gap-3 bg-background/50 px-3 sm:px-4 py-2 rounded-xl border border-slate-100 shadow-sm hover:bg-slate-50 transition-colors"
+        >
           <span class="hidden sm:inline text-base font-bold text-slate-700">{{ userStore.userName }}</span>
-          <div class="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md shadow-primary/20">
+          <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md shadow-primary/20">
             <User class="w-4 h-4" />
           </div>
-        </div>
-        
-        <button 
-          @click="handleLogout"
-          class="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-red-50 hover:text-red-600 transition-all border border-slate-200/50 group"
-          :title="$t('commun.logout')"
-        >
-          <LogOut class="w-5 h-5 group-hover:rotate-12 transition-transform" />
+          <ChevronDown class="w-4 h-4 text-slate-400" />
         </button>
+        
+        <!-- Dropdown Menu -->
+        <transition
+          enter-active-class="transition ease-out duration-200"
+          enter-from-class="opacity-0 translate-y-1"
+          enter-to-class="opacity-100 translate-y-0"
+          leave-active-class="transition ease-in duration-150"
+          leave-from-class="opacity-100 translate-y-0"
+          leave-to-class="opacity-0 translate-y-1"
+        >
+          <div 
+            v-if="isDropdownOpen"
+            class="absolute top-full mt-2 right-0 w-64 bg-white rounded-xl shadow-lg border border-slate-200 py-2 z-50"
+          >
+            <div class="px-4 py-2 mb-2 border-b border-slate-100">
+              <p class="text-sm font-medium text-slate-900 truncate">{{ userStore.userName }}</p>
+              <p class="text-xs text-slate-500 truncate" v-if="userStore.user?.email">{{ userStore.user.email }}</p>
+            </div>
+
+            <button 
+              @click="handleChangePassword"
+              class="w-full px-4 py-2.5 text-left flex items-center gap-3 hover:bg-slate-50 text-slate-700 transition-colors"
+            >
+              <KeyRound class="w-4 h-4 text-slate-400" />
+              <span class="text-sm font-medium">{{ $t('commun.change_password') || 'Changer le mot de passe' }}</span>
+            </button>
+            
+            <div class="h-px bg-slate-100 my-1"></div>
+            
+            <button 
+              @click="handleLogout"
+              class="w-full px-4 py-2.5 text-left flex items-center gap-3 hover:bg-red-50 text-red-600 transition-colors group"
+            >
+              <LogOut class="w-4 h-4 text-red-400 group-hover:text-red-500 transition-colors" />
+              <span class="text-sm font-medium">{{ $t('commun.logout') || 'Se déconnecter' }}</span>
+            </button>
+          </div>
+        </transition>
       </div>
     </div>
+
+    <!-- Password Modal -->
+    <ChangePasswordModal 
+      :isOpen="showPasswordModal" 
+      @update:isOpen="showPasswordModal = $event" 
+    />
+
   </header>
 </template>

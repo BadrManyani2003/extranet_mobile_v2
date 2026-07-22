@@ -3,7 +3,7 @@ setlocal enabledelayedexpansion
 
 :: ================= CONFIG =================
 set "KEYCLOAK_URL=http://localhost:8180"
-set "ADMIN_USER=admin"
+set "ADMIN_USER=Abdessamad.yalid"
 set /p ADMIN_PASS=Mot de passe : 
 
 set "REALM_NAME=MyASK"
@@ -11,25 +11,22 @@ set "CLIENT_ADMIN=client_admin"
 set "CLIENT_EXTRANET=client_extranet"
 set "CLIENT_MOBILE=client_mobile"
 set "CLIENT_API=client_api"
+set "CLIENT_API_SECRET=5LMx5RWmWVefy4APRBqp0SjLethYoJ6L"
 
-set "REDIRECT_ADMIN=http://localhost:5173/*"
-set "REDIRECT_EXTRANET=http://localhost:5174/*"
+set "REDIRECT_ADMIN=http://105.155.251.73:3443/*"
+set "REDIRECT_EXTRANET=http://105.155.251.73:4443/*"
 set "REDIRECT_MOBILE=assurplus://*"
 
 set "KCADM_PATH=C:\keycloak\bin\kcadm.bat"
 :: ================= SMTP CONFIG =================
-:: set "SMTP_HOST=smtp.gmail.com"
-:: set "SMTP_PORT=587"
-:: set "SMTP_FROM=myask@example.com"
-:: set "SMTP_USER=myask@example.com"
-:: set "SMTP_PASS=SMTP_PASS"
-:: ================= SMTP CONFIG =================
-set "SMTP_HOST="
-set "SMTP_PORT="
-set "SMTP_FROM="
-set "SMTP_USER="
-set "SMTP_PASS="
-set "SMTP_FROM_DISPLAY="
+:: Configuration Microsoft 365 / Office 365
+set "SMTP_HOST=smtp.office365.com"
+set "SMTP_PORT=587"
+:: Renseignez vos identifiants ci-dessous :
+set "SMTP_FROM=noreplay@askassurace.ma"
+set "SMTP_USER=noreplay@askassurace.ma"
+set "SMTP_PASS=KQxcq975"
+set "SMTP_FROM_DISPLAY=MyASK"
 
 cls
 echo ------------------------------------------------------------
@@ -72,7 +69,7 @@ set "FIND_ERR=%ERRORLEVEL%"
 del tmp_clients.json 2>nul
 if %FIND_ERR% EQU 0 goto :SKIP_CLIENT_API
 echo Creation du client API...
-call "%KCADM_PATH%" create clients -r %REALM_NAME% -s clientId=%CLIENT_API% -s enabled=true -s publicClient=false -s serviceAccountsEnabled=true -s standardFlowEnabled=true -s clientAuthenticatorType=client-secret -s secret=5LMx5RWmWVefy4APRBqp0SjLethYoJ6L >nul 2>&1
+call "%KCADM_PATH%" create clients -r %REALM_NAME% -s clientId=%CLIENT_API% -s enabled=true -s publicClient=false -s serviceAccountsEnabled=true -s standardFlowEnabled=true -s clientAuthenticatorType=client-secret -s secret=%CLIENT_API_SECRET% >nul 2>&1
 :SKIP_CLIENT_API
 if %ERRORLEVEL% EQU 0 echo Client API OK.
 

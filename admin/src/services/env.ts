@@ -4,20 +4,9 @@
  * Pour changer la config sur le serveur : modifier dist/config.json directement, sans rebuild.
  */
 export async function loadEnv(): Promise<void> {
-  try {
-    const response = await fetch(`/config.json?t=${Date.now()}`, { cache: 'no-store' });
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
-
-    const config = await response.json();
-    (window as any).APP_ENV = config;
-    console.log('✅ Configuration chargée depuis /config.json :', config);
-
-  } catch (error) {
-    // Fallback en dev (Vite sert aussi config.json via public/)
-    console.warn('⚠️ Impossible de charger /config.json, fallback sur import.meta.env :', error);
+  // config.js is loaded synchronously in index.html, so window.APP_ENV is already set.
+  if (!(window as any).APP_ENV) {
+    console.warn('⚠️ config.js non chargé, fallback sur import.meta.env');
     (window as any).APP_ENV = {
       VITE_API_URL:            import.meta.env.VITE_API_URL,
       VITE_KEYCLOAK_URL:       import.meta.env.VITE_KEYCLOAK_URL,

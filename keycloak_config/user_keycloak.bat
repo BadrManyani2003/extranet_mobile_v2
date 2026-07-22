@@ -5,8 +5,8 @@ setlocal enabledelayedexpansion
 set KC_PATH=C:\keycloak\bin\kcadm.bat
 set KC_SERVER=http://localhost:8180
 set KC_REALM=MyASK
-set KC_USER=admin
-set KC_PASS=admin
+set KC_USER=Abdessamad.yalid
+set KC_PASS=@skgs@20252026*
 set DEFAULT_PASSWORD=ABC@1234
 
 echo [1/3] Connexion au serveur Keycloak...
@@ -19,12 +19,12 @@ if %ERRORLEVEL% neq 0 (
         echo ERREUR: Impossible de se connecter. Verifiez vos identifiants admin Keycloak.
         pause
         exit /b 1
-    fi
+    )
 )
 
 echo [2/3] Creation des utilisateurs avec attribution des roles...
 
-call :create_user "admin@myask.ma" "Admin MyASK" "admin_cabinet"
+call :create_user "abdessamad.yalid@askassurance.ma" "Abdessamad YALID" "Abdessamad.yalid"
 
 echo.
 echo [3/3] Termine.
@@ -61,7 +61,7 @@ call %KC_PATH% set-password -r %KC_REALM% --username %EMAIL% --new-password %DEF
 REM Attribution du role
 if not "%ROLE%"=="" (
     call %KC_PATH% add-roles -r %KC_REALM% --uusername %EMAIL% --rolename %ROLE%
-    if %ERRORLEVEL% equ 0 (
+    if !ERRORLEVEL! equ 0 (
         echo [OK] Role %ROLE% attribue.
     ) else (
         echo [ERREUR] Impossible d'attribuer le role %ROLE%.

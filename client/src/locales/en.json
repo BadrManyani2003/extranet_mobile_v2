@@ -1,4 +1,8 @@
 {
+  "commun": {
+    "change_password": "Change password",
+    "logout": "Log out"
+  },
   "navigation": {
     "client": "Client Portal",
     "dashboard": "Dashboard",

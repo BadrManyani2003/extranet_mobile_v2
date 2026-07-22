@@ -32,12 +32,14 @@ if [ -z "$KCADM_PATH" ]; then
 fi
 
 # ================= SMTP CONFIG =================
-SMTP_HOST=""
-SMTP_PORT=""
-SMTP_FROM=""
-SMTP_USER=""
-SMTP_PASS=""
-SMTP_FROM_DISPLAY=""
+# Configuration Microsoft 365 / Office 365
+SMTP_HOST="smtp.office365.com"
+SMTP_PORT="587"
+# Renseignez vos identifiants ci-dessous :
+SMTP_FROM="votre.email@votre-domaine.com"
+SMTP_USER="votre.email@votre-domaine.com"
+SMTP_PASS="votre_mot_de_passe"
+SMTP_FROM_DISPLAY="MyASK"
 
 clear
 echo "------------------------------------------------------------"

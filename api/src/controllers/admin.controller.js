@@ -49,7 +49,8 @@ const deleteUserSimulationClient = asyncHandler(async (req, res) => {
 const saveUser = asyncHandler(async (req, res) => {
     const { userId, source, token } = getContext(req);
     const { id, targetId, idAuth, nom, telephone, email, nature, extranet, mobile } = req.body;
-    const result = await adminService.saveUser(userId, token, source, id || targetId, idAuth, nom, telephone, email, nature, extranet, mobile);
+    const finalTargetId = id || targetId || 0;
+    const result = await adminService.saveUser(userId, token, source, finalTargetId, idAuth, nom, telephone, email, nature, extranet, mobile);
     success(res, result[0]?.[0] || {}, 'Utilisateur enregistré');
 });
 

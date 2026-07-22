@@ -330,7 +330,8 @@
     "total_count": "{count} au total",
     "date_from": "Du",
     "date_to": "Au",
-    "load_more": "Charger plus"
+    "load_more": "Charger plus",
+    "change_password": "Changer le mot de passe"
   },
   "statuts": {
     "actif": "Actif",

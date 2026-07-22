@@ -72,8 +72,12 @@ class KeycloakService {
     window.history.replaceState({}, document.title, url.toString());
   }
 
-  public async login(): Promise<void> {
-    await this.keycloak.login();
+  public async login(options?: any): Promise<void> {
+    await this.keycloak.login(options);
+  }
+
+  public async accountManagement(): Promise<void> {
+    await this.keycloak.accountManagement();
   }
 
   public async logout(): Promise<void> {

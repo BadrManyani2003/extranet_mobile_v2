@@ -46,14 +46,14 @@ const resolveOrCreateKeycloakUser = async (Nom, Email, idToSync = null) => {
     });
     try {
         let targetClientId = 'client_extranet';
-        let redirectUri = 'http://localhost:5174/';
+        let redirectUri = process.env.EXTRANET_APP_URL;
         
         if (idToSync) {
             const rolesResult = await db.execute('SELECT Role FROM Roles WHERE FK_User_Id = @0', [idToSync]);
             const roleNames = rolesResult[0]?.map(r => r.Role) || [];
             if (roleNames.includes('admin_cabinet') || roleNames.includes('commercial_cabinet')) {
                 targetClientId = 'client_admin';
-                redirectUri = 'http://localhost:5173/';
+                redirectUri = process.env.ADMIN_APP_URL;
             }
         }
         await keycloakService.sendOnboardingEmail(id, targetClientId, redirectUri);

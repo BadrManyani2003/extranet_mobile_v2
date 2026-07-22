@@ -2,6 +2,8 @@ const authService = require('../services/auth.service');
 const { success, error } = require('../common/response');
 const asyncHandler = require('../middleware/asyncHandler');
 
+const keycloakService = require('../services/keycloak.service');
+
 const getMe = asyncHandler(async (req, res) => {
     const authId = req.user.sub;
     const source = req.headers['x-source'] || 'E';
@@ -19,6 +21,20 @@ const getMe = asyncHandler(async (req, res) => {
     });
 });
 
+const changePassword = asyncHandler(async (req, res) => {
+    const { newPassword } = req.body;
+    
+    if (!newPassword) return error(res, 'Le nouveau mot de passe est requis', 400);
+    
+    try {
+        await keycloakService.changePassword(req.user.sub, newPassword);
+        success(res, 'Mot de passe modifié avec succès');
+    } catch (err) {
+        error(res, err.message || 'Erreur lors de la modification du mot de passe', 500);
+    }
+});
+
 module.exports = {
-    getMe
+    getMe,
+    changePassword
 };
