@@ -1,6 +1,6 @@
 window.APP_ENV = {
-  VITE_API_URL: "https://extranet.askassurance.ma:5443/api",
-  VITE_KEYCLOAK_URL: "https://extranet.askassurance.ma:6080",
+  VITE_API_URL: "http://localhost:5000/api",
+  VITE_KEYCLOAK_URL: "http://localhost:8180",
   VITE_KEYCLOAK_REALM: "MyASK",
   VITE_KEYCLOAK_CLIENT_ID: "client_extranet",
   VITE_SOURCE: "E"
