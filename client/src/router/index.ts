@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import MainLayout from '../layouts/MainLayout.vue'
 import { useUserStore } from '../store/user'
+import { useSiteStore } from '../store/site'
 import keycloak from '../services/keycloak'
 
 const router = createRouter({
@@ -66,6 +67,7 @@ router.beforeEach(async (to) => {
   if (to.name === 'restricted') return true
 
   const userStore = useUserStore()
+  const siteStore = useSiteStore()
 
   // 1. Contrôle général de l'accès à la plateforme
   const hasAccess = keycloak.hasRole('client') || 
@@ -80,6 +82,9 @@ router.beforeEach(async (to) => {
     // 2. Chargement des données utilisateur si non présentes
     if (!userStore.user) {
       await userStore.fetchUser()
+    }
+    if (siteStore.sites.length === 0) {
+      await siteStore.fetchSites()
     }
 
     const isAdmin = keycloak.hasRole('admin_cabinet') || keycloak.hasRole('commercial_cabinet')

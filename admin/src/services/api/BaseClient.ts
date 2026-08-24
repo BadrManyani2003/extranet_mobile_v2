@@ -28,6 +28,22 @@ export async function request<T>(endpoint: string, options: RequestInit = {}): P
   if (!headers.has('Content-Type')) headers.set('Content-Type', 'application/json')
   headers.set('x-source', 'A')
 
+  function getCookie(name: string): string | null {
+    const nameEQ = name + "=";
+    const ca = document.cookie.split(';');
+    for (let i = 0; i < ca.length; i++) {
+        let c = ca[i];
+        while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+        if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+    }
+    return null;
+  }
+
+  const currentSiteId = getCookie('currentSiteId') || localStorage.getItem('currentSiteId');
+  if (currentSiteId) {
+    headers.set('x-site-id', currentSiteId);
+  }
+
   if (keycloak.getAuthenticated()) {
     await keycloak.updateToken(70)
     const token = keycloak.getToken()
@@ -57,15 +73,19 @@ export async function request<T>(endpoint: string, options: RequestInit = {}): P
     throw new Error('Trop de requêtes. Veuillez patienter quelques minutes.')
   }
 
-  if (response.status === 401 || response.status === 403) {
+  if (response.status === 401) {
     const errorData = await response.json().catch(() => ({}));
-    const serverMessage = errorData.message || 'Session expirée ou accès refusé.';
-
+    const serverMessage = errorData.message || 'Session expirée.';
     if (!logoutPending) {
       logoutPending = true;
       setTimeout(() => keycloak.logout(), 5000)
     }
     throw new Error(serverMessage)
+  }
+
+  if (response.status === 403) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || 'Accès refusé.')
   }
 
   const contentType = response.headers.get('content-type')

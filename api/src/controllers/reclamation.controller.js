@@ -6,7 +6,7 @@ const getContext = (req) => ({
     userId: req.user.id,
     token:  req.user.token,
     source: req.headers['x-source'] || 'E',
-
+    siteId: req.siteId || null,
     role:   (req.user.roles || []).includes('admin_cabinet') ? 'admin_cabinet' : 'commercial_cabinet'
 });
 
@@ -33,28 +33,28 @@ const getReclamationDetails = asyncHandler(async (req, res) => {
 });
 
 const createReclamation = asyncHandler(async (req, res) => {
-    const { userId, source, token } = getContext(req);
+    const { userId, source, token, siteId } = getContext(req);
     const { sujet, nature, message } = req.body;
-    const result = await reclamationService.createReclamation(userId, source, token, sujet, nature, message);
+    const result = await reclamationService.createReclamation(userId, source, token, siteId, sujet, nature, message);
     success(res, result[0]?.[0] || {}, 'Réclamation créée avec succès');
 });
 
 const addMessage = asyncHandler(async (req, res) => {
-    const { userId, source, token } = getContext(req);
+    const { userId, source, token, siteId } = getContext(req);
     const { reclamationId, nature, message } = req.body;
-    await reclamationService.addMessage(userId, source, token, reclamationId, nature, message);
+    await reclamationService.addMessage(userId, source, token, siteId, reclamationId, nature, message);
     success(res, null, 'Message ajouté');
 });
 
 const updateStatus = asyncHandler(async (req, res) => {
-    const { userId, source, token } = getContext(req);
+    const { userId, source, token, siteId } = getContext(req);
     const { reclamationId, status, statut } = req.body;
-    await reclamationService.updateStatus(userId, source, token, reclamationId, status || statut);
+    await reclamationService.updateStatus(userId, source, token, siteId, reclamationId, status || statut);
     success(res, null, 'Statut mis à jour');
 });
 
 const deleteReclamation = asyncHandler(async (req, res) => {
-    const { userId, source, token } = getContext(req);
+    const { userId, source, token, siteId } = getContext(req);
     const roles = req.user.roles || [];
 
     if (roles.includes('commercial_cabinet') && !roles.includes('admin_cabinet')) {
@@ -63,14 +63,14 @@ const deleteReclamation = asyncHandler(async (req, res) => {
     }
 
     const { reclamationId } = req.body;
-    await reclamationService.deleteReclamation(userId, source, token, reclamationId);
+    await reclamationService.deleteReclamation(userId, source, token, siteId, reclamationId);
     success(res, null, 'Réclamation supprimée');
 });
 
 const deleteMessage = asyncHandler(async (req, res) => {
-    const { userId, token } = getContext(req);
+    const { userId, token, siteId } = getContext(req);
     const { messageId } = req.body;
-    await reclamationService.deleteMessage(userId, token, messageId);
+    await reclamationService.deleteMessage(userId, token, siteId, messageId);
     success(res, null, 'Message supprimé');
 });
 

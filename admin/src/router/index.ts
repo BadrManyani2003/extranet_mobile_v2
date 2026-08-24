@@ -5,6 +5,7 @@ import ClientsView  from '../views/ClientsView.vue'
 import AdherentsView from '../views/AdherentsView.vue'
 import keycloak     from '../services/keycloak'
 import { useUserStore } from '../store/user'
+import { useSiteStore } from '../store/site'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -30,6 +31,7 @@ const router = createRouter({
         // Routes accessibles aux deux rôles
         { path: 'clients',      name: 'clients',      component: ClientsView },
         { path: 'reclamations', name: 'reclamations', component: () => import('../views/ReclamationsView.vue') },
+        { path: 'sites',        name: 'sites',        component: () => import('../views/SitesView.vue'), meta: { adminOnly: true } },
       ]
     }
   ]
@@ -51,10 +53,21 @@ router.beforeEach(async (to) => {
   }
 
   const userStore = useUserStore()
+  const siteStore = useSiteStore()
   try {
-    if (!userStore.user) await userStore.fetchUser()
+    if (!userStore.user) {
+      await userStore.fetchUser()
+    }
+    if (siteStore.availableSites.length === 0) {
+      await siteStore.fetchSites()
+    }
   } catch (error) {
-    console.error('Failed to fetch user in Admin Guard:', error)
+    console.error('Failed to fetch user or sites in Admin Guard:', error)
+  }
+
+  if (siteStore.needsSiteSelection && to.name !== 'select-site') {
+    // Rediriger vers la modale/page de sélection si un seul site n'est pas sélectionné
+    // Pour l'instant, la modale pourrait bloquer l'accès. On peut laisser passer et afficher un modal au niveau de App.vue.
   }
 
   return true

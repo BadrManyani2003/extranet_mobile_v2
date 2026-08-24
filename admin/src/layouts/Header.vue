@@ -4,9 +4,11 @@ import { Button } from '@/components/ui/button'
 import { useI18n } from 'vue-i18n'
 import keycloak from '@/services/keycloak'
 import { useUserStore } from '@/store/user'
+import { useSiteStore } from '@/store/site'
 
 const { locale } = useI18n()
 const userStore = useUserStore()
+const siteStore = useSiteStore()
 
 defineProps<{
   isSidebarOpen: boolean
@@ -17,6 +19,13 @@ const emit = defineEmits(['toggle'])
 const handleLogout = () => {
   userStore.clearUser()
   keycloak.logout()
+}
+
+const handleSiteChange = (event: Event) => {
+  const target = event.target as HTMLSelectElement
+  if (target) {
+    siteStore.setSite(Number(target.value))
+  }
 }
 </script>
 
@@ -33,6 +42,20 @@ const handleLogout = () => {
     </div>
     
     <div class="flex items-center gap-3 sm:gap-6">
+      
+      <!-- Selecteur de Site -->
+      <div v-if="siteStore.availableSites.length > 1" class="hidden sm:flex items-center">
+        <select 
+          :value="siteStore.currentSiteId" 
+          @change="handleSiteChange"
+          class="bg-white border border-slate-200 text-slate-700 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5 font-medium shadow-sm hover:border-slate-300 transition-colors cursor-pointer outline-none"
+        >
+          <option v-for="site in siteStore.availableSites" :key="site.Id" :value="site.Id">
+            {{ site.RaisonSociale }}
+          </option>
+        </select>
+      </div>
+
       <div class="flex items-center gap-3">
         <div class="flex items-center gap-3 bg-slate-50 px-4 py-2 rounded-xl border border-slate-100 shadow-sm">
           <div class="hidden sm:flex flex-col items-end gap-0.5">

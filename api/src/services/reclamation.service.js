@@ -10,15 +10,15 @@ const getAdminReclamations = (userId, source, token, role = 'admin_cabinet') =>
 
 const getReclamationDetails = (userId, source, token, reclamationId) => db.execute(qry.getReclamationDetails, [userId, source, token, reclamationId]);
 
-const createReclamation = (userId, source, token, sujet, nature, message) => db.execute(qry.createReclamation, [userId, source, token, sujet, nature, message]);
+const createReclamation = (userId, source, token, siteId, sujet, nature, message) => db.execute(qry.createReclamation, [userId, source, token, siteId, sujet, nature, message]);
 
-const addMessage = (userId, source, token, reclamationId, nature, message) => db.execute(qry.addMessageReclamation, [userId, source, token, reclamationId, nature, message]);
+const addMessage = (userId, source, token, siteId, reclamationId, nature, message) => db.execute(qry.addMessageReclamation, [userId, source, token, siteId, reclamationId, nature, message]);
 
-const updateStatus = (userId, source, token, reclamationId, status) => db.execute(qry.updateReclamationStatut, [userId, source, token, reclamationId, status]);
+const updateStatus = (userId, source, token, siteId, reclamationId, status) => db.execute(qry.updateReclamationStatut, [userId, source, token, siteId, reclamationId, status]);
 
-const deleteReclamation = (userId, source, token, reclamationId) => db.execute(qry.deleteReclamation, [userId, source, token, reclamationId]);
+const deleteReclamation = (userId, source, token, siteId, reclamationId) => db.execute(qry.deleteReclamation, [userId, source, token, siteId, reclamationId]);
 
-const deleteMessage = (userId, token, messageId) => db.execute(qry.deleteMessageReclamation, [userId, token, messageId]);
+const deleteMessage = (userId, token, siteId, messageId) => db.execute(qry.deleteMessageReclamation, [userId, token, siteId, messageId]);
 
 module.exports = {
     getReclamations,

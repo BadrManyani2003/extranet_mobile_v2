@@ -8,7 +8,8 @@ const { getDocumentEmailHtml } = require('../templates/document.template');
 const getContext = (req) => ({
     userId: req.user.id,
     token:  req.user.token,
-    source: req.headers['x-source'] || 'E'
+    source: req.headers['x-source'] || 'E',
+    siteId: req.siteId || null
 });
 
 /**
@@ -17,8 +18,14 @@ const getContext = (req) => ({
  * Accessible à tous les rôles authentifiés (client, adherent, expert, admin).
  */
 const uploadDocument = asyncHandler(async (req, res) => {
-    const { userId, token } = getContext(req);
-    const { nature, identifiant, type, fileBase64 } = req.body;
+    const { userId, token, siteId: contextSiteId } = getContext(req);
+    const { nature, identifiant, type, fileBase64, siteId: bodySiteId } = req.body;
+
+    const finalSiteId = bodySiteId || contextSiteId;
+
+    if (!finalSiteId) {
+        throw new Error("L'identifiant du site (siteId) est manquant. Veuillez sélectionner un site.");
+    }
 
     if (!nature || !identifiant || !type || !fileBase64) {
         throw new Error('Paramètres manquants : nature, identifiant, type et fileBase64 sont requis.');
@@ -32,7 +39,13 @@ const uploadDocument = asyncHandler(async (req, res) => {
         throw new Error('Le fichier dépasse la taille maximale autorisée (20 Mo).');
     }
 
-    const result = await documentService.upload(userId, token, nature, parseInt(identifiant), type, documentBuffer);
+    let result;
+    try {
+        result = await documentService.upload(userId, token, finalSiteId, nature, parseInt(identifiant), type, documentBuffer);
+    } catch (err) {
+        console.error("ERREUR SQL UPLOAD DOCUMENT:", err);
+        throw err;
+    }
 
     // -- Début de l'envoi d'email asynchrone --
     try {
@@ -115,12 +128,12 @@ const getDocumentById = asyncHandler(async (req, res) => {
  * Accessible aux rôles admin_cabinet et commercial_cabinet uniquement.
  */
 const deleteDocument = asyncHandler(async (req, res) => {
-    const { userId, token, source } = getContext(req);
+    const { userId, token, source, siteId } = getContext(req);
     const { documentId } = req.body;
 
     if (!documentId) throw new Error('documentId manquant.');
 
-    await documentService.deleteDocument(userId, token, source, documentId);
+    await documentService.deleteDocument(userId, token, source, siteId, documentId);
     success(res, null, 'Document supprimé avec succès');
 });
 
@@ -130,7 +143,7 @@ const deleteDocument = asyncHandler(async (req, res) => {
  * Accessible aux rôles admin_cabinet et commercial_cabinet uniquement.
  */
 const updateDocumentTransfere = asyncHandler(async (req, res) => {
-    const { userId, token, source } = getContext(req);
+    const { userId, token, source, siteId } = getContext(req);
     const { documentId, transfere } = req.body;
 
     if (!documentId) throw new Error('documentId manquant.');
@@ -138,7 +151,7 @@ const updateDocumentTransfere = asyncHandler(async (req, res) => {
         throw new Error("Paramètre 'transfere' invalide ou manquant (doit être 'O' ou 'N').");
     }
 
-    await documentService.updateDocumentTransfere(userId, token, source, documentId, transfere);
+    await documentService.updateDocumentTransfere(userId, token, source, siteId, documentId, transfere);
     success(res, null, 'Statut de transfert mis à jour avec succès');
 });
 

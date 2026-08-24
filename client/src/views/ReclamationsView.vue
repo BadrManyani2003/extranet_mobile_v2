@@ -261,8 +261,7 @@ onMounted(() => {
             </p>
           </div>
           <div class="flex gap-2 items-center">
-            <Button v-if="selectedTicket.statut !== 'En cours' && selectedTicket.statut !== 'E'" size="sm" variant="outline" @click="handleStatusUpdate('E')" class="rounded-xl border-orange-200 text-orange-600 hover:bg-orange-50 font-bold text-[14px] uppercase tracking-wider h-10 px-4">{{ $t('statuts.en_cours') }}</Button>
-            <Button v-if="selectedTicket.statut !== 'Clôturé' && selectedTicket.statut !== 'C'" size="sm" variant="outline" @click="handleStatusUpdate('C')" class="rounded-xl border-slate-200 text-slate-650 hover:bg-slate-50 font-bold text-[14px] uppercase tracking-wider h-10 px-4">{{ $t('reclamations.close_ticket') }}</Button>
+            <!-- Les clients ne peuvent pas modifier le statut -->
             <Button size="icon" variant="ghost" @click="isDeleteRecDialogOpen = true" class="rounded-xl h-10 w-10 text-slate-400 hover:text-red-500 hover:bg-red-50 shrink-0 transition-colors">
               <Trash2 class="w-5 h-5" />
             </Button>

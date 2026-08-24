@@ -24,7 +24,9 @@ const navItems = computed(() => {
       { section: 'navigation.sections.support' },
       { nom: 'navigation.reclamations', chemin: '/reclamations', icone: MessageSquare },
       { section: 'navigation.sections.documents' },
-      { nom: 'navigation.documents', chemin: '/documents', icone: FolderOpen }
+      { nom: 'navigation.documents', chemin: '/documents', icone: FolderOpen },
+      { section: 'Paramétrage' },
+      { nom: 'Sites', chemin: '/sites', icone: Building2 }
     )
   } else {
     // Commercial : utilisateurs + clients + adhérents + réclamations

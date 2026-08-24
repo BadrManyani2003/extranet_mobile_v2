@@ -6,12 +6,13 @@ const qry         = require('../sql/qryExtranet');
  * Upload un document dans StdDocument.
  * Utilise mssql directement pour gérer le type VARBINARY(MAX).
  */
-const upload = async (userId, token, nature, identifiant, type, documentBuffer) => {
+const upload = async (userId, token, siteId, nature, identifiant, type, documentBuffer) => {
     const pool    = await getPool();
     const request = pool.request();
 
     request.input('userId',      sql.Int,            userId);
     request.input('token',       sql.VarChar(sql.MAX), token);
+    request.input('siteId',      sql.Int,            siteId);
     request.input('nature',      sql.VarChar(50),    nature);
     request.input('identifiant', sql.Int,            identifiant);
     request.input('type',        sql.VarChar(255),   type);
@@ -59,13 +60,14 @@ const getDocumentById = async (userId, token, source, documentId) => {
 /**
  * Supprime un document par son Id.
  */
-const deleteDocument = async (userId, token, source, documentId) => {
+const deleteDocument = async (userId, token, source, siteId, documentId) => {
     const pool    = await getPool();
     const request = pool.request();
 
     request.input('userId',     sql.Int,              userId);
     request.input('token',      sql.VarChar(sql.MAX), token);
     request.input('source',     sql.VarChar(10),      source);
+    request.input('siteId',     sql.Int,              siteId);
     request.input('documentId', sql.Int,              documentId);
 
     const result = await request.query(qry.deleteDocument);
@@ -75,13 +77,14 @@ const deleteDocument = async (userId, token, source, documentId) => {
 /**
  * Met à jour le statut transféré d'un document par son Id.
  */
-const updateDocumentTransfere = async (userId, token, source, documentId, transfere) => {
+const updateDocumentTransfere = async (userId, token, source, siteId, documentId, transfere) => {
     const pool    = await getPool();
     const request = pool.request();
 
     request.input('userId',     sql.Int,              userId);
     request.input('token',      sql.VarChar(sql.MAX), token);
     request.input('source',     sql.VarChar(10),      source);
+    request.input('siteId',     sql.Int,              siteId);
     request.input('documentId', sql.Int,              documentId);
     request.input('transfere',  sql.Char(1),          transfere);
 

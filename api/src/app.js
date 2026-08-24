@@ -30,7 +30,7 @@ app.use(cors({
         }
     },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'x-source', 'x-impersonation', 'x-impersonated-user-id'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-source', 'x-impersonation', 'x-impersonated-user-id', 'x-site-id'],
     credentials: true
 }));
 

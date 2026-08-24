@@ -6,6 +6,7 @@ const getContext = (req) => ({
     userId: req.user.id,
     token:  req.user.token,
     source: req.headers['x-source'] || 'A',
+    siteId: req.siteId || null,
     // Détermine le rôle actif (admin_cabinet prioritaire)
     role:   (req.user.roles || []).includes('admin_cabinet') ? 'admin_cabinet' : 'commercial_cabinet'
 });
@@ -31,37 +32,37 @@ const getUserSimulationClients = asyncHandler(async (req, res) => {
 });
 
 const addUserSimulationClient = asyncHandler(async (req, res) => {
-    const { userId, source, token } = getContext(req);
+    const { userId, source, token, siteId } = getContext(req);
     const { targetUserId, clientId } = req.body;
     if (!targetUserId || !clientId) throw new Error('Paramètres manquants.');
-    await adminService.addUserSimulationClient(userId, token, source, targetUserId, clientId);
+    await adminService.addUserSimulationClient(userId, token, source, siteId, targetUserId, clientId);
     success(res, null, 'Client ajouté aux simulations');
 });
 
 const deleteUserSimulationClient = asyncHandler(async (req, res) => {
-    const { userId, source, token } = getContext(req);
+    const { userId, source, token, siteId } = getContext(req);
     const { targetUserId, clientId } = req.body;
     if (!targetUserId || !clientId) throw new Error('Paramètres manquants.');
-    await adminService.deleteUserSimulationClient(userId, token, source, targetUserId, clientId);
+    await adminService.deleteUserSimulationClient(userId, token, source, siteId, targetUserId, clientId);
     success(res, null, 'Client supprimé des simulations');
 });
 
 const saveUser = asyncHandler(async (req, res) => {
-    const { userId, source, token } = getContext(req);
+    const { userId, source, token, siteId } = getContext(req);
     const { id, targetId, idAuth, nom, telephone, email, nature, extranet, mobile } = req.body;
     const finalTargetId = id || targetId || 0;
-    const result = await adminService.saveUser(userId, token, source, finalTargetId, idAuth, nom, telephone, email, nature, extranet, mobile);
+    const result = await adminService.saveUser(userId, token, source, siteId, finalTargetId, idAuth, nom, telephone, email, nature, extranet, mobile);
     success(res, result[0]?.[0] || {}, 'Utilisateur enregistré');
 });
 
 const deleteUser = asyncHandler(async (req, res) => {
-    const { userId, source, token } = getContext(req);
+    const { userId, source, token, siteId } = getContext(req);
     const { deleteId, userId: idToDelete } = req.body;
     const targetId = deleteId || idToDelete;
     
     if (!targetId) throw new Error('ID utilisateur manquant.');
 
-    await adminService.deleteUser(userId, token, source, targetId);
+    await adminService.deleteUser(userId, token, source, siteId, targetId);
     success(res, null, 'Utilisateur supprimé');
 });
 
@@ -72,9 +73,9 @@ const getClients = asyncHandler(async (req, res) => {
 });
 
 const createUserFromClient = asyncHandler(async (req, res) => {
-    const { userId, source, token } = getContext(req);
+    const { userId, source, token, siteId } = getContext(req);
     const { clientId } = req.body;
-    const result = await adminService.createUserFromClient(userId, token, source, clientId);
+    const result = await adminService.createUserFromClient(userId, token, source, siteId, clientId);
     success(res, result[0]?.[0] || {}, 'Utilisateur créé depuis le client');
 });
 
@@ -86,9 +87,9 @@ const getAdherents = asyncHandler(async (req, res) => {
 });
 
 const createUserFromAdherent = asyncHandler(async (req, res) => {
-    const { userId, source, token } = getContext(req);
+    const { userId, source, token, siteId } = getContext(req);
     const { adherentId } = req.body;
-    const result = await adminService.createUserFromAdherent(userId, token, source, adherentId);
+    const result = await adminService.createUserFromAdherent(userId, token, source, siteId, adherentId);
     success(res, result[0]?.[0] || {}, 'Utilisateur créé depuis l\'adhérent');
 });
 
@@ -100,23 +101,23 @@ const syncKeycloak = asyncHandler(async (req, res) => {
 });
 
 const linkUserToClient = asyncHandler(async (req, res) => {
-    const { userId, source, token, role } = getContext(req);
+    const { userId, source, token, role, siteId } = getContext(req);
     const { targetUserId, clientId } = req.body;
-    await adminService.linkUserToClient(userId, token, source, targetUserId, clientId, role);
+    await adminService.linkUserToClient(userId, token, source, siteId, targetUserId, clientId, role);
     success(res, null, 'Liaison réussie');
 });
 
 const unlinkUserFromClient = asyncHandler(async (req, res) => {
-    const { userId, source, token, role } = getContext(req);
+    const { userId, source, token, role, siteId } = getContext(req);
     const { targetUserId, clientId } = req.body;
-    await adminService.unlinkUserFromClient(userId, token, source, targetUserId, clientId, role);
+    await adminService.unlinkUserFromClient(userId, token, source, siteId, targetUserId, clientId, role);
     success(res, null, 'Liaison supprimée');
 });
 
 const linkUserToAdherent = asyncHandler(async (req, res) => {
-    const { userId, source, token, role } = getContext(req);
+    const { userId, source, token, role, siteId } = getContext(req);
     const { targetUserId, adherentId } = req.body;
-    await adminService.linkUserToAdherent(userId, token, source, targetUserId, adherentId, role);
+    await adminService.linkUserToAdherent(userId, token, source, siteId, targetUserId, adherentId, role);
     success(res, null, 'Liaison réussie');
 });
 
@@ -133,34 +134,45 @@ const updateUserRoles = asyncHandler(async (req, res) => {
 });
 
 const updateClientOptions = asyncHandler(async (req, res) => {
-    const { userId, source, token, role } = getContext(req);
+    const { userId, source, token, role, siteId } = getContext(req);
     const { clientId, recClt, recAdh } = req.body;
     
     if (!clientId) throw new Error('ID client manquant.');
     if (!recClt || !recAdh) throw new Error('Options de reclamation manquantes.');
 
-    await adminService.updateClientOptions(userId, token, source, clientId, recClt, recAdh, role);
+    await adminService.updateClientOptions(userId, token, source, siteId, clientId, recClt, recAdh, role);
     success(res, null, 'Options client mises a jour');
 });
 
 const updateClientEmails = asyncHandler(async (req, res) => {
-    const { userId, source, token, role } = getContext(req);
+    const { userId, source, token, role, siteId } = getContext(req);
     const { clientId, emails } = req.body;
     
     if (!clientId) throw new Error('ID client manquant.');
 
-    await adminService.updateClientEmails(userId, token, source, clientId, emails || '', role);
+    await adminService.updateClientEmails(userId, token, source, siteId, clientId, emails || '', role);
     success(res, null, 'Emails mis à jour');
 });
 
 const updateClientParent = asyncHandler(async (req, res) => {
-    const { userId, source, token, role } = getContext(req);
+    const { userId, source, token, role, siteId } = getContext(req);
     const { clientId, parentId } = req.body;
-    
-    if (!clientId) throw new Error('ID client manquant.');
+    await adminService.updateClientParent(userId, token, source, siteId, clientId, parentId, role);
+    success(res, null, 'Société mère mise à jour avec succès');
+});
 
-    await adminService.updateClientParent(userId, token, source, clientId, parentId, role);
-    success(res, null, 'Client parent mis à jour');
+const getUserSitesAdmin = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const result = await adminService.getUserSitesAdmin(id);
+    success(res, result[0] || []);
+});
+
+const updateUserSites = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const { siteIds } = req.body; // array of IDs
+    const siteIdsString = Array.isArray(siteIds) ? siteIds.join(',') : '';
+    await adminService.updateUserSites(id, siteIdsString);
+    success(res, null, 'Sites utilisateur mis à jour avec succès');
 });
 
 module.exports = {
@@ -183,5 +195,7 @@ module.exports = {
     updateUserRoles,
     updateClientOptions,
     updateClientEmails,
-    updateClientParent
+    updateClientParent,
+    getUserSitesAdmin,
+    updateUserSites
 };

@@ -5,6 +5,7 @@ const { error } = require('../common/response');
 const keycloakConfig = require('../config/keycloak');
 const authService = require('../services/auth.service');
 const keycloakService = require('../services/keycloak.service');
+const asyncLocalStorage = require('../common/context');
 
 let formattedPublicKey = null;
 if (keycloakConfig.publicKey) {
@@ -162,7 +163,28 @@ module.exports = async (req, res, next) => {
             }
         }
 
-        next();
+        const siteIdHeader = req.headers['x-site-id'];
+        if (siteIdHeader) {
+            const siteId = parseInt(siteIdHeader, 10);
+            // Validation de l'acces au site
+            const sites = await authService.getUserSites(req.user.id);
+            const hasAccess = sites.some(s => s.Id === siteId);
+            if (!hasAccess) {
+                return error(res, 'Acces non autorise a ce site.', 403);
+            }
+            req.siteId = siteId;
+        } else {
+            const bypassRoutes = ['/api/sites', '/api/auth/me', '/api/auth/password'];
+            const needsSite = !bypassRoutes.some(route => req.originalUrl.startsWith(route));
+            
+            if (needsSite) {
+                return error(res, 'Le header x-site-id est obligatoire.', 400);
+            }
+        }
+
+        asyncLocalStorage.run({ siteId: req.siteId }, () => {
+            next();
+        });
 
     } catch (err) {
         console.error('❌ [Auth Middleware] Echec de validation du token:', err.message);

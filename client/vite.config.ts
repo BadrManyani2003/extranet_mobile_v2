@@ -23,6 +23,7 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
+        "stream": path.resolve(__dirname, "./src/mock/stream.js")
       },
     },
     server: {

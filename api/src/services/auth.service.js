@@ -14,11 +14,18 @@ const checkSimulationPermission = async (adminId, targetUserId) => {
     return result[0]?.length > 0;
 };
 
+const getUserSites = async (userId) => {
+    if (!userId || userId === 0) return [];
+    const result = await db.execute(qry.getUserActiveSites, [userId]);
+    return result[0] || [];
+};
+
 module.exports = {
     getUserByAuthId,
     getUserById,
     getUserInfoByAuthId,
     updateToken,
     updateTokenById,
-    checkSimulationPermission
+    checkSimulationPermission,
+    getUserSites
 };

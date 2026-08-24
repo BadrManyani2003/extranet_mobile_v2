@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { FileDown, Building2, Tag } from 'lucide-vue-next'
+import { FileDown, Building2, Tag, FileText } from 'lucide-vue-next'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import DataTableWrapper from '@/components/shared/DataTableWrapper.vue'

@@ -74,11 +74,14 @@ const handleUpload = async () => {
       reader.readAsDataURL(uploadFile.value!)
     })
 
+    const explicitSiteId = props.sinistre?.fk_site_id || props.sinistre?.Id_Site || props.sinistre?.siteId || props.sinistre?.SiteId;
+
     await api.document.uploadDocument(
       'Sinistre',
       sinId,
       uploadType.value.trim(),
-      fileBase64
+      fileBase64,
+      explicitSiteId ? Number(explicitSiteId) : undefined
     )
 
     toast.success(t('sinistres.upload_doc_success'))

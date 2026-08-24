@@ -2,13 +2,14 @@
 import { ref, onMounted } from 'vue'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
-import { Edit, Trash2, RefreshCcw, ShieldCheck, UserCircle, Users } from 'lucide-vue-next'
+import { Edit, Trash2, RefreshCcw, ShieldCheck, UserCircle, Users, Globe } from 'lucide-vue-next'
 import { Badge } from '@/components/ui/badge'
 import DataTableWrapper from '@/components/shared/DataTableWrapper.vue'
 import ConfirmModal from '@/components/shared/ConfirmModal.vue'
 import UserFormDialog from '@/components/shared/UserFormDialog.vue'
 import UserRolesDialog from '@/components/shared/UserRolesDialog.vue'
 import UserSimulationsDialog from '@/components/shared/UserSimulationsDialog.vue'
+import UserSitesDialog from '@/components/shared/UserSitesDialog.vue'
 import { api } from '@/lib/api'
 import { toast } from '@/components/ui/sonner'
 import { useI18n } from 'vue-i18n'
@@ -27,7 +28,8 @@ const dialogs = ref({
   roles: false,
   delete: false,
   sync: false,
-  simulations: false
+  simulations: false,
+  sites: false
 })
 
 const activeUser = ref<any>(null)
@@ -77,6 +79,11 @@ const handleDelete = async () => {
 const openSimulations = (user: any) => {
   activeUser.value = user
   dialogs.value.simulations = true
+}
+
+const openSites = (user: any) => {
+  activeUser.value = user
+  dialogs.value.sites = true
 }
 
 onMounted(() => {
@@ -160,6 +167,9 @@ onMounted(() => {
                 <Button v-if="isAdmin && (['A', 'E', 'P'].includes(user.nature) || user.roles?.toLowerCase().includes('admin') || user.roles?.toLowerCase().includes('commercial'))" variant="ghost" size="sm" class="h-9 px-3 premium-button text-slate-600 hover:bg-primary hover:text-primary-foreground" @click="openSimulations(user)">
                   <Users class="w-4 h-4 mr-2" /> {{ $t('statuts.simulations') }}
                 </Button>
+                <Button v-if="isAdmin" variant="ghost" size="sm" class="h-9 px-3 premium-button text-emerald-600 hover:bg-emerald-600 hover:text-white" @click="openSites(user)">
+                  <Globe class="w-4 h-4 mr-2" /> Sites
+                </Button>
                 <Button v-if="isAdmin && user.idAuth" variant="ghost" size="sm" class="h-9 px-3 premium-button text-slate-600 hover:bg-primary hover:text-primary-foreground" @click="openRoles(user)">
                   <ShieldCheck class="w-4 h-4 mr-2" /> {{ $t('users.table.roles') }}
                 </Button>
@@ -217,6 +227,14 @@ onMounted(() => {
     :open="dialogs.simulations"
     :user="activeUser"
     @close="dialogs.simulations = false"
+  />
+
+  <!-- Sites Dialog -->
+  <UserSitesDialog
+    :open="dialogs.sites"
+    :user="activeUser"
+    @saved="fetchUsers"
+    @close="dialogs.sites = false"
   />
 </template>
 

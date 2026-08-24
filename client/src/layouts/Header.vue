@@ -5,10 +5,12 @@ import { Button } from '@/components/ui/button'
 import { useI18n } from 'vue-i18n'
 import keycloak from '@/services/keycloak'
 import { useUserStore } from '@/store/user'
+import { useSiteStore } from '@/store/site'
 import ChangePasswordModal from '@/components/ChangePasswordModal.vue'
 
 const { locale } = useI18n()
 const userStore = useUserStore()
+const siteStore = useSiteStore()
 const isDropdownOpen = ref(false)
 const dropdownRef = ref<HTMLElement | null>(null)
 
@@ -69,6 +71,8 @@ onUnmounted(() => {
         <Languages class="w-4 h-4 text-slate-400 group-hover:text-slate-900 transition-colors" />
         <span class="text-sm font-black uppercase tracking-widest text-slate-600">{{ locale }}</span>
       </button> -->
+
+      <!-- Le sélecteur de site a été retiré pour les clients (un seul site assigné) -->
 
       <div class="flex items-center gap-3 relative" ref="dropdownRef">
         <button 

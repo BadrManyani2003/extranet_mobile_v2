@@ -5,16 +5,16 @@ const keycloakService = require('./keycloak.service');
 const getUsers  = (userId, token, source) => db.execute(qry.getUsers, [userId, token, source]);
 const getSimulationList = (userId, token, source) => db.execute(qry.getSimulationList, [userId, token, source]);
 const getUserSimulationClients = (userId, token, source, targetUserId) => db.execute(qry.getUserSimulationClients, [userId, token, source, targetUserId]);
-const addUserSimulationClient = (userId, token, source, targetUserId, clientId) => db.execute(qry.addUserSimulationClient, [userId, token, source, targetUserId, clientId]);
-const deleteUserSimulationClient = (userId, token, source, targetUserId, clientId) => db.execute(qry.deleteUserSimulationClient, [userId, token, source, targetUserId, clientId]);
-const saveUser  = (userId, token, source, targetId, authId, nom, tel, email, nature, extranet, mobile) =>
-    db.execute(qry.saveUser, [userId, token, source, targetId, authId, nom, tel, email, nature, extranet, mobile]);
+const addUserSimulationClient = (userId, token, source, siteId, targetUserId, clientId) => db.execute(qry.addUserSimulationClient, [userId, token, source, siteId, targetUserId, clientId]);
+const deleteUserSimulationClient = (userId, token, source, siteId, targetUserId, clientId) => db.execute(qry.deleteUserSimulationClient, [userId, token, source, siteId, targetUserId, clientId]);
+const saveUser  = (userId, token, source, siteId, targetId, authId, nom, tel, email, nature, extranet, mobile) =>
+    db.execute(qry.saveUser, [userId, token, source, siteId, targetId, authId, nom, tel, email, nature, extranet, mobile]);
 
-const deleteUser = async (userId, token, source, deleteId) => {
+const deleteUser = async (userId, token, source, siteId, deleteId) => {
     const userResult = await db.execute(qry.getUserById, [deleteId]);
     const user = userResult[0]?.[0];
 
-    await db.execute(qry.deleteUser, [userId, token, source, deleteId]);
+    await db.execute(qry.deleteUser, [userId, token, source, siteId, deleteId]);
 
     if (user?.Id_Auth?.trim()) {
         try {
@@ -29,9 +29,9 @@ const deleteUser = async (userId, token, source, deleteId) => {
 const getClients = (userId, token, source, role = 'admin_cabinet') =>
     db.execute(qry.getClients, [userId, token, source, role]);
 
-const createUserFromClient = (userId, token, source, clientId) => db.execute(qry.createUserFromClient, [userId, token, source, clientId]);
+const createUserFromClient = (userId, token, source, siteId, clientId) => db.execute(qry.createUserFromClient, [userId, token, source, siteId, clientId]);
 const getAdherents         = (userId, source, token, policeId) => db.execute(qry.getAdherents, [userId, source, token, policeId]);
-const createUserFromAdherent = (userId, token, source, adherentId) => db.execute(qry.createUserFromAdherent, [userId, token, source, adherentId]);
+const createUserFromAdherent = (userId, token, source, siteId, adherentId) => db.execute(qry.createUserFromAdherent, [userId, token, source, siteId, adherentId]);
 
 const resolveOrCreateKeycloakUser = async (Nom, Email, idToSync = null) => {
     const existing = await keycloakService.findUserByEmail(Email);
@@ -93,23 +93,28 @@ const syncKeycloak = async (userId, token, source, id) => {
 };
 
 // Lier/délier client — vérification que le commercial n'agit que sur ses propres clients (le SP gère le filtrage)
-const linkUserToClient     = (userId, token, source, targetUserId, clientId, role = 'admin_cabinet')  =>
-    db.execute(qry.linkUserToClient, [userId, token, source, targetUserId, clientId, role]);
+const linkUserToClient     = (userId, token, source, siteId, targetUserId, clientId, role = 'admin_cabinet')  =>
+    db.execute(qry.linkUserToClient, [userId, token, source, siteId, targetUserId, clientId, role]);
 
-const unlinkUserFromClient = (userId, token, source, targetUserId, clientId, role = 'admin_cabinet')  =>
-    db.execute(qry.unlinkUserFromClient, [userId, token, source, targetUserId, clientId, role]);
+const unlinkUserFromClient = (userId, token, source, siteId, targetUserId, clientId, role = 'admin_cabinet')  =>
+    db.execute(qry.unlinkUserFromClient, [userId, token, source, siteId, targetUserId, clientId, role]);
 
-const linkUserToAdherent   = (userId, token, source, targetUserId, adherentId, role = 'admin_cabinet') =>
-    db.execute(qry.linkUserToAdherent, [userId, token, source, targetUserId, adherentId, role]);
+const linkUserToAdherent   = (userId, token, source, siteId, targetUserId, adherentId, role = 'admin_cabinet') =>
+    db.execute(qry.linkUserToAdherent, [userId, token, source, siteId, targetUserId, adherentId, role]);
 
-const updateClientOptions  = (userId, token, source, clientId, recClt, recAdh, role = 'admin_cabinet') =>
-    db.execute(qry.updateClientOptions, [userId, token, source, clientId, recClt, recAdh, role]);
+const updateClientOptions  = (userId, token, source, siteId, clientId, recClt, recAdh, role = 'admin_cabinet') =>
+    db.execute(qry.updateClientOptions, [userId, token, source, siteId, clientId, recClt, recAdh, role]);
 
-const updateClientEmails   = (userId, token, source, clientId, emails, role = 'admin_cabinet') =>
-    db.execute(qry.updateClientEmails, [userId, token, source, clientId, emails, role]);
+const updateClientEmails   = (userId, token, source, siteId, clientId, emails, role = 'admin_cabinet') =>
+    db.execute(qry.updateClientEmails, [userId, token, source, siteId, clientId, emails, role]);
 
-const updateClientParent   = (userId, token, source, clientId, parentId, role = 'admin_cabinet') =>
-    db.execute(qry.updateClientParent, [userId, token, source, clientId, parentId, role]);
+const updateClientParent   = (userId, token, source, siteId, clientId, parentId, role = 'admin_cabinet') =>
+    db.execute(qry.updateClientParent, [userId, token, source, siteId, clientId, parentId, role]);
+
+const getUserSitesAdmin = (targetUserId) => db.execute('EXEC dbo.sp_GetUserSites @0', [targetUserId]);
+
+const updateUserSites = (targetUserId, siteIdsString) => 
+    db.execute('EXEC dbo.ps_UpdateUserSites @0, @1', [targetUserId, siteIdsString]);
 
 const getAvailableRoles = () => keycloakService.getAvailableRoles();
 
@@ -149,5 +154,7 @@ module.exports = {
     updateUserRoles,
     updateClientOptions,
     updateClientEmails,
-    updateClientParent
+    updateClientParent,
+    getUserSitesAdmin,
+    updateUserSites
 };

@@ -27,8 +27,25 @@ IF OBJECT_ID('dbo.Compagnies', 'U') IS NOT NULL DROP TABLE dbo.Compagnies;
 IF OBJECT_ID('dbo.Roles', 'U') IS NOT NULL DROP TABLE dbo.Roles;
 IF OBJECT_ID('dbo.userConnection', 'U') IS NOT NULL DROP TABLE dbo.userConnection;
 IF OBJECT_ID('dbo.Postes_Autorises', 'U') IS NOT NULL DROP TABLE dbo.Postes_Autorises;
-IF OBJECT_ID('dbo.sysUser', 'U') IS NOT NULL DROP TABLE dbo.sysUser;
+IF OBJECT_ID('dbo.UserSites', 'U') IS NOT NULL DROP TABLE dbo.UserSites;
+IF OBJECT_ID('dbo.Sites', 'U') IS NOT NULL DROP TABLE dbo.Sites;
 GO
+
+CREATE TABLE dbo.Sites
+(
+    Id INT NOT NULL IDENTITY(1,1),
+    Code VARCHAR(50) NULL,
+    RaisonSociale VARCHAR(255) NOT NULL,
+    Adresse VARCHAR(500) NULL,
+    Ville VARCHAR(255) NULL,
+    Actif CHAR(1) NOT NULL DEFAULT 'O',
+    DateCreation DATETIME2 NOT NULL DEFAULT GETDATE(),
+
+    CONSTRAINT PK_Sites PRIMARY KEY CLUSTERED (Id)
+);
+GO
+
+
 
 CREATE TABLE dbo.sysUser
 (
@@ -47,6 +64,19 @@ CREATE TABLE dbo.sysUser
     CONSTRAINT PK_sysUser PRIMARY KEY CLUSTERED (Id),
     CONSTRAINT UQ_sysUser_Email UNIQUE NONCLUSTERED (Email),
     CONSTRAINT FK_sysUser_CreatedBy FOREIGN KEY (CreatedBy) REFERENCES dbo.sysUser(Id)
+);
+GO
+
+CREATE TABLE dbo.UserSites
+(
+    Id INT NOT NULL IDENTITY(1,1),
+    fk_user_id INT NOT NULL,
+    fk_site_id INT NOT NULL,
+    DateCreation DATETIME2 NOT NULL DEFAULT GETDATE(),
+    
+    CONSTRAINT PK_UserSites PRIMARY KEY CLUSTERED (Id),
+    CONSTRAINT FK_UserSites_User FOREIGN KEY (fk_user_id) REFERENCES dbo.sysUser(Id) ON DELETE CASCADE,
+    CONSTRAINT FK_UserSites_Site FOREIGN KEY (fk_site_id) REFERENCES dbo.Sites(Id) ON DELETE CASCADE
 );
 GO
 
@@ -99,6 +129,7 @@ GO
 CREATE TABLE dbo.Clients
 (
     Id INT NOT NULL,
+    fk_site_id INT NOT NULL,
     Fk_Client_Id INT NULL,
     RaisonSociale VARCHAR(255) NOT NULL,
     Particulier CHAR(1) NOT NULL DEFAULT 'N',
@@ -111,6 +142,7 @@ CREATE TABLE dbo.Clients
     CreatedAt DATETIME2 NOT NULL  DEFAULT GETDATE(),
     UpdatedAt DATETIME2 NULL,
     CONSTRAINT PK_Clients PRIMARY KEY CLUSTERED (Id),
+    CONSTRAINT FK_Clients_Site FOREIGN KEY (fk_site_id) REFERENCES dbo.Sites(Id),
     CONSTRAINT FK_Clients_Parent FOREIGN KEY (Fk_Client_Id) REFERENCES dbo.Clients(Id),
     CONSTRAINT UQ_Clients_Email UNIQUE NONCLUSTERED (Email)
 );
@@ -141,6 +173,7 @@ GO
 CREATE TABLE dbo.Polices
 (
     Id INT NOT NULL,
+    fk_site_id INT NOT NULL,
     Fk_Client_Id INT NOT NULL,
     Fk_Assure_Id INT NULL,
     FK_Compagnie_Id INT NOT NULL,
@@ -156,6 +189,7 @@ CREATE TABLE dbo.Polices
     CreatedAt DATETIME2 NOT NULL  DEFAULT GETDATE(),
     UpdatedAt DATETIME2 NULL,
     CONSTRAINT PK_Polices PRIMARY KEY CLUSTERED (Id),
+    CONSTRAINT FK_Polices_Site FOREIGN KEY (fk_site_id) REFERENCES dbo.Sites(Id),
     CONSTRAINT FK_Polices_Client FOREIGN KEY (Fk_Client_Id) REFERENCES dbo.Clients(Id),
     CONSTRAINT FK_Polices_Compagnie FOREIGN KEY (FK_Compagnie_Id) REFERENCES dbo.Compagnies(Id)
 );
@@ -164,6 +198,7 @@ GO
 CREATE TABLE dbo.Adherents
 (
     Id INT NOT NULL,
+    fk_site_id INT NOT NULL,
     FK_Police_Id INT NOT NULL,
     FK_User_Id INT NULL,
     NomComplet VARCHAR(255) NOT NULL,
@@ -177,6 +212,7 @@ CREATE TABLE dbo.Adherents
     CreatedAt DATETIME2 NOT NULL DEFAULT GETDATE(),
     UpdatedAt DATETIME2 NULL,
     CONSTRAINT PK_Adherents PRIMARY KEY CLUSTERED (Id),
+    CONSTRAINT FK_Adherents_Site FOREIGN KEY (fk_site_id) REFERENCES dbo.Sites(Id),
     CONSTRAINT FK_Adherents_Police FOREIGN KEY (FK_Police_Id) REFERENCES dbo.Polices(Id) ON DELETE CASCADE,
     CONSTRAINT FK_Adherents_User FOREIGN KEY (FK_User_Id) REFERENCES dbo.sysUser(Id),
     CONSTRAINT UQ_Adherents_Email UNIQUE NONCLUSTERED (Email),
@@ -187,6 +223,7 @@ GO
 CREATE TABLE dbo.PersACharge
 (
     Id INT NOT NULL,
+    fk_site_id INT NOT NULL,
     FK_Adherent_Id INT NOT NULL,
     Nom VARCHAR(255) NOT NULL,
     Lien VARCHAR(100) NULL,
@@ -194,6 +231,7 @@ CREATE TABLE dbo.PersACharge
     DateAdhesion DATE NULL,
     CreatedAt DATETIME2 NOT NULL  DEFAULT GETDATE(),
     CONSTRAINT PK_PersACharge PRIMARY KEY CLUSTERED (Id),
+    CONSTRAINT FK_PersACharge_Site FOREIGN KEY (fk_site_id) REFERENCES dbo.Sites(Id),
     CONSTRAINT FK_PersACharge_Adherent FOREIGN KEY (FK_Adherent_Id) REFERENCES dbo.Adherents(Id) ON DELETE CASCADE
 );
 GO
@@ -201,6 +239,7 @@ GO
 CREATE TABLE dbo.Risques
 (
     Id INT NOT NULL IDENTITY(1,1),
+    fk_site_id INT NOT NULL,
     FK_Police_Id INT NOT NULL,
     Libelle VARCHAR(255) NOT NULL,
     Identifiant VARCHAR(100) NULL,
@@ -213,6 +252,7 @@ CREATE TABLE dbo.Risques
     CreatedAt DATETIME2 NOT NULL DEFAULT GETDATE(),
     UpdatedAt DATETIME2 NULL,
     CONSTRAINT PK_Risques PRIMARY KEY CLUSTERED (Id),
+    CONSTRAINT FK_Risques_Site FOREIGN KEY (fk_site_id) REFERENCES dbo.Sites(Id),
     CONSTRAINT FK_Risques_Police FOREIGN KEY (FK_Police_Id) REFERENCES dbo.Polices(Id) ON DELETE CASCADE,
     CONSTRAINT UQ_Risques_NumeroIBS UNIQUE NONCLUSTERED (NumeroIBS)
 );
@@ -221,12 +261,14 @@ GO
 CREATE TABLE dbo.Garanties
 (
     Id INT NOT NULL IDENTITY(1,1),
+    fk_site_id INT NOT NULL,
     FK_Risque_Id INT NOT NULL,
     Libelle VARCHAR(255) NOT NULL,
     Capital DECIMAL(18,2) NULL,
     Franchise VARCHAR(255) NULL,
     CreatedAt DATETIME2 NOT NULL  DEFAULT GETDATE(),
     CONSTRAINT PK_Garanties PRIMARY KEY CLUSTERED (Id),
+    CONSTRAINT FK_Garanties_Site FOREIGN KEY (fk_site_id) REFERENCES dbo.Sites(Id),
     CONSTRAINT FK_Garanties_Risque FOREIGN KEY (FK_Risque_Id) REFERENCES dbo.Risques(Id) ON DELETE CASCADE
 );
 GO
@@ -234,6 +276,7 @@ GO
 CREATE TABLE dbo.Sinistres
 (
     Id INT NOT NULL,
+    fk_site_id INT NOT NULL,
     FK_Risque_Id INT NULL,
     FK_Police_Id INT NOT NULL,
     FK_Adherent_Id INT NULL,
@@ -249,6 +292,7 @@ CREATE TABLE dbo.Sinistres
     CreatedAt DATETIME2 NOT NULL  DEFAULT GETDATE(),
     UpdatedAt DATETIME2 NULL,
     CONSTRAINT PK_Sinistres PRIMARY KEY CLUSTERED (Id),
+    CONSTRAINT FK_Sinistres_Site FOREIGN KEY (fk_site_id) REFERENCES dbo.Sites(Id),
     CONSTRAINT FK_Sinistres_Risque FOREIGN KEY (FK_Risque_Id) REFERENCES dbo.Risques(Id),
     CONSTRAINT FK_Sinistres_Police FOREIGN KEY (FK_Police_Id) REFERENCES dbo.Polices(Id),
     CONSTRAINT FK_Sinistres_Adherent FOREIGN KEY (FK_Adherent_Id) REFERENCES dbo.Adherents(Id),
@@ -259,6 +303,7 @@ GO
 CREATE TABLE dbo.Quittances
 (
     Id INT NOT NULL,
+    fk_site_id INT NOT NULL,
     FK_Police_Id INT NOT NULL,
     NumQuittance VARCHAR(255) NULL,
     DateDu DATE NULL,
@@ -270,6 +315,7 @@ CREATE TABLE dbo.Quittances
     CreatedAt DATETIME2 NOT NULL  DEFAULT GETDATE(),
     UpdatedAt DATETIME2 NULL,
     CONSTRAINT PK_Quittances PRIMARY KEY CLUSTERED (Id),
+    CONSTRAINT FK_Quittances_Site FOREIGN KEY (fk_site_id) REFERENCES dbo.Sites(Id),
     CONSTRAINT FK_Quittances_Police FOREIGN KEY (FK_Police_Id) REFERENCES dbo.Polices(Id) ON DELETE CASCADE,
     CONSTRAINT UQ_Quittances_NumQuittance UNIQUE NONCLUSTERED (NumQuittance)
 );
@@ -278,10 +324,12 @@ GO
 CREATE TABLE dbo.PolDocument
 (
     Id INT NOT NULL IDENTITY(1,1),
+    fk_site_id INT NOT NULL,
     fk_police_id INT NOT NULL,
     fk_document_id INT NOT NULL,
     libelle VARCHAR(255) NULL,
     CONSTRAINT PK_PolDocument PRIMARY KEY CLUSTERED (Id),
+    CONSTRAINT FK_PolDocument_Site FOREIGN KEY (fk_site_id) REFERENCES dbo.Sites(Id),
     CONSTRAINT FK_PolDocument_Police FOREIGN KEY (fk_police_id) REFERENCES dbo.Polices(Id) ON DELETE CASCADE
 );
 GO
@@ -292,6 +340,7 @@ GO
 CREATE TABLE dbo.StdDocument
 (
     Id            INT            NOT NULL IDENTITY(1,1),
+    fk_site_id    INT            NOT NULL,
     Nature        VARCHAR(50)    NOT NULL,                       
     Identifiant   INT            NOT NULL,                       
     Type          VARCHAR(255)   NOT NULL,                      
@@ -301,6 +350,7 @@ CREATE TABLE dbo.StdDocument
     DateCreation  DATETIME2      NOT NULL DEFAULT GETDATE(),
     TransferePar  INT            NULL,
     CONSTRAINT PK_StdDocument PRIMARY KEY CLUSTERED (Id),
+    CONSTRAINT FK_StdDocument_Site FOREIGN KEY (fk_site_id) REFERENCES dbo.Sites(Id),
     CONSTRAINT FK_StdDocument_User FOREIGN KEY (FK_User_Id) REFERENCES dbo.sysUser(Id),
     CONSTRAINT FK_StdDocument_TransferePar FOREIGN KEY (TransferePar) REFERENCES dbo.sysUser(Id)
 );
@@ -309,6 +359,7 @@ GO
 CREATE TABLE dbo.ReclamationsIdt
 (
     Id INT NOT NULL IDENTITY(1,1),
+    fk_site_id INT NOT NULL,
     FK_User_Client INT NOT NULL,
     DateReclamation DATETIME2 NOT NULL DEFAULT GETDATE(),
     Sujet VARCHAR(255) NULL,
@@ -318,6 +369,7 @@ CREATE TABLE dbo.ReclamationsIdt
     DateDernierMessage DATETIME2 NULL,
     CreatedAt DATETIME2 NOT NULL  DEFAULT GETDATE(),
     CONSTRAINT PK_ReclamationsIdt PRIMARY KEY CLUSTERED (Id),
+    CONSTRAINT FK_ReclamIdt_Site FOREIGN KEY (fk_site_id) REFERENCES dbo.Sites(Id),
     CONSTRAINT FK_ReclamIdt_User FOREIGN KEY (FK_User_Client) REFERENCES dbo.sysUser(Id)
 );
 GO
@@ -325,6 +377,7 @@ GO
 CREATE TABLE dbo.ReclamationsDet
 (
     Id INT NOT NULL IDENTITY(1,1),
+    fk_site_id INT NOT NULL,
     FK_Reclamation_Id INT NOT NULL,
     FK_User_Id INT NOT NULL,
     DateMessage DATETIME2 NOT NULL  DEFAULT GETDATE(),
@@ -332,6 +385,7 @@ CREATE TABLE dbo.ReclamationsDet
     Message VARCHAR(2000) NULL,
     MailEnvoye CHAR(1) NOT NULL DEFAULT 'N',
     CONSTRAINT PK_ReclamationsDet PRIMARY KEY CLUSTERED (Id),
+    CONSTRAINT FK_ReclamDet_Site FOREIGN KEY (fk_site_id) REFERENCES dbo.Sites(Id),
     CONSTRAINT FK_ReclamDet_Reclamation FOREIGN KEY (FK_Reclamation_Id) REFERENCES dbo.ReclamationsIdt(Id) ON DELETE CASCADE,
     CONSTRAINT FK_ReclamDet_User FOREIGN KEY (FK_User_Id) REFERENCES dbo.sysUser(Id)
 );
@@ -340,6 +394,7 @@ GO
 CREATE TABLE dbo.sinComplement
 (
     id INT NOT NULL IDENTITY(1,1),
+    fk_site_id INT NOT NULL,
     fk_sinistre_id INT NOT NULL,
     Ref_Sinistre VARCHAR(100) NULL,
     Date_Sinistre DATE NULL,
@@ -368,6 +423,7 @@ CREATE TABLE dbo.sinComplement
     Dt_Presc_DC DATE NULL,
     Dt_Presc_Bien DATE NULL,
     CONSTRAINT PK_sinComplement PRIMARY KEY CLUSTERED (id),
+    CONSTRAINT FK_sinComplement_Site FOREIGN KEY (fk_site_id) REFERENCES dbo.Sites(Id),
     CONSTRAINT FK_sinComplement_Sinistre FOREIGN KEY (fk_sinistre_id) REFERENCES dbo.Sinistres(Id) ON DELETE CASCADE
 );
 GO

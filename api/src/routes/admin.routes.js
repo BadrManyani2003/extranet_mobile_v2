@@ -15,6 +15,8 @@ router.post('/users/delete',        adminOrCom, ctrl.deleteUser);
 router.post('/users/sync-keycloak', adminOrCom, ctrl.syncKeycloak);
 router.get ('/roles',               adminOnly,  ctrl.getAvailableRoles);
 router.post('/users/roles',         adminOnly,  ctrl.updateUserRoles);
+router.get ('/users/:id/sites',     adminOnly,  ctrl.getUserSitesAdmin);
+router.post('/users/:id/sites',     adminOnly,  ctrl.updateUserSites);
 
 // ── Simulations (admin + commercial) ─────────────────────────────────────────
 router.post('/simulation-users',                 adminOrCom, ctrl.getSimulationUsers);

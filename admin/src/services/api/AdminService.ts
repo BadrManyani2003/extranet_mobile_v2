@@ -56,5 +56,18 @@ export const AdminService = {
   addSimulationClient: (targetUserId: number, clientId: number) => 
     request<any>('/admin/users/simulation-clients/add', { method: 'POST', body: JSON.stringify({ targetUserId, clientId }) }),
   deleteSimulationClient: (targetUserId: number, clientId: number) => 
-    request<any>('/admin/users/simulation-clients/delete', { method: 'POST', body: JSON.stringify({ targetUserId, clientId }) })
+    request<any>('/admin/users/simulation-clients/delete', { method: 'POST', body: JSON.stringify({ targetUserId, clientId }) }),
+  getUserSitesAdmin: (targetUserId: number) => 
+    request<any[]>(`/admin/users/${targetUserId}/sites`, { method: 'GET' }),
+  updateUserSites: (targetUserId: number, siteIds: number[]) => 
+    request<any>(`/admin/users/${targetUserId}/sites`, { method: 'POST', body: JSON.stringify({ siteIds }) }),
+
+  getAllSites: () =>
+    request<any[]>('/sites/all', { method: 'GET' }),
+  createSite: (site: any) =>
+    request<any>('/sites', { method: 'POST', body: JSON.stringify(site) }),
+  updateSite: (siteId: number, site: any) =>
+    request<any>(`/sites/${siteId}`, { method: 'PUT', body: JSON.stringify(site) }),
+  deleteSite: (siteId: number) =>
+    request<any>(`/sites/${siteId}`, { method: 'DELETE' })
 }

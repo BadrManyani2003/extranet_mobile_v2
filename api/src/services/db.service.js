@@ -1,5 +1,6 @@
 const sql = require('mssql');
 const dbConfig = require('../config/database');
+const asyncLocalStorage = require('../common/context');
 
 let poolPromise = null;
 
@@ -17,6 +18,14 @@ const execute = async (query, params = []) => {
     const pool    = await getPool();
     const request = pool.request();
     params.forEach((val, idx) => request.input(`${idx}`, val));
+    
+    const store = asyncLocalStorage.getStore();
+    if (store && store.siteId) {
+        request.input('sessionSiteId', sql.Int, store.siteId);
+        // On exécute la déclaration du contexte dans le même batch que la requête
+        query = `EXEC sp_set_session_context N'site_id', @sessionSiteId; ${query}`;
+    }
+
     const result = await request.query(query);
     return result.recordsets;
 };
