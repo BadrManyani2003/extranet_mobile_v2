@@ -12,7 +12,7 @@ const processReclamationEmails = async () => {
             const { 
                 DetailId, ReclamationId, Sujet, ReclamationNature, 
                 MessageNature, Message, DateMessage, ClientName, 
-                EmailChargeCompte, SenderType, ClientUserId
+                EmailChargeCompte, SenderType, ClientUserId, SiteId
             } = record;
 
             let recipients = [];
@@ -30,8 +30,8 @@ const processReclamationEmails = async () => {
             if (SenderType === 'CABINET') {
                 // Si le dernier message vient du cabinet, envoyer au client (sur son user)
                 // On utilise la proc stockée existante pour avoir l'email du client (comme avant)
-                const qryClientEmails = `EXEC dbo.sp_GetClientEmailsByUser @0`;
-                const clientDbResult = await db.execute(qryClientEmails, [ClientUserId]);
+                const qryClientEmails = `EXEC dbo.sp_GetClientEmailsByUser @0, @1`;
+                const clientDbResult = await db.execute(qryClientEmails, [ClientUserId, SiteId]);
                 const clients = clientDbResult[0] || [];
                 if (clients.length > 0 && clients[0].emails) {
                     recipients = clients[0].emails.split(/[,/]/).map(e => e.trim()).filter(e => e.length > 0);

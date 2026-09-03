@@ -93,7 +93,14 @@ class KeycloakService {
   }
 
   public hasRole(role: string): boolean {
-    return this.keycloak.hasRealmRole(role);
+    if (!this.keycloak) return false;
+    if (this.keycloak.hasRealmRole && this.keycloak.hasRealmRole(role)) return true;
+    if (this.keycloak.realmAccess?.roles?.includes(role)) return true;
+    const resourceAccess = this.keycloak.resourceAccess || {};
+    for (const clientKey in resourceAccess) {
+      if (resourceAccess[clientKey]?.roles?.includes(role)) return true;
+    }
+    return false;
   }
 
   public getUserProfile() {

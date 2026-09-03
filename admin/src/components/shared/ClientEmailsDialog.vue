@@ -64,7 +64,7 @@ const handleSave = () => {
       <div class="bg-gradient-to-br from-slate-50 to-white p-6 md:p-8">
         <DialogHeader class="mb-6">
           <DialogTitle class="text-xl font-bold text-slate-800 flex items-center gap-2">
-            Emails Chargés de Compte
+            {{ $t('clients.emails_title') }}
           </DialogTitle>
           <DialogDescription class="text-sm font-medium text-slate-500">
             {{ clientName }}
@@ -81,13 +81,13 @@ const handleSave = () => {
               @keyup.enter="addEmail"
             />
             <Button @click="addEmail" class="rounded-xl premium-button gap-2 bg-emerald-500 hover:bg-emerald-600 text-white border-0">
-              <Plus class="w-4 h-4" /> Ajouter
+              <Plus class="w-4 h-4" /> {{ $t('commun.add') }}
             </Button>
           </div>
 
           <div class="max-h-[400px] overflow-y-auto pr-2 space-y-2 mt-4">
             <div v-if="emailList.length === 0" class="text-center py-6 text-slate-400 text-sm font-medium border border-dashed border-slate-200 rounded-xl">
-              Aucun email trouvé
+              {{ $t('clients.no_emails') }}
             </div>
             <div 
               v-for="(email, idx) in emailList" 
@@ -104,7 +104,7 @@ const handleSave = () => {
 
         <DialogFooter class="mt-8 gap-3 sm:gap-0">
           <Button variant="outline" class="rounded-xl border-slate-200 text-slate-600 font-bold w-full sm:w-auto mr-2" @click="$emit('update:open', false)">
-            Annuler
+            {{ $t('commun.cancel') }}
           </Button>
           <Button class="rounded-xl premium-button font-bold w-full sm:w-auto" :disabled="loading" @click="handleSave">
             <span v-if="loading">{{ $t('commun.saving') }}</span>

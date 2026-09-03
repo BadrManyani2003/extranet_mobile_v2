@@ -2,7 +2,7 @@ const { error } = require('../common/response');
 
 module.exports = (err, req, res, next) => {
     let status = err.status || 500;
-    const message = err.message || 'Une erreur imprevue est survenue.';
+    const message = err.message || "Oups, une erreur inattendue s'est produite. Veuillez réessayer.";
 
     if (
         err.name === 'RequestError' ||

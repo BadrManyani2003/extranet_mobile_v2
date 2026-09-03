@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { Menu, X, User, LogOut } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
-import { useI18n } from 'vue-i18n'
 import keycloak from '@/services/keycloak'
 import { useUserStore } from '@/store/user'
 import { useSiteStore } from '@/store/site'
 
-const { locale } = useI18n()
+// No locale needed here anymore
 const userStore = useUserStore()
 const siteStore = useSiteStore()
 
@@ -18,6 +17,10 @@ const emit = defineEmits(['toggle'])
 
 const handleLogout = () => {
   userStore.clearUser()
+  localStorage.clear()
+  document.cookie.split(";").forEach(function(c) { 
+    document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+  });
   keycloak.logout()
 }
 
@@ -67,7 +70,7 @@ const handleSiteChange = (event: Event) => {
                 ? 'bg-primary/10 text-primary' 
                 : 'bg-emerald-50 text-emerald-600'"
             >
-              {{ userStore.isAdmin ? 'Admin Cabinet' : 'Commercial' }}
+              {{ userStore.isAdmin ? $t('roles.admin_cabinet') : $t('roles.commercial') }}
             </span>
           </div>
           <div class="w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-colors"

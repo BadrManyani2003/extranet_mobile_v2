@@ -1,9 +1,13 @@
 <script setup lang="ts">
-import { ShieldAlert, LogOut, Home } from 'lucide-vue-next'
-import keycloak from '@/services/keycloak'
+import { LogOut, RotateCcw } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
+import keycloak from '@/services/keycloak'
 
 const router = useRouter()
+
+const handleRetry = () => {
+  router.push('/')
+}
 
 const handleLogout = () => {
   keycloak.logout()
@@ -18,8 +22,16 @@ const handleLogout = () => {
         
         <div class="grid gap-4">
           <button 
+            @click="handleRetry"
+            class="flex items-center justify-center gap-3 w-full py-4 px-6 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold transition-all duration-300 shadow-lg shadow-blue-100 hover:shadow-blue-200 group"
+          >
+            <RotateCcw class="w-5 h-5 group-hover:rotate-45 transition-transform" />
+            Accéder à l'application
+          </button>
+
+          <button 
             @click="handleLogout"
-            class="flex items-center justify-center gap-3 w-full py-4 px-6 bg-red-600 hover:bg-red-700 text-white rounded-2xl font-bold transition-all duration-300 shadow-lg shadow-red-100 hover:shadow-red-200 group"
+            class="flex items-center justify-center gap-3 w-full py-4 px-6 bg-slate-100 hover:bg-red-50 text-slate-700 hover:text-red-600 rounded-2xl font-bold transition-all duration-300 group"
           >
             <LogOut class="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
             {{ $t('restricted.logout') }}

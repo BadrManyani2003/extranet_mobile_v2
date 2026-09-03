@@ -20,9 +20,7 @@ const props = defineProps<{
   repartitionData: any[] | null
 }>()
 
-// ----------------------------------------------------
 // 4. Repartition Datasets & Charts Configuration (Phase 4)
-// ----------------------------------------------------
 const circumstancesDataList = computed(() => props.repartitionData?.[0] || [])
 const lesionsDataList = computed(() => props.repartitionData?.[1] || [])
 const typeAccidentDataList = computed(() => props.repartitionData?.[2] || [])

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { FileText, Tag, Users, Shield, LifeBuoy, Wallet, AlertCircle, CheckCircle2, CreditCard, FileCheck, CalendarDays, Clock, Receipt, Building2, Car, HeartPulse, Briefcase, Factory } from 'lucide-vue-next'
+import { FileText, Tag, Users, Shield, Wallet, AlertCircle, CreditCard, FileCheck, CalendarDays, Clock, Building2, Car, HeartPulse, Briefcase, Factory, LifeBuoy, Receipt } from 'lucide-vue-next'
 import { AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion'
 import { Card } from '@/components/ui/card'
 import StatusBadge from '@/components/shared/StatusBadge.vue'
@@ -35,13 +35,12 @@ const quittances = ref<any[]>([])
 const documents = ref<any[]>([])
 const stats = ref<any>({})
 const chargementDetails = ref(false)
-const dataLoaded = ref(false) // Track if data has been fetched
+const dataLoaded = ref(false)
 
 const chargerDonnees = async () => {
   if (chargementDetails.value || dataLoaded.value) return
   chargementDetails.value = true
   try {
-    const isSante = props.police.module === 'D'
     const fetchRisques = isSante 
       ? api.data.getAdherents(props.police.id) 
       : api.data.getRisques(props.police.id)
@@ -82,7 +81,6 @@ const chargerDonnees = async () => {
   }
 }
 
-// Remove onMounted(() => { chargerDonnees() }) to avoid eager loading
 
 const basculerOnglet = (onglet: string) => {
   ongletActif.value = ongletActif.value === onglet ? '' : onglet

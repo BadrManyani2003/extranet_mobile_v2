@@ -17,7 +17,7 @@ const getPool = async () => {
 const execute = async (query, params = []) => {
     const pool    = await getPool();
     const request = pool.request();
-    params.forEach((val, idx) => request.input(`${idx}`, val));
+    params.forEach((val, idx) => request.input(`${idx}`, val === undefined ? null : val));
     
     const store = asyncLocalStorage.getStore();
     if (store && store.siteId) {

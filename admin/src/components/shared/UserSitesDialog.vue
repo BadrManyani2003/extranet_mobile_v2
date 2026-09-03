@@ -33,7 +33,7 @@ const fetchAllSites = async () => {
     const res = await request<any>('/sites/all', { method: 'GET' })
     allSites.value = res || []
   } catch (e: any) {
-    console.error('Erreur chargement des sites', e)
+    console.error(t('users.sites.toast_load_sites_error'), e)
   }
 }
 
@@ -48,7 +48,7 @@ watch(() => props.open, async (isOpen) => {
       const sites = await AdminService.getUserSitesAdmin(props.user.id)
       selectedSites.value = sites.map((s: any) => s.Id || s.id)
     } catch (e: any) {
-      toast.error('Erreur de chargement des sites de l\'utilisateur')
+      toast.error(t('users.sites.toast_load_user_sites_error'))
     }
   }
 })
@@ -66,11 +66,11 @@ const handleSaveSites = async () => {
   processing.value = true
   try {
     await AdminService.updateUserSites(props.user.id, selectedSites.value)
-    toast.success('Sites mis à jour avec succès')
+    toast.success(t('users.sites.toast_update_success'))
     emit('saved')
     emit('close')
   } catch (e: any) {
-    toast.error(e.message || 'Erreur lors de la mise à jour des sites')
+    toast.error(e.message || t('users.sites.toast_update_error'))
   } finally {
     processing.value = false
   }
@@ -81,8 +81,8 @@ const handleSaveSites = async () => {
   <Dialog :open="open" @update:open="emit('close')">
     <DialogContent class="w-[92%] sm:max-w-[480px] !flex !flex-col !gap-0 !p-0 rounded-[2rem] shadow-2xl overflow-hidden border-none font-['Outfit'] bg-white">
       <DialogHeader class="p-8 bg-emerald-600 text-white">
-        <DialogTitle class="text-xl font-black tracking-tight text-white">Sites Autorisés</DialogTitle>
-        <DialogDescription class="text-emerald-100 text-xs">Définir les sites accessibles pour {{ user?.nom }}.</DialogDescription>
+        <DialogTitle class="text-xl font-black tracking-tight text-white">{{ $t('users.sites.title') }}</DialogTitle>
+        <DialogDescription class="text-emerald-100 text-xs">{{ $t('users.sites.desc', { name: user?.nom }) }}</DialogDescription>
       </DialogHeader>
 
       <div class="p-8 max-h-[360px] overflow-y-auto">
@@ -96,7 +96,7 @@ const handleSaveSites = async () => {
           </button>
           
           <div v-if="allSites.length === 0" class="text-center text-sm text-slate-500 py-4">
-            Aucun site disponible.
+            {{ $t('users.sites.no_sites') }}
           </div>
         </div>
       </div>

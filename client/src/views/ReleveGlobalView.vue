@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { FileDown, Building2, Tag, FileText } from 'lucide-vue-next'
+import { FileDown, Building2, Tag, FileText, Filter } from 'lucide-vue-next'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import DataTableWrapper from '@/components/shared/DataTableWrapper.vue'
@@ -13,6 +13,7 @@ import * as XLSX from 'xlsx-js-style'
 const { t } = useI18n()
 const quittances = ref<any[]>([])
 const loading = ref(true)
+const showFilters = ref(false)
 
 // Filtres
 const selectedClient = ref('')
@@ -176,12 +177,21 @@ onMounted(() => {
         :disabled="!filteredQuittances.length"
       >
         <FileDown class="w-5 h-5 text-slate-900" />
-        {{ $t('commun.download') }}
+        {{ $t('commun.export_excel') }}
       </Button>
     </template>
 
     <template #filters>
-      <div class="flex flex-wrap items-center gap-3 lg:w-auto mt-2 sm:mt-0 flex-1 lg:flex-initial">
+      <Button 
+        variant="outline"
+        class="rounded-2xl h-[52px] px-6 gap-2 border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold shadow-sm"
+        @click="showFilters = !showFilters"
+      >
+        <Filter class="w-5 h-5 text-slate-400" />
+        {{ showFilters ? 'Masquer Filtres' : 'Afficher Filtres' }}
+      </Button>
+
+      <div v-show="showFilters" class="flex flex-wrap items-center gap-3 w-full mt-4">
         <!-- Client Filter -->
         <div class="relative min-w-[160px] flex-1 sm:flex-initial">
           <Building2 class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />

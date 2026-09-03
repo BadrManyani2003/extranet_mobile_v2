@@ -67,7 +67,7 @@ const ContratScreen = () => {
     }
   };
 
-  const renderItem = ({ item }: { item: any }) => (
+  const renderItem = React.useCallback(({ item }: { item: any }) => (
     <TouchableOpacity activeOpacity={0.8} onPress={() => navigation.navigate('ContratDetail', { police: item })}>
       <Box 
         backgroundColor="cardBackground" 
@@ -130,7 +130,7 @@ const ContratScreen = () => {
         </Box>
       </Box>
     </TouchableOpacity>
-  );
+  ), [navigation, theme]);
 
   return (
     <Box flex={1} backgroundColor="background">

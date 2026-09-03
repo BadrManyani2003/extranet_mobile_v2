@@ -15,8 +15,10 @@ import { Search, UserPlus, Users, Trash2 } from 'lucide-vue-next'
 import { api } from '@/lib/api'
 import { toast } from '@/components/ui/sonner'
 import { useI18n } from 'vue-i18n'
+import { usePermissions } from '@/composables/usePermissions'
 
 const { t } = useI18n()
+const { hasPermission } = usePermissions()
 
 const props = defineProps<{
   open: boolean
@@ -127,7 +129,7 @@ onUnmounted(() => {
       
       <div class="p-8 space-y-6 flex-1 flex flex-col min-h-0 overflow-hidden">
         <!-- Add Client Selection Section (Top Stacked Card) -->
-        <div class="p-6 bg-slate-50/50 rounded-2xl border border-slate-100 space-y-4 shrink-0">
+        <div v-if="hasPermission('simulations:creer')" class="p-6 bg-slate-50/50 rounded-2xl border border-slate-100 space-y-4 shrink-0">
           <div class="flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center shadow-sm">
               <UserPlus class="w-4 h-4 text-white" />
@@ -238,6 +240,7 @@ onUnmounted(() => {
                 </div>
                 
                 <Button 
+                  v-if="hasPermission('simulations:supprimer')"
                   variant="ghost" 
                   size="icon" 
                   class="h-8 w-8 rounded-xl hover:bg-red-50 text-slate-400 hover:text-red-500 shrink-0 transition-colors" 

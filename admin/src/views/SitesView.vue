@@ -1,19 +1,34 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+
 import { Button } from '@/components/ui/button'
-import { Edit, Plus, Globe, Trash2 } from 'lucide-vue-next'
+import { Edit, Trash2 } from 'lucide-vue-next'
 import { Badge } from '@/components/ui/badge'
-import DataTableWrapper from '@/components/shared/DataTableWrapper.vue'
+import ExpertDataTable, { type DataTableColumn } from '@/components/shared/ExpertDataTable.vue'
 import ConfirmModal from '@/components/shared/ConfirmModal.vue'
 import SiteFormDialog from '@/components/shared/SiteFormDialog.vue'
 import { AdminService } from '@/services/api/AdminService'
 import { toast } from '@/components/ui/sonner'
 import { useI18n } from 'vue-i18n'
+import { usePermissions } from '@/composables/usePermissions'
 
 const { t } = useI18n()
+const { hasPermission } = usePermissions()
+import { computed } from 'vue'
 
-// -- States
+const tableColumns = computed<DataTableColumn[]>(() => {
+  const cols: DataTableColumn[] = [
+    { id: 'Id', label: t('sites.table.id'), className: 'w-[100px]' },
+    { id: 'Code', label: t('sites.table.code') },
+    { id: 'RaisonSociale', label: t('sites.table.raison_sociale') },
+    { id: 'Ville', label: t('sites.table.ville'), className: 'hidden md:table-cell', cellClass: 'hidden md:table-cell' },
+    { id: 'Actif', label: t('sites.table.status'), align: 'center' }
+  ]
+  if (hasPermission('sites:modifier') || hasPermission('sites:supprimer')) {
+    cols.push({ id: 'actions', label: t('sites.table.actions'), align: 'right' })
+  }
+  return cols
+})
 const sites = ref<any[]>([])
 const loading = ref(true)
 const processing = ref(false)
@@ -32,7 +47,6 @@ const activeSite = ref<any>({
   Actif: 'O'
 })
 
-// -- Actions
 const fetchSites = async () => {
   loading.value = true
   try { sites.value = await AdminService.getAllSites() } 
@@ -98,55 +112,51 @@ onMounted(() => {
 
 <template>
   <div class="space-y-6">
-    <DataTableWrapper 
+    <ExpertDataTable 
       :title="$t('sites.title')"
       :description="$t('sites.description')"
       :items="sites"
+      :columns="tableColumns"
       :loading="loading"
-      :add-button-label="$t('sites.add_button')"
+      :add-button-label="hasPermission('sites:creer') ? $t('sites.add_button') : undefined"
       @add="openCreate"
     >
-      <template #default="{ items: paginatedSites }">
-        <Table>
-        <TableHeader>
-          <TableRow class="bg-slate-50/50 hover:bg-slate-50/50 border-b-slate-100">
-            <TableHead class="w-[100px] font-semibold text-slate-600">ID</TableHead>
-            <TableHead class="font-semibold text-slate-600">Code</TableHead>
-            <TableHead class="font-semibold text-slate-600">Raison Sociale</TableHead>
-            <TableHead class="font-semibold text-slate-600 hidden md:table-cell">Ville</TableHead>
-            <TableHead class="font-semibold text-slate-600 text-center">Statut</TableHead>
-            <TableHead class="text-right font-semibold text-slate-600">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          <TableRow v-for="site in paginatedSites" :key="site.Id" class="group transition-colors hover:bg-slate-50/80">
-            <TableCell class="font-medium text-slate-900">{{ site.Id }}</TableCell>
-            <TableCell class="text-slate-600">{{ site.Code }}</TableCell>
-            <TableCell class="font-medium text-slate-900">{{ site.RaisonSociale }}</TableCell>
-            <TableCell class="text-slate-500 hidden md:table-cell">{{ site.Ville }}</TableCell>
-            <TableCell class="text-center">
-              <Badge :variant="site.Actif === 'O' ? 'default' : 'secondary'"
-                     :class="site.Actif === 'O' ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100' : 'bg-slate-100 text-slate-600 hover:bg-slate-100'">
-                {{ site.Actif === 'O' ? 'Actif' : 'Inactif' }}
-              </Badge>
-            </TableCell>
-            <TableCell class="text-right">
-              <div class="flex items-center justify-end gap-2">
-                <Button variant="ghost" size="icon" @click="openEdit(site)"
-                        class="text-slate-400 hover:text-primary hover:bg-primary/5 h-8 w-8 rounded-lg transition-colors">
-                  <Edit class="w-4 h-4" />
-                </Button>
-                <Button variant="ghost" size="icon" @click="confirmDelete(site)"
-                        class="text-slate-400 hover:text-red-600 hover:bg-red-50 h-8 w-8 rounded-lg transition-colors">
-                  <Trash2 class="w-4 h-4" />
-                </Button>
-              </div>
-            </TableCell>
-          </TableRow>
-        </TableBody>
-        </Table>
+      <template #cell-Id="{ item }">
+        <span class="font-medium text-slate-900">{{ item.Id }}</span>
       </template>
-    </DataTableWrapper>
+
+      <template #cell-Code="{ item }">
+        <span class="text-slate-600">{{ item.Code }}</span>
+      </template>
+
+      <template #cell-RaisonSociale="{ item }">
+        <span class="font-medium text-slate-900">{{ item.RaisonSociale }}</span>
+      </template>
+
+      <template #cell-Ville="{ item }">
+        <span class="text-slate-500">{{ item.Ville }}</span>
+      </template>
+
+      <template #cell-Actif="{ item }">
+        <Badge :variant="item.Actif === 'O' ? 'default' : 'secondary'"
+               :class="item.Actif === 'O' ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100' : 'bg-slate-100 text-slate-600 hover:bg-slate-100'">
+          {{ item.Actif === 'O' ? $t('statuts.actif') : $t('statuts.inactif') }}
+        </Badge>
+      </template>
+
+      <template #cell-actions="{ item }">
+        <div class="flex items-center justify-end gap-2">
+          <Button v-if="hasPermission('sites:modifier')" variant="ghost" size="icon" @click="openEdit(item)"
+                  class="text-slate-400 hover:text-primary hover:bg-primary/5 h-8 w-8 rounded-lg transition-colors">
+            <Edit class="w-4 h-4" />
+          </Button>
+          <Button v-if="hasPermission('sites:supprimer')" variant="ghost" size="icon" @click="confirmDelete(item)"
+                  class="text-slate-400 hover:text-red-600 hover:bg-red-50 h-8 w-8 rounded-lg transition-colors">
+            <Trash2 class="w-4 h-4" />
+          </Button>
+        </div>
+      </template>
+    </ExpertDataTable>
 
     <!-- Dialog Create/Edit -->
     <SiteFormDialog 

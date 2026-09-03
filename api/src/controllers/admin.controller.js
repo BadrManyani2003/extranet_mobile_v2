@@ -12,22 +12,22 @@ const getContext = (req) => ({
 });
 
 const getUsers = asyncHandler(async (req, res) => {
-    const { userId, source, token } = getContext(req);
-    const result = await adminService.getUsers(userId, token, source);
+    const { userId, source, token, siteId } = getContext(req);
+    const result = await adminService.getUsers(userId, token, source, siteId);
     success(res, result[0] || []);
 });
 
 const getSimulationUsers = asyncHandler(async (req, res) => {
-    const { userId, source, token } = getContext(req);
-    const result = await adminService.getSimulationList(userId, token, source);
+    const { userId, source, token, siteId } = getContext(req);
+    const result = await adminService.getSimulationList(userId, token, source, siteId);
     success(res, result[0] || []);
 });
 
 const getUserSimulationClients = asyncHandler(async (req, res) => {
-    const { userId, source, token } = getContext(req);
+    const { userId, source, token, siteId } = getContext(req);
     const { targetUserId } = req.body;
     if (!targetUserId) throw new Error('ID utilisateur cible manquant.');
-    const result = await adminService.getUserSimulationClients(userId, token, source, targetUserId);
+    const result = await adminService.getUserSimulationClients(userId, token, source, targetUserId, siteId);
     success(res, result[0] || []);
 });
 
@@ -67,8 +67,8 @@ const deleteUser = asyncHandler(async (req, res) => {
 });
 
 const getClients = asyncHandler(async (req, res) => {
-    const { userId, source, token, role } = getContext(req);
-    const result = await adminService.getClients(userId, token, source, role);
+    const { userId, source, token, role, siteId } = getContext(req);
+    const result = await adminService.getClients(userId, token, source, role, siteId);
     success(res, result[0] || []);
 });
 
@@ -80,9 +80,9 @@ const createUserFromClient = asyncHandler(async (req, res) => {
 });
 
 const getAdherents = asyncHandler(async (req, res) => {
-    const { userId, source, token } = getContext(req);
+    const { userId, source, token, siteId } = getContext(req);
     const { policeId = 0 } = req.body;
-    const result = await adminService.getAdherents(userId, source, token, policeId);
+    const result = await adminService.getAdherents(userId, source, token, policeId, siteId);
     success(res, result[0] || []);
 });
 

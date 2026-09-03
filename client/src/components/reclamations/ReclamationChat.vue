@@ -63,6 +63,13 @@ const formatDate = (date: string) => {
     minute: '2-digit' 
   })
 }
+
+const canDeleteMessage = (msg: any) => {
+  if (!msg || !msg.dateMessage) return false
+  const msgTime = new Date(msg.dateMessage).getTime()
+  const now = Date.now()
+  return (now - msgTime) <= 10 * 60 * 1000
+}
 </script>
 
 <template>
@@ -118,7 +125,7 @@ const formatDate = (date: string) => {
                   </div>
 
                   <!-- Bouton Supprimer (uniquement si autorisé par le backend via canDelete) -->
-                  <Button v-if="msg.canDelete" 
+                  <Button v-if="msg.canDelete && isSelf(msg) && canDeleteMessage(msg)" 
                     variant="ghost" 
                     size="icon" 
                     @click="emit('delete-message', msg.id)" 

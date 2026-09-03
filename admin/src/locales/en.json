@@ -133,6 +133,7 @@
     "table": {
       "id": "Member ID",
       "name": "Full Name",
+      "client": "Member of",
       "membership_date": "Membership Date",
       "linked_user": "Linked User",
       "actions": "Actions"
@@ -182,6 +183,7 @@
   "commun": {
     "search": "Search",
     "no_results": "No results.",
+    "no_data": "No data available",
     "logout": "Logout",
     "close": "Close",
     "actions": "Actions",
@@ -295,5 +297,40 @@
     "view_desc": "Preview of the uploaded document.",
     "pdf_title": "PDF Document",
     "empty_content": "Empty content"
+  },
+  "sites": {
+    "title": "Sites Management",
+    "description": "Manage your sites",
+    "add_button": "Add a site",
+    "delete_title": "Delete",
+    "delete_desc": "Are you sure you want to delete this site?"
+  },
+  "roles": {
+    "title": "Roles & Permissions",
+    "description": "Manage roles and their permissions",
+    "add_button": "Add Role",
+    "edit_role": "Edit Role",
+    "delete_title": "Delete Role",
+    "delete_desc": "Are you sure you want to delete the role {name}?",
+    "form": {
+      "name": "Role Name",
+      "description": "Description",
+      "site": "Site (optional, to restrict to a site)",
+      "save": "Save",
+      "cancel": "Cancel"
+    },
+    "permissions": {
+      "title": "Permissions for {name}",
+      "active": "Active",
+      "code": "Code",
+      "description": "Description"
+    },
+    "toast_load_error": "Error loading roles",
+    "toast_save_success": "Role saved successfully",
+    "toast_create_success": "Role created successfully",
+    "toast_save_error": "Error saving role",
+    "toast_delete_success": "Role deleted",
+    "toast_delete_error": "Error deleting role",
+    "toast_perm_success": "Permission updated"
   }
 }

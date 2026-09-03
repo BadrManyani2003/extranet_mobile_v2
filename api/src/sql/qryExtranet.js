@@ -6,7 +6,7 @@ const qry = {
     getRisques:           "exec dbo.sp_GetRisques           @0, @1, @2, @3",
     getQuittances:        "exec dbo.sp_GetQuittances        @0, @1, @2, @3",
     getImpayes:           "exec dbo.sp_GetImpayes           @0, @1, @2, @3, @4",
-    getAdherents:         "exec dbo.sp_GetAdherents         @0, @1, @2, @3",
+    getAdherents:         "exec dbo.sp_GetAdherents         @0, @1, @2, @3, @4",
     getPersACharge:       "exec dbo.sp_GetPersACharge       @0, @1, @2, @3",
     getGarantiesByRisque: "exec dbo.sp_GetGarantiesByRisque @0, @1, @2, @3",
     getStats:             "exec dbo.sp_GetStats             @0, @1, @2",
@@ -19,9 +19,9 @@ const qry = {
     getStatsByPolice:     "exec dbo.ps_GetStatsByPolice     @0, @1, @2, @3",
     getDocumentsByPolice: "exec dbo.sp_GetDocumentsByPolice @0, @1, @2, @3",
 
-    getReclamations:        "exec dbo.sp_GetReclamations          @0, @1, @2",
+    getReclamations:        "exec dbo.sp_GetReclamations          @0, @1, @2, @3",
     // SP admin/commercial — param @3 = rôle pour filtrer les réclamations du commercial
-    getAdminReclamations:   "exec dbo.sp_GetAdminReclamations     @0, @1, @2, @3",
+    getAdminReclamations:   "exec dbo.sp_GetAdminReclamations     @0, @1, @2, @3, @4",
     getReclamationDetails:  "exec dbo.sp_GetReclamationDetails    @0, @1, @2, @3",
     createReclamation:      "exec dbo.sp_CreateReclamation        @0, @1, @2, @3, @4, @5, @6",
     addMessageReclamation:  "exec dbo.sp_AddMessageReclamation    @0, @1, @2, @3, @4, @5, @6",
@@ -30,15 +30,15 @@ const qry = {
     deleteMessageReclamation: "exec dbo.sp_DeleteMessageReclamation @0, @1, @2, @3",
     getReclamationStatut:   "exec dbo.sp_GetReclamationStatut @0",
 
-    getUsers:              "exec dbo.ps_GetUsers              @0, @1, @2",
-    getSimulationList:     "exec dbo.ps_GetSimulationList     @0, @1, @2",
-    getUserSimulationClients: "exec dbo.ps_GetUserSimulationClients @0, @1, @2, @3",
+    getUsers:              "exec dbo.ps_GetUsers              @0, @1, @2, @3",
+    getSimulationList:     "exec dbo.ps_GetSimulationList     @0, @1, @2, @3",
+    getUserSimulationClients: "exec dbo.ps_GetUserSimulationClients @0, @1, @2, @3, @4",
     addUserSimulationClient:  "exec dbo.ps_AddUserSimulationClient  @0, @1, @2, @3, @4, @5",
     deleteUserSimulationClient: "exec dbo.ps_DeleteUserSimulationClient @0, @1, @2, @3, @4, @5",
     saveUser:              "exec dbo.ps_SaveUser              @0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11",
     deleteUser:            "exec dbo.ps_DeleteUser            @0, @1, @2, @3, @4",
     // @3 = role (admin_cabinet | commercial_cabinet) pour filtrer les clients du commercial
-    getClients:            "exec dbo.ps_GetClients            @0, @1, @2, @3",
+    getClients:            "exec dbo.ps_GetClients            @0, @1, @2, @3, @4",
     createUserFromClient:  "exec dbo.ps_CreateUserFromClient  @0, @1, @2, @3, @4",
     createUserFromAdherent:"exec dbo.ps_CreateUserFromAdherent @0, @1, @2, @3, @4",
     syncKeycloak:          "exec dbo.ps_SyncKeycloak           @0, @1, @2, @3, @4",
@@ -61,17 +61,34 @@ const qry = {
     checkSimulationPermission: "exec dbo.ps_CheckSimulationPermission @0, @1",
 
     getUserActiveSites: "exec dbo.sp_GetUserSites @0",
-    getAllSites:         "SELECT Id, Code, RaisonSociale, Adresse, Ville, Actif FROM dbo.Sites WHERE Actif = 'O' ORDER BY RaisonSociale",
-    getSiteById:        "SELECT Id, Code, RaisonSociale, Adresse, Ville, Actif FROM dbo.Sites WHERE Id = @0",
-    createSite:         "INSERT INTO dbo.Sites (Code, RaisonSociale, Adresse, Ville, Actif) OUTPUT INSERTED.Id VALUES (@0, @1, @2, @3, @4)",
-    updateSite:         "UPDATE dbo.Sites SET Code = @1, RaisonSociale = @2, Adresse = @3, Ville = @4, Actif = @5 WHERE Id = @0",
-    deleteSite:         "UPDATE dbo.Sites SET Actif = 'N' WHERE Id = @0",
+    getUserPermissions: "exec dbo.sp_GetUserSitesPermissions @0",
+    getAllSites:         "exec dbo.sp_GetAllSites",
+    getSiteById:        "exec dbo.sp_GetSiteById @0",
+    createSite:         "exec dbo.sp_CreateSite @0, @1, @2, @3, @4",
+    updateSite:         "exec dbo.sp_UpdateSite @0, @1, @2, @3, @4, @5",
+    deleteSite:         "exec dbo.sp_DeleteSite @0",
 
-    uploadDocument:          "exec dbo.sp_UploadDocument @userId=@userId, @token=@token, @nature=@nature, @identifiant=@identifiant, @type=@type, @document=@document, @fk_site_id=@siteId",
-    getDocuments:            "exec dbo.sp_GetDocuments @userId=@userId, @token=@token, @source=@source, @nature=@nature, @identifiant=@identifiant, @dateFrom=@dateFrom, @dateTo=@dateTo",
-    getDocumentById:         "exec dbo.sp_GetDocumentById @userId=@userId, @token=@token, @source=@source, @documentId=@documentId",
-    deleteDocument:          "exec dbo.sp_DeleteDocument @userId=@userId, @token=@token, @source=@source, @documentId=@documentId, @fk_site_id=@siteId",
-    updateDocumentTransfere: "exec dbo.sp_UpdateDocumentTransfere @userId=@userId, @token=@token, @source=@source, @documentId=@documentId, @transfere=@transfere, @fk_site_id=@siteId",
+    uploadDocument:          "exec dbo.sp_UploadDocument @FK_User_Id=@userId, @Token=@token, @Nature=@nature, @Identifiant=@identifiant, @Type=@type, @Document=@document, @fk_site_id=@siteId",
+    getDocuments:            "exec dbo.sp_GetDocuments @FK_User_Id=@userId, @Token=@token, @Source=@source, @Nature=@nature, @Identifiant=@identifiant, @DateFrom=@dateFrom, @DateTo=@dateTo, @fk_site_id=@siteId",
+    getDocumentById:         "exec dbo.sp_GetDocumentById @FK_User_Id=@userId, @Token=@token, @Source=@source, @DocumentId=@documentId",
+    deleteDocument:          "exec dbo.sp_DeleteDocument @FK_User_Id=@userId, @Token=@token, @Source=@source, @DocumentId=@documentId, @fk_site_id=@siteId",
+    updateDocumentTransfere: "exec dbo.sp_UpdateDocumentTransfere @FK_User_Id=@userId, @Token=@token, @Source=@source, @DocumentId=@documentId, @Transfere=@transfere, @fk_site_id=@siteId",
+
+    getSiteRoles: "exec dbo.sp_GetSiteRoles @0",
+    createSiteRole: "exec dbo.sp_CreateSiteRole @0, @1, @2",
+    updateSiteRole: "exec dbo.sp_UpdateSiteRole @0, @1, @2, @3",
+    deleteSiteRole: "exec dbo.sp_DeleteSiteRole @0",
+    
+    getSitePermissions: "exec dbo.sp_GetSitePermissions",
+    
+    getSiteRolePermissions: "exec dbo.sp_GetSiteRolePermissions @0",
+    setSiteRolePermission: "exec dbo.sp_SetSiteRolePermission @0, @1, @2",
+    
+    getUserSiteRoles: "exec dbo.sp_GetUserSiteRoles @0, @1",
+    assignUserSiteRole: "exec dbo.sp_AssignUserSiteRole @0, @1, @2",
+    removeUserSiteRole: "exec dbo.sp_RemoveUserSiteRole @0, @1, @2",
+    
+    getUserPermissionsBySite: "exec dbo.sp_GetUserPermissionsBySite @0, @1"
 };
 
 module.exports = qry;

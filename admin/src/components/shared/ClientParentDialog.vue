@@ -7,6 +7,9 @@ import { Building2, Search, X } from 'lucide-vue-next'
 import { Input } from '@/components/ui/input'
 import { api } from '@/lib/api'
 import { toast } from '@/components/ui/sonner'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   open: boolean
@@ -27,7 +30,7 @@ const fetchClients = async () => {
     // Filtrer le client lui-même pour éviter l'auto-référence
     clientsList.value = rawClients.filter((c: any) => c.id !== props.clientId)
   } catch (e: any) {
-    toast.error(e.message || 'Erreur lors du chargement des clients')
+    toast.error(e.message || t('clients.toast_load_error'))
   } finally {
     loading.value = false
   }

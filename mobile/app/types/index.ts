@@ -1,8 +1,5 @@
-// ============================================================
 // Types globaux de l'application AssurPlus
-// ============================================================
 
-// --- Utilisateur ---
 export interface User {
   id: number;
   nom: string;
@@ -23,7 +20,6 @@ export interface AuthState {
   isAuthenticated: boolean;
 }
 
-// --- Police d'assurance ---
 export interface Police {
   id: number;
   num_police: string;
@@ -44,7 +40,6 @@ export interface Police {
   date_echeance?: string;
 }
 
-// --- Quittance ---
 export interface Quittance {
   id: number;
   num_quittance: string;
@@ -62,7 +57,6 @@ export interface Quittance {
   is_active?: number;
 }
 
-// --- Sinistre ---
 export interface Sinistre {
   id: number;
   num_police?: string;
@@ -82,7 +76,6 @@ export interface Sinistre {
   identifiant?: string;
 }
 
-// --- Règlement sinistre ---
 export interface SinReglement {
   id: number;
   sinistre_id: number;
@@ -92,7 +85,6 @@ export interface SinReglement {
   etat: string;
 }
 
-// --- Réponses API ---
 export interface ApiResponse<T> {
   message?: string;
   data?: T; // Pour certains points de terminaison qui pourraient encore utiliser ce format

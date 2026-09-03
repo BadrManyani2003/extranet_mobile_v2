@@ -10,8 +10,10 @@ import ConfirmModal from '@/components/shared/ConfirmModal.vue'
 import { api } from '@/lib/api'
 import { toast } from '@/components/ui/sonner'
 import { Trash2 } from 'lucide-vue-next'
+import { usePermissions } from '@/composables/usePermissions'
 
 const { t } = useI18n()
+const { hasPermission } = usePermissions()
 
 const reclamations = ref<any[]>([])
 const selectedTicket = ref<any>(null)
@@ -97,7 +99,6 @@ const selectTicket = async (ticket: any) => {
 const handleSendMessage = async (text: string) => {
   if (!selectedTicket.value) return
   
-  // Mise à jour optimiste
   const tempMsg = {
     id: Date.now(),
     message: text,
@@ -109,14 +110,11 @@ const handleSendMessage = async (text: string) => {
   
   try { 
     await api.admin.replyToReclamation(selectedTicket.value.id, text)
-    toast.success(t('reclamations.toast_reply_success'))
     selectedTicket.value.statut = 'En cours'
-    // Rafraîchir pour obtenir les données finales du serveur
     const freshMessages = await api.data.getMessages(selectedTicket.value.id)
     messages.value = freshMessages
   } catch (e: any) { 
     toast.error(e.message)
-    // Supprimer le message optimiste en cas d'erreur
     messages.value = messages.value.filter(m => m.id !== tempMsg.id)
     console.error(e) 
   }
@@ -231,9 +229,9 @@ onMounted(() => {
           </p>
         </div>
         <div class="flex gap-2 items-center">
-          <Button v-if="selectedTicket.statut !== 'En cours' && selectedTicket.statut !== 'E'" size="sm" variant="outline" @click="handleStatusUpdate('E')" class="rounded-xl border-orange-200 text-orange-600 hover:bg-orange-50 font-bold text-[14px] uppercase tracking-wider">{{ $t('reclamations.en_cours') }}</Button>
-          <Button v-if="selectedTicket.statut !== 'Clôturé' && selectedTicket.statut !== 'C'" size="sm" variant="outline" @click="handleStatusUpdate('C')" class="rounded-xl border-slate-200 text-slate-600 hover:bg-slate-50 font-bold text-[14px] uppercase tracking-wider">{{ $t('reclamations.close_ticket') }}</Button>
-          <Button size="icon" variant="ghost" @click="isDeleteRecDialogOpen = true" class="rounded-xl h-10 w-10 text-slate-400 hover:text-red-500 hover:bg-red-50 shrink-0 transition-colors">
+          <Button v-if="hasPermission('reclamations:modifier') && selectedTicket.statut !== 'En cours' && selectedTicket.statut !== 'E'" size="sm" variant="outline" @click="handleStatusUpdate('E')" class="rounded-xl border-orange-200 text-orange-600 hover:bg-orange-50 font-bold text-[14px] uppercase tracking-wider">{{ $t('reclamations.en_cours') }}</Button>
+          <Button v-if="hasPermission('reclamations:modifier') && selectedTicket.statut !== 'Clôturé' && selectedTicket.statut !== 'C'" size="sm" variant="outline" @click="handleStatusUpdate('C')" class="rounded-xl border-slate-200 text-slate-600 hover:bg-slate-50 font-bold text-[14px] uppercase tracking-wider">{{ $t('reclamations.close_ticket') }}</Button>
+          <Button v-if="hasPermission('reclamations:supprimer')" size="icon" variant="ghost" @click="isDeleteRecDialogOpen = true" class="rounded-xl h-10 w-10 text-slate-400 hover:text-red-500 hover:bg-red-50 shrink-0 transition-colors">
             <Trash2 class="w-5 h-5" />
           </Button>
         </div>
@@ -245,6 +243,8 @@ onMounted(() => {
         :selected-ticket="selectedTicket" 
         :current-user-id="currentUser?.id" 
         selfNature="Admin"
+        :can-reply="hasPermission('reclamations:modifier')"
+        :can-delete="hasPermission('reclamations:supprimer')"
         @send="handleSendMessage" 
         @delete-message="handleDeleteMessage" 
       />

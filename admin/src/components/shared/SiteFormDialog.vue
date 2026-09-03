@@ -32,39 +32,39 @@ const save = () => {
   <Dialog :open="open" @update:open="emit('close')">
     <DialogContent class="sm:max-w-[425px]">
       <DialogHeader>
-        <DialogTitle>{{ activeSite.Id ? 'Modifier le site' : 'Nouveau site' }}</DialogTitle>
+        <DialogTitle>{{ activeSite.Id ? $t('sites.form.edit_title') : $t('sites.form.add_title') }}</DialogTitle>
       </DialogHeader>
       
       <div class="grid gap-4 py-4">
         <div class="grid gap-2">
-          <Label for="code">Code</Label>
-          <Input id="code" v-model="activeSite.Code" placeholder="ex: CAS-01" />
+          <Label for="code">{{ $t('sites.form.code') }}</Label>
+          <Input id="code" v-model="activeSite.Code" :placeholder="$t('sites.form.code_placeholder')" />
         </div>
         <div class="grid gap-2">
-          <Label for="raison">Raison Sociale <span class="text-red-500">*</span></Label>
-          <Input id="raison" v-model="activeSite.RaisonSociale" placeholder="Nom de l'agence" />
+          <Label for="raison">{{ $t('sites.form.raison_sociale') }} <span class="text-red-500">*</span></Label>
+          <Input id="raison" v-model="activeSite.RaisonSociale" :placeholder="$t('sites.form.raison_sociale_placeholder')" />
         </div>
         <div class="grid gap-2">
-          <Label for="ville">Ville</Label>
+          <Label for="ville">{{ $t('sites.form.ville') }}</Label>
           <Input id="ville" v-model="activeSite.Ville" />
         </div>
         <div class="grid gap-2">
-          <Label for="adresse">Adresse</Label>
+          <Label for="adresse">{{ $t('sites.form.adresse') }}</Label>
           <Input id="adresse" v-model="activeSite.Adresse" />
         </div>
         <div class="grid gap-2 mt-2">
-          <Label>Statut</Label>
+          <Label>{{ $t('sites.form.status') }}</Label>
           <select v-model="activeSite.Actif" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-            <option value="O">Actif</option>
-            <option value="N">Inactif</option>
+            <option value="O">{{ $t('sites.form.active') }}</option>
+            <option value="N">{{ $t('sites.form.inactive') }}</option>
           </select>
         </div>
       </div>
 
       <DialogFooter>
-        <Button variant="outline" @click="emit('close')" :disabled="processing">Annuler</Button>
+        <Button variant="outline" @click="emit('close')" :disabled="processing">{{ $t('commun.cancel') }}</Button>
         <Button @click="save" :disabled="processing || !activeSite.RaisonSociale">
-          {{ processing ? 'Enregistrement...' : 'Enregistrer' }}
+          {{ processing ? $t('commun.saving') : $t('commun.save') }}
         </Button>
       </DialogFooter>
     </DialogContent>

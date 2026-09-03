@@ -25,9 +25,7 @@ const props = defineProps<{
 
 const { t } = useI18n()
 
-// ----------------------------------------------------
 // 2. Chart 2: ITT Rate and Avg ITT Days (Line)
-// ----------------------------------------------------
 const lineChartData = computed(() => {
   const years = props.evolutionData ? props.evolutionData.map((item: any) => String(item.annee)) : []
   const tauxITT = props.evolutionData ? props.evolutionData.map((item: any) => item.tauxITT) : []
@@ -97,9 +95,7 @@ const lineChartOptions = computed(() => {
   }
 })
 
-// ----------------------------------------------------
 // 3. Chart 3: Montant ITT per Year (Bar)
-// ----------------------------------------------------
 const barMntChartData = computed(() => {
   const years = props.evolutionData ? props.evolutionData.map((item: any) => String(item.annee)) : []
   const mntITT = props.evolutionData ? props.evolutionData.map((item: any) => item.mntITT) : []

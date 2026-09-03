@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useUserStore } from '@/store/user'
 import { useI18n } from 'vue-i18n'
-import { AlertCircle, Calendar, Clock, Info, Shield, Wallet, FileText, User, MapPin, Activity, ShieldAlert, Upload, FileSpreadsheet } from 'lucide-vue-next'
+import { AlertCircle, Calendar, Clock, Info, Shield, Wallet, FileText, Activity, ShieldAlert, Upload, FileSpreadsheet } from 'lucide-vue-next'
 import { CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import {
@@ -35,7 +35,6 @@ const emit = defineEmits(['update:searchQuery'])
 
 const activeSubTabs = ref<Record<string, string>>({})
 
-// ─── Upload dialog state ─────────────────────────────────────────────────────
 const uploadDialog  = ref(false)
 const uploadSinistre = ref<any>(null)
 
@@ -57,8 +56,6 @@ const sinistresFiltres = computed(() => {
     String(s.objet || '').toLowerCase().includes(requete)
   )
 })
-
-import { watch } from 'vue'
 
 const itemsLimit = ref(20)
 
@@ -126,7 +123,7 @@ const exportSynthesis = async () => {
           :disabled="isExporting"
         >
           <FileSpreadsheet class="w-4 h-4" />
-          {{ isExporting ? $t('commun.loading') : $t('commun.download') }}
+          {{ isExporting ? $t('commun.loading') : $t('commun.export_excel') }}
         </Button>
       </template>
     </SectionHeader>
@@ -168,7 +165,6 @@ const exportSynthesis = async () => {
             </AccordionTrigger>
             
             <AccordionContent class="px-6 pb-6 pt-2 border-t border-slate-200 bg-white/60">
-              <!-- Tab Header -->
               <div class="flex flex-wrap gap-1.5 border-b border-slate-200/80 pb-3 mt-4">
                 <button
                   v-for="tab in ['accident', 'lesions', 'incapacites', 'finances']"
@@ -195,9 +191,7 @@ const exportSynthesis = async () => {
                 </button>
               </div>
 
-              <!-- Tab Contents -->
               <div class="mt-4">
-                <!-- Tab: Accident Details -->
                 <div v-if="(activeSubTabs[sin.numero] || 'accident') === 'accident'" class="bg-white/60 p-5 rounded-2xl border border-slate-200/60 flex flex-col gap-3 animate-in fade-in duration-200">
                    <h4 class="text-[14px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
                      <Info class="w-3.5 h-3.5 text-primary" /> {{ $t('sinistres.status_title') }}
@@ -234,7 +228,6 @@ const exportSynthesis = async () => {
                    </div>
                 </div>
 
-                <!-- Tab: Injuries & Circumstances -->
                 <div v-if="activeSubTabs[sin.numero] === 'lesions'" class="bg-white/60 p-5 rounded-2xl border border-slate-200/60 flex flex-col gap-3 animate-in fade-in duration-200">
                    <h4 class="text-[14px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
                      <ShieldAlert class="w-3.5 h-3.5 text-primary" /> {{ $t('sinistres.circonstances') }} / {{ $t('sinistres.lesions') }}
@@ -251,7 +244,6 @@ const exportSynthesis = async () => {
                    </div>
                 </div>
 
-                <!-- Tab: Disabilities -->
                 <div v-if="activeSubTabs[sin.numero] === 'incapacites'" class="bg-white/60 p-5 rounded-2xl border border-slate-200/60 flex flex-col gap-3 animate-in fade-in duration-200">
                    <h4 class="text-[14px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
                      <Activity class="w-3.5 h-3.5 text-primary" /> {{ $t('sinistres.disability_rates') }}
@@ -284,7 +276,6 @@ const exportSynthesis = async () => {
                    </div>
                 </div>
 
-                <!-- Tab: Financials -->
                 <div v-if="activeSubTabs[sin.numero] === 'finances'" class="bg-white/60 p-5 rounded-2xl border border-slate-200/60 flex flex-col gap-3 animate-in fade-in duration-200">
                    <h4 class="text-[14px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
                      <Wallet class="w-3.5 h-3.5 text-primary" /> {{ $t('sinistres.financial_title') }}
@@ -334,7 +325,6 @@ const exportSynthesis = async () => {
                 </div>
               </div>
 
-              <!-- Expert Notes -->
               <div v-if="sin.observation" class="mt-4 bg-white/60 p-4 rounded-2xl border border-slate-200/60 flex flex-col gap-2">
                  <h4 class="text-[14px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
                    <FileText class="w-3.5 h-3.5 text-slate-400" /> {{ $t('sinistres.expert_notes') }}
@@ -343,7 +333,6 @@ const exportSynthesis = async () => {
                    {{ sin.observation }}
                  </p>
               </div>
-              <!-- ── Bouton Charger un document ────────────────────────────── -->
               <div v-if="!userStore.impersonatedUser" class="mt-5 flex justify-end">
                 <Button
                   variant="outline"
@@ -373,9 +362,6 @@ const exportSynthesis = async () => {
       />
     </CardContent>
   </div>
-  <!-- ═══════════════════════════════════════════════════════════════════════ -->
-  <!-- Dialog : Chargement de document                                         -->
-  <!-- ═══════════════════════════════════════════════════════════════════════ -->
   <UploadDocumentDialog
     :open="uploadDialog"
     :sinistre="uploadSinistre"

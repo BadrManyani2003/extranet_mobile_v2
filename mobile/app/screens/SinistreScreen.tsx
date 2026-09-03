@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { FlatList, RefreshControl, Platform, TouchableOpacity, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Box, Text } from '../theme/restyle';
@@ -114,7 +114,7 @@ const SinistreScreen = () => {
     </TouchableOpacity>
   );
 
-  const renderItem = ({ item }: { item: any }) => (
+  const renderItem = useCallback(({ item }: { item: any }) => (
     <TouchableOpacity activeOpacity={0.8} onPress={() => navigation.navigate('SinistreDetail', { sinistre: item })}>
       <Box
         backgroundColor="cardBackground"
@@ -177,7 +177,7 @@ const SinistreScreen = () => {
         </Box>
       </Box>
     </TouchableOpacity>
-  );
+  ), [navigation, theme]);
 
   return (
     <Box flex={1} backgroundColor="background">

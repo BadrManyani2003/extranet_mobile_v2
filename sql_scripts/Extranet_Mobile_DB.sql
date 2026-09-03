@@ -8,6 +8,10 @@ GO
 USE IBS_Extranet_Mobile;
 GO
 
+IF OBJECT_ID('dbo.SiteRolePermission', 'U') IS NOT NULL DROP TABLE dbo.SiteRolePermission;
+IF OBJECT_ID('dbo.UserSiteRole', 'U') IS NOT NULL DROP TABLE dbo.UserSiteRole;
+IF OBJECT_ID('dbo.SiteRole', 'U') IS NOT NULL DROP TABLE dbo.SiteRole;
+IF OBJECT_ID('dbo.SitePermission', 'U') IS NOT NULL DROP TABLE dbo.SitePermission;
 IF OBJECT_ID('dbo.ReclamationsDet', 'U') IS NOT NULL DROP TABLE dbo.ReclamationsDet;
 IF OBJECT_ID('dbo.StdDocument', 'U') IS NOT NULL DROP TABLE dbo.StdDocument;
 IF OBJECT_ID('dbo.ReclamationsIdt', 'U') IS NOT NULL DROP TABLE dbo.ReclamationsIdt;
@@ -24,7 +28,7 @@ IF OBJECT_ID('dbo.Polices', 'U') IS NOT NULL DROP TABLE dbo.Polices;
 IF OBJECT_ID('dbo.UsersXClients', 'U') IS NOT NULL DROP TABLE dbo.UsersXClients;
 IF OBJECT_ID('dbo.Clients', 'U') IS NOT NULL DROP TABLE dbo.Clients;
 IF OBJECT_ID('dbo.Compagnies', 'U') IS NOT NULL DROP TABLE dbo.Compagnies;
-IF OBJECT_ID('dbo.Roles', 'U') IS NOT NULL DROP TABLE dbo.Roles;
+IF OBJECT_ID('dbo.Nature', 'U') IS NOT NULL DROP TABLE dbo.Nature;
 IF OBJECT_ID('dbo.userConnection', 'U') IS NOT NULL DROP TABLE dbo.userConnection;
 IF OBJECT_ID('dbo.Postes_Autorises', 'U') IS NOT NULL DROP TABLE dbo.Postes_Autorises;
 IF OBJECT_ID('dbo.UserSites', 'U') IS NOT NULL DROP TABLE dbo.UserSites;
@@ -44,8 +48,6 @@ CREATE TABLE dbo.Sites
     CONSTRAINT PK_Sites PRIMARY KEY CLUSTERED (Id)
 );
 GO
-
-
 
 CREATE TABLE dbo.sysUser
 (
@@ -107,11 +109,11 @@ CREATE TABLE dbo.userConnection
 );
 GO
 
-CREATE TABLE dbo.Roles
+CREATE TABLE dbo.Nature
 (
     Id INT NOT NULL IDENTITY(1,1),
     FK_User_Id INT NOT NULL,
-    Role VARCHAR(100) NOT NULL,
+    Nature VARCHAR(100) NOT NULL,
     CONSTRAINT PK_Roles PRIMARY KEY CLUSTERED (Id),
     CONSTRAINT FK_Roles_User FOREIGN KEY (FK_User_Id) REFERENCES dbo.sysUser(Id) ON DELETE CASCADE
 );
@@ -181,7 +183,7 @@ CREATE TABLE dbo.Polices
     Police VARCHAR(100) NULL,
     DateEcheance DATE NULL,
     Statut CHAR(1) NULL,
-    Module VARCHAR(100) NULL,
+    Module CHAR(1) NULL,
     DateEffet DATE NULL,
     PBistime DECIMAL(18,2) NULL,
     bp DECIMAL(18,2) NULL,
@@ -428,11 +430,67 @@ CREATE TABLE dbo.sinComplement
 );
 GO
 
+CREATE TABLE dbo.SiteRole (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    Name VARCHAR(100) NOT NULL,
+    Description VARCHAR(255),
+    SiteId INT NULL, 
+    CreatedAt DATETIME2 DEFAULT GETDATE(),
+    UpdatedAt DATETIME2 DEFAULT GETDATE()
+);
+GO
+
+CREATE TABLE dbo.SitePermission (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    Code VARCHAR(100) NOT NULL UNIQUE, 
+    Description VARCHAR(255),
+    CreatedAt DATETIME2 DEFAULT GETDATE()
+);
+GO
+CREATE TABLE dbo.SiteRolePermission (
+    SiteRoleId INT NOT NULL,
+    SitePermissionId INT NOT NULL,
+    Actif CHAR(1) NOT NULL DEFAULT 'O',
+    
+    CONSTRAINT PK_SiteRolePermission PRIMARY KEY (SiteRoleId, SitePermissionId),
+    CONSTRAINT FK_SiteRolePermission_Role FOREIGN KEY (SiteRoleId) REFERENCES dbo.SiteRole(Id) ON DELETE CASCADE,
+    CONSTRAINT FK_SiteRolePermission_Permission FOREIGN KEY (SitePermissionId) REFERENCES dbo.SitePermission(Id) ON DELETE CASCADE
+);
+GO
+
+CREATE TABLE dbo.UserSiteRole (
+    UserId INT NOT NULL,     
+    SiteId INT NOT NULL,     
+    SiteRoleId INT NOT NULL,  
+    
+    CONSTRAINT PK_UserSiteRole PRIMARY KEY (UserId, SiteId, SiteRoleId),
+    CONSTRAINT FK_UserSiteRole_User FOREIGN KEY (UserId) REFERENCES dbo.sysUser(Id) ON DELETE CASCADE,
+    CONSTRAINT FK_UserSiteRole_Site FOREIGN KEY (SiteId) REFERENCES dbo.Sites(Id) ON DELETE CASCADE,
+    CONSTRAINT FK_UserSiteRole_SiteRole FOREIGN KEY (SiteRoleId) REFERENCES dbo.SiteRole(Id) ON DELETE CASCADE
+);
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_UserSiteRole_SiteId' AND object_id = OBJECT_ID('dbo.UserSiteRole'))
+    CREATE NONCLUSTERED INDEX IX_UserSiteRole_SiteId ON dbo.UserSiteRole(SiteId);
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_UserSiteRole_SiteRoleId' AND object_id = OBJECT_ID('dbo.UserSiteRole'))
+    CREATE NONCLUSTERED INDEX IX_UserSiteRole_SiteRoleId ON dbo.UserSiteRole(SiteRoleId);
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_SiteRolePermission_SitePermissionId' AND object_id = OBJECT_ID('dbo.SiteRolePermission'))
+    CREATE NONCLUSTERED INDEX IX_SiteRolePermission_SitePermissionId ON dbo.SiteRolePermission(SitePermissionId);
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_SiteRole_SiteId' AND object_id = OBJECT_ID('dbo.SiteRole'))
+    CREATE NONCLUSTERED INDEX IX_SiteRole_SiteId ON dbo.SiteRole(SiteId);
+GO
+
 CREATE NONCLUSTERED INDEX IX_sysUser_Email ON dbo.sysUser(Email);
 CREATE NONCLUSTERED INDEX IX_Postes_Autorises_User ON dbo.Postes_Autorises(FK_User_Id);
 CREATE NONCLUSTERED INDEX IX_userConnection_User ON dbo.userConnection(FK_User_Id);
 CREATE NONCLUSTERED INDEX IX_userConnection_Date ON dbo.userConnection(DateConnection);
-CREATE NONCLUSTERED INDEX IX_Roles_User ON dbo.Roles(FK_User_Id);
+CREATE NONCLUSTERED INDEX IX_Roles_User ON dbo.Nature(FK_User_Id);
 CREATE NONCLUSTERED INDEX IX_UsersXClients_Client ON dbo.UsersXClients(FK_Client_Id);
 CREATE NONCLUSTERED INDEX IX_UserSimulationClients_Client ON dbo.UserSimulationClients(fk_client_id);
 CREATE NONCLUSTERED INDEX IX_Polices_Client ON dbo.Polices(Fk_Client_Id);
@@ -461,5 +519,3 @@ CREATE NONCLUSTERED INDEX IX_StdDocument_User ON dbo.StdDocument(FK_User_Id);
 CREATE NONCLUSTERED INDEX IX_StdDocument_DateCreation ON dbo.StdDocument(DateCreation);
 CREATE NONCLUSTERED INDEX IX_sinComplement_Sinistre ON dbo.sinComplement(fk_sinistre_id);
 GO
-
-

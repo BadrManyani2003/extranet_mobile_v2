@@ -36,6 +36,13 @@ const handleChangePassword = () => {
   showPasswordModal.value = true
 }
 
+const handleSiteChange = (event: Event) => {
+  const target = event.target as HTMLSelectElement
+  if (target) {
+    siteStore.setSelectedSite(Number(target.value))
+  }
+}
+
 const closeDropdown = (e: MouseEvent) => {
   if (dropdownRef.value && !dropdownRef.value.contains(e.target as Node)) {
     isDropdownOpen.value = false
@@ -72,7 +79,18 @@ onUnmounted(() => {
         <span class="text-sm font-black uppercase tracking-widest text-slate-600">{{ locale }}</span>
       </button> -->
 
-      <!-- Le sélecteur de site a été retiré pour les clients (un seul site assigné) -->
+      <!-- Selecteur de Site -->
+      <div v-if="siteStore.hasMultipleSites" class="hidden sm:flex items-center">
+        <select 
+          :value="siteStore.selectedSiteId" 
+          @change="handleSiteChange"
+          class="bg-white/50 border border-slate-200 text-slate-700 text-sm rounded-xl focus:ring-primary focus:border-primary block w-full px-3 py-2 font-medium shadow-sm hover:border-slate-300 transition-colors cursor-pointer outline-none"
+        >
+          <option v-for="site in siteStore.sites" :key="site.Id" :value="site.Id">
+            {{ site.RaisonSociale }}
+          </option>
+        </select>
+      </div>
 
       <div class="flex items-center gap-3 relative" ref="dropdownRef">
         <button 

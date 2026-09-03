@@ -31,7 +31,10 @@ export async function request<T>(endpoint: string, options: RequestInit = {}): P
     return null;
   }
 
-  const currentSiteId = getCookie('currentSiteId') || localStorage.getItem('currentSiteId');
+  let currentSiteId = getCookie('currentSiteId') || localStorage.getItem('currentSiteId');
+  if (currentSiteId === 'undefined' || currentSiteId === 'null') {
+    currentSiteId = null;
+  }
   if (currentSiteId) {
     headers.set('x-site-id', currentSiteId);
   }
@@ -75,6 +78,15 @@ export async function request<T>(endpoint: string, options: RequestInit = {}): P
       delete requestOptions.body
     } catch (e) {
       console.warn('Failed to parse GET body as JSON params', e)
+    }
+  } else if (method !== 'GET' && options.body) {
+    if (options.body instanceof FormData && currentSiteId) {
+      if (!options.body.has('fk_site_id')) {
+        options.body.append('fk_site_id', currentSiteId);
+      }
+      if (!options.body.has('siteId')) {
+        options.body.append('siteId', currentSiteId);
+      }
     }
   }
 

@@ -331,7 +331,8 @@
     "date_from": "Du",
     "date_to": "Au",
     "load_more": "Charger plus",
-    "change_password": "Changer le mot de passe"
+    "change_password": "Changer le mot de passe",
+    "export_excel": "Exporter vers Excel"
   },
   "statuts": {
     "actif": "Actif",

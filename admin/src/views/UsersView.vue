@@ -1,27 +1,43 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+
 import { Button } from '@/components/ui/button'
-import { Edit, Trash2, RefreshCcw, ShieldCheck, UserCircle, Users, Globe } from 'lucide-vue-next'
+import { Edit, Trash2, RefreshCcw, ShieldCheck, UserCircle, Users, Globe, MoreVertical } from 'lucide-vue-next'
 import { Badge } from '@/components/ui/badge'
-import DataTableWrapper from '@/components/shared/DataTableWrapper.vue'
+import ExpertDataTable, { type DataTableColumn } from '@/components/shared/ExpertDataTable.vue'
 import ConfirmModal from '@/components/shared/ConfirmModal.vue'
 import UserFormDialog from '@/components/shared/UserFormDialog.vue'
 import UserRolesDialog from '@/components/shared/UserRolesDialog.vue'
 import UserSimulationsDialog from '@/components/shared/UserSimulationsDialog.vue'
 import UserSitesDialog from '@/components/shared/UserSitesDialog.vue'
+import UserSiteRolesDialog from '@/components/shared/UserSiteRolesDialog.vue'
 import { api } from '@/lib/api'
 import { toast } from '@/components/ui/sonner'
 import { useI18n } from 'vue-i18n'
-import { useRole } from '@/composables/useRole'
+import { usePermissions } from '@/composables/usePermissions'
 
 const { t } = useI18n()
-const { isAdmin } = useRole()
+const { hasPermission } = usePermissions()
+import { computed } from 'vue'
 
-// -- States
+const tableColumns = computed<DataTableColumn[]>(() => {
+  const cols: DataTableColumn[] = [
+    { id: 'nom', label: t('users.table.name'), className: 'min-w-[260px]' },
+    { id: 'email', label: t('users.table.email') },
+    { id: 'nature', label: t('users.table.nature') },
+    { id: 'roles', label: t('users.table.roles') },
+    { id: 'status', label: t('users.table.status') }
+  ]
+  if (hasPermission('simulations:lire') || hasPermission('utilisateurs:gerer_sites') || hasPermission('utilisateurs:gerer_permissions_sites') || hasPermission('utilisateurs:gerer_roles') || hasPermission('utilisateurs:modifier') || hasPermission('utilisateurs:supprimer')) {
+    cols.push({ id: 'actions', label: t('users.table.actions'), align: 'right', className: 'pr-8', cellClass: 'pr-8' })
+  }
+  return cols
+})
+
 const users = ref<any[]>([])
 const loading = ref(true)
 const processing = ref(false)
+const activeDropdown = ref<number | null>(null)
 
 const dialogs = ref({
   edit: false,
@@ -29,12 +45,19 @@ const dialogs = ref({
   delete: false,
   sync: false,
   simulations: false,
-  sites: false
+  sites: false,
+  siteRoles: false
 })
 
 const activeUser = ref<any>(null)
 
-// -- Actions
+onMounted(() => {
+  document.addEventListener('click', () => {
+    activeDropdown.value = null
+  })
+  fetchUsers()
+})
+
 const fetchUsers = async () => {
   loading.value = true
   try { users.value = await api.admin.getUsers() } 
@@ -86,102 +109,109 @@ const openSites = (user: any) => {
   dialogs.value.sites = true
 }
 
-onMounted(() => {
-  fetchUsers()
-})
+const openSiteRoles = (user: any) => {
+  activeUser.value = user
+  dialogs.value.siteRoles = true
+}
 </script>
 
 <template>
-  <DataTableWrapper 
+  <ExpertDataTable 
     :title="$t('users.title')" 
-    :description="$t('users.subtitle')"
+    :description="$t('users.description')"
     :items="users"
+    :columns="tableColumns"
     :loading="loading"
-    :add-button-label="$t('users.add_button')"
-    :search-placeholder="$t('users.search_placeholder')"
+    :add-button-label="hasPermission('utilisateurs:creer') ? $t('users.add') : undefined"
+    :search-placeholder="$t('users.search')"
     @add="openEdit()"
   >
-    <template #default="{ items }">
-      <Table class="border-t border-slate-100 w-full min-w-[1000px]">
-        <TableHeader class="bg-slate-50/50">
-          <TableRow>
-            <TableHead class="table-header-text min-w-[260px]">{{ $t('users.table.name') }}</TableHead>
-            <TableHead class="table-header-text">{{ $t('users.table.email') }}</TableHead>
-            <TableHead class="table-header-text">{{ $t('users.table.nature') }}</TableHead>
-            <TableHead class="table-header-text">{{ $t('users.table.roles') }}</TableHead>
-            <TableHead class="table-header-text">{{ $t('users.table.status') }}</TableHead>
-            <TableHead class="text-right table-header-text pr-8">{{ $t('users.table.actions') }}</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          <TableRow v-for="user in items" :key="user.id" class="group hover:bg-slate-50/50 transition-colors border-b border-slate-50">
-            <TableCell class="py-4">
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-primary group-hover:text-primary-foreground transition-all shadow-sm">
-                  <UserCircle class="w-6 h-6" />
-                </div>
-                <div>
-                  <div class="font-bold text-slate-900 tracking-tight text-base">{{ user.nom }}</div>
-                </div>
-              </div>
-            </TableCell>
-            <TableCell>
-              <div class="flex flex-col">
-                <span class="text-sm font-bold text-slate-700">{{ user.email }}</span>
-                <span class="text-[14px] text-slate-400 font-medium mt-0.5">{{ user.telephone || '---' }}</span>
-              </div>
-            </TableCell>
-            <TableCell>
-              <Badge v-if="user.nature === 'C'" variant="secondary" class="bg-emerald-50 text-emerald-600 border-emerald-100 text-[14px] font-black uppercase tracking-widest px-2 py-0.5 rounded-lg">{{ $t('users.natures.client') }}</Badge>
-              <Badge v-else-if="user.nature === 'A'" variant="secondary" class="bg-orange-50 text-orange-600 border-orange-100 text-[14px] font-black uppercase tracking-widest px-2 py-0.5 rounded-lg">{{ $t('users.natures.cabinet') }}</Badge>
-              <Badge v-else-if="user.nature === 'E'" variant="secondary" class="bg-blue-50 text-blue-600 border-blue-100 text-[14px] font-black uppercase tracking-widest px-2 py-0.5 rounded-lg">{{ $t('users.natures.expert') }}</Badge>
-              <Badge v-else-if="user.nature === 'P'" variant="secondary" class="bg-indigo-50 text-indigo-600 border-indigo-100 text-[14px] font-black uppercase tracking-widest px-2 py-0.5 rounded-lg">{{ $t('users.natures.poste') }}</Badge>
-              <span v-else class="text-slate-300 italic text-[14px]">{{ user.nature || '-' }}</span>
-            </TableCell>
-            <TableCell>
-              <div class="flex flex-wrap gap-1 max-w-[280px]">
-                <Badge v-for="role in (user.roles?.split(', ') || [])" :key="role" 
-                  class="bg-white border border-slate-100 text-slate-500 text-[14px] font-black uppercase tracking-tight py-0.5 px-1.5 shadow-sm">
-                  {{ role }}
-                </Badge>
-                <span v-if="!user.roles" class="text-[14px] text-slate-300 font-bold uppercase tracking-widest italic">( - )</span>
-              </div>
-            </TableCell>
-            <TableCell>
-              <div class="flex flex-col gap-1.5">
-                <div v-if="user.idAuth" class="flex items-center gap-2">
-                  <div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-                  <span class="text-emerald-600 text-[14px] font-black uppercase tracking-widest">{{ $t('statuts.actif') }}</span>
-                </div>
-                <Button v-else-if="user.canManage !== 0" variant="ghost" size="sm" class="h-8 gap-2 text-[14px] text-orange-600 font-black hover:bg-orange-50 rounded-xl px-2" @click="activeUser = user; dialogs.sync = true">
-                  <RefreshCcw class="w-3 h-3" /> {{ $t('statuts.sync') }}
-                </Button>
-                <div v-else class="flex items-center gap-2">
-                  <div class="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
-                  <span class="text-slate-400 text-[14px] font-black uppercase tracking-widest">{{ $t('statuts.inactif') }}</span>
-                </div>
-              </div>
-            </TableCell>
-            <TableCell class="text-right pr-8">
-              <div class="flex justify-end gap-1">
-                <Button v-if="isAdmin && (['A', 'E', 'P'].includes(user.nature) || user.roles?.toLowerCase().includes('admin') || user.roles?.toLowerCase().includes('commercial'))" variant="ghost" size="sm" class="h-9 px-3 premium-button text-slate-600 hover:bg-primary hover:text-primary-foreground" @click="openSimulations(user)">
-                  <Users class="w-4 h-4 mr-2" /> {{ $t('statuts.simulations') }}
-                </Button>
-                <Button v-if="isAdmin" variant="ghost" size="sm" class="h-9 px-3 premium-button text-emerald-600 hover:bg-emerald-600 hover:text-white" @click="openSites(user)">
-                  <Globe class="w-4 h-4 mr-2" /> Sites
-                </Button>
-                <Button v-if="isAdmin && user.idAuth" variant="ghost" size="sm" class="h-9 px-3 premium-button text-slate-600 hover:bg-primary hover:text-primary-foreground" @click="openRoles(user)">
-                  <ShieldCheck class="w-4 h-4 mr-2" /> {{ $t('users.table.roles') }}
-                </Button>
-                <Button v-if="user.canManage !== 0" variant="ghost" size="icon" class="h-9 w-9 rounded-xl hover:bg-slate-200" @click="openEdit(user)"><Edit class="w-4 h-4 text-slate-600" /></Button>
-                <Button v-if="user.canManage !== 0" variant="ghost" size="icon" class="h-9 w-9 rounded-xl hover:bg-red-50 text-red-500" @click="activeUser = user; dialogs.delete = true"><Trash2 class="w-4 h-4" /></Button>
-              </div>
-            </TableCell>
-          </TableRow>
-        </TableBody>
-      </Table>
+    <template #cell-nom="{ item }">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-primary group-hover:text-primary-foreground transition-all shadow-sm">
+          <UserCircle class="w-6 h-6" />
+        </div>
+        <div>
+          <div class="font-bold text-slate-900 tracking-tight text-base">{{ item.nom }}</div>
+        </div>
+      </div>
     </template>
-  </DataTableWrapper>
+
+    <template #cell-email="{ item }">
+      <div class="flex flex-col">
+        <span class="text-sm font-bold text-slate-700">{{ item.email }}</span>
+        <span class="text-[14px] text-slate-400 font-medium mt-0.5">{{ item.telephone || '---' }}</span>
+      </div>
+    </template>
+
+    <template #cell-nature="{ item }">
+      <Badge v-if="item.nature === 'C'" variant="secondary" class="bg-emerald-50 text-emerald-600 border-emerald-100 text-[14px] font-black uppercase tracking-widest px-2 py-0.5 rounded-lg">{{ $t('users.natures.client') }}</Badge>
+      <Badge v-else-if="item.nature === 'A'" variant="secondary" class="bg-orange-50 text-orange-600 border-orange-100 text-[14px] font-black uppercase tracking-widest px-2 py-0.5 rounded-lg">{{ $t('users.natures.cabinet') }}</Badge>
+      <span v-else class="text-slate-300 italic text-[14px]">{{ item.nature || '-' }}</span>
+    </template>
+
+    <template #cell-roles="{ item }">
+      <div class="flex flex-wrap gap-1 max-w-[280px]">
+        <Badge v-for="role in (item.roles?.split(', ') || [])" :key="role" 
+          class="bg-white border border-slate-100 text-slate-500 text-[14px] font-black uppercase tracking-tight py-0.5 px-1.5 shadow-sm">
+          {{ role }}
+        </Badge>
+        <span v-if="!item.roles" class="text-[14px] text-slate-300 font-bold uppercase tracking-widest italic">( - )</span>
+      </div>
+    </template>
+
+    <template #cell-status="{ item }">
+      <div class="flex flex-col gap-1.5">
+        <div v-if="item.idAuth" class="flex items-center gap-2">
+          <div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+          <span class="text-emerald-600 text-[14px] font-black uppercase tracking-widest">{{ $t('statuts.actif') }}</span>
+        </div>
+        <Button v-else-if="item.canManage !== 0 && hasPermission('utilisateurs:synchroniser')" variant="ghost" size="sm" class="h-8 gap-2 text-[14px] text-orange-600 font-black hover:bg-orange-50 rounded-xl px-2" @click="activeUser = item; dialogs.sync = true">
+          <RefreshCcw class="w-3 h-3" /> {{ $t('statuts.sync') }}
+        </Button>
+        <div v-else class="flex items-center gap-2">
+          <div class="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
+          <span class="text-slate-400 text-[14px] font-black uppercase tracking-widest">{{ $t('statuts.inactif') }}</span>
+        </div>
+      </div>
+    </template>
+
+    <template #cell-actions="{ item, index, items }">
+      <div class="flex justify-end gap-1 items-center relative">
+        <!-- Dropdown for secondary actions -->
+        <div class="relative" @click.stop v-if="(hasPermission('simulations:lire') && (item.nature === 'A' || item.roles?.toLowerCase().includes('admin') || item.roles?.toLowerCase().includes('commercial'))) || (hasPermission('utilisateurs:gerer_sites') && item.nature === 'A') || (hasPermission('utilisateurs:gerer_permissions_sites') && item.nature === 'A') || (hasPermission('utilisateurs:gerer_roles') && item.idAuth)">
+          <Button variant="ghost" size="icon" class="h-9 w-9 rounded-xl hover:bg-slate-200 text-slate-500" @click="activeDropdown = activeDropdown === item.id ? null : item.id">
+            <MoreVertical class="w-4 h-4" />
+          </Button>
+          
+          <!-- Menu panel -->
+          <div v-if="activeDropdown === item.id" :class="[
+            'absolute right-0 w-48 bg-white rounded-xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)] border border-slate-100 py-1.5 z-50 flex flex-col overflow-hidden',
+            index >= items.length - 2 && index > 0 ? 'bottom-full mb-2' : 'top-full mt-1'
+          ]">
+            <button v-if="hasPermission('simulations:lire') && (item.nature === 'A' || item.roles?.toLowerCase().includes('admin') || item.roles?.toLowerCase().includes('commercial'))" @click="openSimulations(item); activeDropdown = null" class="flex items-center px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-primary w-full text-left transition-colors">
+              <Users class="w-4 h-4 mr-2" /> {{ $t('statuts.simulations') }}
+            </button>
+
+            <button v-if="hasPermission('utilisateurs:gerer_sites') && item.nature === 'A'" @click="openSites(item); activeDropdown = null" class="flex items-center px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-primary w-full text-left transition-colors">
+              <Globe class="w-4 h-4 mr-2" /> {{ $t('users.manage_sites') }}
+            </button>
+
+            <button v-if="hasPermission('utilisateurs:gerer_permissions_sites') && item.nature === 'A'" @click="openSiteRoles(item); activeDropdown = null" class="flex items-center px-3 py-2 text-sm font-medium text-slate-600 hover:bg-indigo-50 hover:text-indigo-600 w-full text-left transition-colors">
+              <ShieldCheck class="w-4 h-4 mr-2" /> {{ $t('users.manage_site_permissions') }}
+            </button>
+
+            <button v-if="hasPermission('utilisateurs:gerer_roles') && item.idAuth" @click="openRoles(item); activeDropdown = null" class="flex items-center px-3 py-2 text-sm font-medium text-slate-600 hover:bg-indigo-50 hover:text-indigo-600 w-full text-left transition-colors">
+              <ShieldCheck class="w-4 h-4 mr-2" /> {{ $t('users.table.roles') }}
+            </button>
+          </div>
+        </div>
+
+        <Button v-if="item.canManage !== 0 && hasPermission('utilisateurs:modifier')" variant="ghost" size="icon" class="h-9 w-9 rounded-xl hover:bg-slate-200" @click="openEdit(item)"><Edit class="w-4 h-4 text-slate-600" /></Button>
+        <Button v-if="item.canManage !== 0 && hasPermission('utilisateurs:supprimer')" variant="ghost" size="icon" class="h-9 w-9 rounded-xl hover:bg-red-50 text-red-500" @click="activeUser = item; dialogs.delete = true"><Trash2 class="w-4 h-4" /></Button>
+      </div>
+    </template>
+  </ExpertDataTable>
 
   <!-- Modals -->
   <ConfirmModal 
@@ -233,8 +263,13 @@ onMounted(() => {
   <UserSitesDialog
     :open="dialogs.sites"
     :user="activeUser"
+    @close="dialogs.sites = false; activeUser = null"
     @saved="fetchUsers"
-    @close="dialogs.sites = false"
+  />
+
+  <UserSiteRolesDialog
+    :open="dialogs.siteRoles"
+    :user="activeUser"
+    @close="dialogs.siteRoles = false; activeUser = null"
   />
 </template>
-

@@ -20,6 +20,12 @@ const getUserSites = async (userId) => {
     return result[0] || [];
 };
 
+const getUserPermissions = async (userId) => {
+    if (!userId) return [];
+    const result = await db.execute(qry.getUserPermissions, [userId]);
+    return result[0] || [];
+};
+
 module.exports = {
     getUserByAuthId,
     getUserById,
@@ -27,5 +33,6 @@ module.exports = {
     updateToken,
     updateTokenById,
     checkSimulationPermission,
-    getUserSites
+    getUserSites,
+    getUserPermissions
 };

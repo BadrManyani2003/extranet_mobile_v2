@@ -56,7 +56,7 @@ const handleItemClick = () => {
       </Button>
     </div>
 
-    <nav class="flex-1 py-8 flex flex-col gap-2.5 overflow-y-auto scrollbar-none transition-all duration-300" :class="isSidebarOpen ? 'px-5' : 'px-3'">
+    <nav class="flex-1 py-8 flex flex-col gap-2.5 overflow-y-auto custom-scrollbar transition-all duration-300" :class="isSidebarOpen ? 'px-5' : 'px-3'">
       <template v-for="element in navItems" :key="element.chemin || element.section">
         <div v-if="element.section" class="transition-all duration-300" :class="isSidebarOpen ? 'px-4 py-3 mt-4 mb-1' : 'px-2 py-2 mt-2 mb-1'">
           <span v-if="isSidebarOpen" class="text-[14px] font-black text-slate-400 uppercase tracking-[0.2em] animate-in fade-in duration-500">
@@ -96,13 +96,28 @@ const handleItemClick = () => {
 </template>
 
 <style scoped>
-.scrollbar-none::-webkit-scrollbar {
-  display: none;
+/* Custom sleek scrollbar for expert UI/UX */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
 }
 
-.scrollbar-none {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1; /* slate-300 */
+  border-radius: 10px;
+}
+
+.custom-scrollbar:hover::-webkit-scrollbar-thumb {
+  background-color: #94a3b8; /* slate-400 */
+}
+
+/* Firefox */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
 }
 </style>
 

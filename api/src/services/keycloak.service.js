@@ -163,6 +163,11 @@ const verifyUserPassword = async (email, preferredUsername, password) => {
     return false;
 };
 
+const updateUser = async (userIdAuth, userData) => {
+    const url = `${authServerUrl}/admin/realms/${realm}/users/${userIdAuth}`;
+    await keycloakAxios.put(url, userData, { headers: await jsonHeader() });
+};
+
 module.exports = {
     getAvailableRoles,
     getUserRoles,
@@ -171,6 +176,7 @@ module.exports = {
     findUserByEmail,
     getUserById,
     createUser,
+    updateUser,
     sendOnboardingEmail,
     deleteUser,
     changePassword,

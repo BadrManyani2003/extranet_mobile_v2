@@ -3,9 +3,6 @@ import { ref, watch, nextTick, onMounted } from 'vue'
 import { User, ShieldCheck, UserCheck, Send, History, Trash2, Clock } from 'lucide-vue-next'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Button } from '@/components/ui/button'
-import { useI18n } from 'vue-i18n'
-
-const { t } = useI18n()
 
 const props = defineProps<{
   messages: any[]
@@ -13,11 +10,12 @@ const props = defineProps<{
   selectedTicket: any
   selfNature: 'Client' | 'Admin'
   currentUserId?: number
+  canReply?: boolean
+  canDelete?: boolean
 }>()
 
 const emit = defineEmits(['send', 'delete-message'])
 const nouveauMessage = ref('')
-const scrollAreaRef = ref<any>(null)
 const bottomRef = ref<HTMLElement | null>(null)
 
 const scrollToBottom = async (behavior: ScrollBehavior = 'smooth') => {
@@ -65,6 +63,13 @@ const formatDate = (date: string) => {
     hour: '2-digit', 
     minute: '2-digit' 
   })
+}
+
+const canDeleteMessage = (msg: any) => {
+  if (!msg || !msg.dateMessage) return false
+  const msgTime = new Date(msg.dateMessage).getTime()
+  const now = Date.now()
+  return (now - msgTime) <= 10 * 60 * 1000
 }
 </script>
 
@@ -120,8 +125,8 @@ const formatDate = (date: string) => {
                     {{ msg.message || msg.text }}
                   </div>
 
-                  <!-- Bouton Supprimer (uniquement si autorisé par le backend via canDelete) -->
-                  <Button v-if="msg.canDelete" 
+                  <!-- Bouton Supprimer (uniquement si autorisé par le backend via canDelete de la DB OU la prop du composant) -->
+                  <Button v-if="(msg.canDelete || canDelete) && isSelf(msg) && canDeleteMessage(msg)" 
                     variant="ghost" 
                     size="icon" 
                     @click="emit('delete-message', msg.id)" 
@@ -155,6 +160,11 @@ const formatDate = (date: string) => {
           class="flex items-center justify-center gap-3 p-4 bg-slate-100 text-slate-400 rounded-2xl border border-dashed border-slate-200">
           <ShieldCheck class="w-4 h-4" />
           <p class="text-[14px] font-black uppercase tracking-[0.2em] text-center">{{ $t('reclamations.discussion_closed') }}</p>
+        </div>
+        
+        <div v-else-if="canReply === false" class="flex items-center justify-center gap-3 p-4 bg-slate-100 text-slate-400 rounded-2xl border border-dashed border-slate-200">
+          <ShieldCheck class="w-4 h-4" />
+          <p class="text-[14px] font-black uppercase tracking-[0.2em] text-center">{{ $t('reclamations.permission_denied') }}</p>
         </div>
         
         <div v-else class="relative group">

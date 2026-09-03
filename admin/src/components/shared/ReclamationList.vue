@@ -2,9 +2,6 @@
 import { Calendar, MessageSquare, User } from 'lucide-vue-next'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { useI18n } from 'vue-i18n'
-
-const { t } = useI18n()
 
 defineProps<{
   reclamations: any[]

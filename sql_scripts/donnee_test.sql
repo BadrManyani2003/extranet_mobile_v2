@@ -1,9 +1,10 @@
 USE [IBS_Extranet_Mobile];
 GO
 
--- =====================================================
--- NETTOYAGE COMPLET
--- =====================================================
+DELETE FROM dbo.SiteRolePermission;
+DELETE FROM dbo.UserSiteRole;
+DELETE FROM dbo.SiteRole;
+DELETE FROM dbo.SitePermission;
 DELETE FROM dbo.ReclamationsDet;
 DELETE FROM dbo.ReclamationsIdt;
 DELETE FROM dbo.StdDocument;
@@ -21,7 +22,7 @@ DELETE FROM dbo.UsersXClients;
 DELETE FROM dbo.Clients;
 DELETE FROM dbo.userConnection;
 DELETE FROM dbo.Postes_Autorises;
-DELETE FROM dbo.Roles;
+DELETE FROM dbo.Nature;
 UPDATE dbo.sysUser SET CreatedBy = NULL;
 DELETE FROM dbo.sysUser;
 DELETE FROM dbo.UserSites;
@@ -42,9 +43,7 @@ IF EXISTS (SELECT 1 FROM sys.identity_columns WHERE object_id = OBJECT_ID('dbo.P
     DBCC CHECKIDENT ('dbo.Postes_Autorises', RESEED, 0);
 GO
 
--- =====================================================
 -- 1. COMPAGNIES D'ASSURANCE
--- =====================================================
 INSERT INTO dbo.Compagnies (RaisonSociale, CreatedAt) VALUES
 ('Wafa Assurance', '20260101'),
 ('Sanlam Maroc', '20260101'),
@@ -58,18 +57,13 @@ DECLARE @Comp3Id INT = (SELECT Id FROM dbo.Compagnies WHERE RaisonSociale = 'RMA
 DECLARE @Comp4Id INT = (SELECT Id FROM dbo.Compagnies WHERE RaisonSociale = 'AtlantaSanad');
 DECLARE @Comp5Id INT = (SELECT Id FROM dbo.Compagnies WHERE RaisonSociale = 'AXA Assurance Maroc');
 
--- =====================================================
--- 2. SITES
--- =====================================================
 SET IDENTITY_INSERT dbo.Sites ON;
 INSERT INTO dbo.Sites (Id, Code, RaisonSociale, Ville, Actif) VALUES
-(1, 'CASA', 'IBS Casablanca (Siège)', 'Casablanca', 'O'),
-(2, 'RBA', 'IBS Rabat (Succursale)', 'Rabat', 'O');
+(1, 'CASA', 'MyASK Casablanca', 'Casablanca', 'O'),
+(2, 'RBA', 'MyASK Rabat', 'Rabat', 'O');
 SET IDENTITY_INSERT dbo.Sites OFF;
 
--- =====================================================
 -- 3. UTILISATEURS (id_auth conserves)
--- =====================================================
 SET IDENTITY_INSERT dbo.sysUser ON;
 INSERT INTO dbo.sysUser (Id, Id_Auth, Nom, Telephone, Email, Nature, Extranet, Mobile, CreatedAt, token, CreatedBy) VALUES
 (1, 'cc7011b8-e421-48c8-a6a1-f832e17da059', 'Badr MANYANI (Admin)', '0661223344', 'admin@ibs.ma', 'A', 'O', 'N', '20260101', 'token_admin_001', NULL),
@@ -92,7 +86,7 @@ DECLARE @UserAdherent2 INT = 6;
 DECLARE @UserClient3 INT = 7;
 
 -- Roles
-INSERT INTO dbo.Roles (FK_User_Id, Role) VALUES 
+INSERT INTO dbo.Nature (FK_User_Id, Nature) VALUES 
 (@AdminId, 'admin_cabinet'),
 (@ComCasaId, 'commercial_cabinet'),
 (@ComRabatId, 'commercial_cabinet'),
@@ -112,9 +106,7 @@ INSERT INTO dbo.userConnection (FK_User_Id, FK_Poste_Id, DateConnection, DateSor
 (@ComCasaId, 3, '20260102 08:30:00', '20260102 17:30:00'),
 (@AdminId, 2, '20260103 08:15:00', NULL);
 
--- =====================================================
 -- 4. USER SITES (Multi-site)
--- =====================================================
 INSERT INTO dbo.UserSites (fk_user_id, fk_site_id) VALUES
 (@AdminId, 1), (@AdminId, 2), -- Admin access to both
 (@ComCasaId, 1), -- Com 1 Casa only
@@ -125,9 +117,6 @@ INSERT INTO dbo.UserSites (fk_user_id, fk_site_id) VALUES
 (@UserAdherent2, 1), -- Adh Casa
 (@UserClient3, 2); -- Imad Auto (Rabat)
 
--- =====================================================
--- 5. CLIENTS
--- =====================================================
 INSERT INTO dbo.Clients (fk_site_id, Id, RaisonSociale, Particulier, Email, Adresse, Telephone, recClt, recAdh, CreatedAt) VALUES
 -- Site 1 (CASA)
 (1, 1001, 'Energies Renouvelables du Sud S.A.', 'N', 'achats@enersud.ma', 'Lotissement La Colline, Sidi Maarouf, Casa', '0522334455', 'O', 'O', '20260101'),
@@ -157,9 +146,7 @@ INSERT INTO dbo.UsersXClients (FK_User_Id, FK_Client_Id, Actif, CreatedAt) VALUE
 (@UserAdherent1, 2001, 'O', '20260101'), -- Amine -> Omar Tazi
 (@UserAdherent2, 2002, 'O', '20260101'); -- Nadia -> Fatima
 
--- =====================================================
 -- 6. POLICES D'ASSURANCE
--- =====================================================
 INSERT INTO dbo.Polices (fk_site_id, Id, Fk_Client_Id, FK_Compagnie_Id, Branche, Police, DateEcheance, Statut, Module, DateEffet, CreatedAt) VALUES
 -- === SITE 1: CASA ===
 (1, 101, @ClientId2, @Comp1Id, 'Automobile', 'POL-AUTO-2026-DSM-01', '20261231', 'E', 'FLOTTE', '20260101', '20260101'),
@@ -192,9 +179,7 @@ DECLARE @PolAutoGDA INT = 106, @PolAutoBCM INT = 107;
 DECLARE @PolSanteBCM INT = 204, @PolIARD_GDA INT = 403;
 DECLARE @PolAutoRachid INT = 109, @PolAutoSouad INT = 110, @PolAutoImad INT = 111;
 
--- =====================================================
 -- 7. ADHERENTS (Maladie)
--- =====================================================
 INSERT INTO dbo.Adherents (fk_site_id, Id, FK_Police_Id, FK_User_Id, NomComplet, Email, NumAdhesion, Matricule, DateNaissance, DateAdhesion, Actif, Telephone, CreatedAt) VALUES
 -- SITE 1 (CASA) - DSM
 (1, 5001, @PolSanteDSM, NULL, 'Jawad El Hariri', 'jawad.hariri@digitalsol.ma', 10001, 2020001, '19750412', '20260101', 'O', '0661234567', '20260101'),
@@ -214,9 +199,7 @@ INSERT INTO dbo.PersACharge (fk_site_id, Id, FK_Adherent_Id, Nom, Lien, DateNais
 (1, 6002, 5005, 'Salma QAMCH', 'Conjoint', '19940820', '20260101', '20260101'),
 (2, 6003, 5014, 'Omar Slaoui', 'Enfant', '20120805', '20260601', '20260101');
 
--- =====================================================
 -- 8. RISQUES (Vehicules + IARD)
--- =====================================================
 INSERT INTO dbo.Risques (fk_site_id, FK_Police_Id, Libelle, Identifiant, Description, Assure, DateDu, DateEcheance, NumeroIBS, Statut, CreatedAt) VALUES
 -- SITE 1 (CASA)
 (1, @PolAutoDSM, 'Dacia Duster Essence', '12345-A-1', 'Vehicule Direction', 'Amine Bouhaddou', '20260101', '20261231', 9001, 'O', '20260101'),
@@ -233,9 +216,6 @@ INSERT INTO dbo.Risques (fk_site_id, FK_Police_Id, Libelle, Identifiant, Descrip
 (2, @PolAutoRachid, 'Dacia Sandero', '11224-G-2', 'Citadine', 'Rachid Belkadi', '20260101', '20261231', 9020, 'O', '20260101'),
 (2, @PolAutoImad, 'Toyota Yaris', '55666-A-1', 'Citadine', 'Imad', '20260101', '20261231', 9030, 'O', '20260101');
 
--- =====================================================
--- 9. GARANTIES
--- =====================================================
 INSERT INTO dbo.Garanties (fk_site_id, FK_Risque_Id, Libelle, Capital, Franchise, CreatedAt) VALUES
 -- SITE 1
 (1, 1, 'Responsabilité Civile', 5000000.00, '0', '20260101'),
@@ -249,9 +229,6 @@ INSERT INTO dbo.Garanties (fk_site_id, FK_Risque_Id, Libelle, Capital, Franchise
 (2, 9, 'Incendie Entrepot', 18000000.00, '12000', '20260101'),
 (2, 11, 'Responsabilité Civile', 5000000.00, '0', '20260101');
 
--- =====================================================
--- 10. QUITTANCES
--- =====================================================
 INSERT INTO dbo.Quittances (fk_site_id, Id, FK_Police_Id, NumQuittance, DateDu, DateAu, Montant, Solde, DateEcheance, Statut, CreatedAt) VALUES
 -- SITE 1
 (1, 7001, @PolAutoDSM, 'QUIT-001', '20260101', '20260630', 45000.00, 0.00, '20260215', 'R', '20260101'),
@@ -262,9 +239,6 @@ INSERT INTO dbo.Quittances (fk_site_id, Id, FK_Police_Id, NumQuittance, DateDu, 
 (2, 8001, @PolAutoGDA, 'QUIT-004', '20260101', '20260630', 35000.00, 15000.00, '20260215', 'E', '20260101'),
 (2, 8002, @PolSanteBCM, 'QUIT-005', '20260101', '20261231', 150000.00, 0.00, '20260215', 'R', '20260101');
 
--- =====================================================
--- 11. SINISTRES
--- =====================================================
 INSERT INTO dbo.Sinistres (fk_site_id, Id, FK_Risque_Id, FK_Police_Id, FK_Adherent_Id, NumeroSin, DateSin, DateDeclaration, Statut, DateStatut, MT_Dommages, MT_Franchise, MT_Indemnite, Observations, CreatedAt) VALUES
 -- SITE 1
 (1, 8001, 1, @PolAutoDSM, NULL, 55001, '20260215', '20260216', 'C', '20260310', 15000.00, '2500', 12500.00, 'Accident avec tiers Bd Mohammed V - Constat amiable', '20260216'),
@@ -276,9 +250,7 @@ INSERT INTO dbo.Sinistres (fk_site_id, Id, FK_Risque_Id, FK_Police_Id, FK_Adhere
 (2, 8101, 7, @PolAutoGDA, NULL, 66001, '20260310', '20260311', 'C', '20260401', 8000.00, '1000', 7000.00, 'Collision véhicule livraison - Tiers identifié', '20260311'),
 (2, 8102, NULL, @PolSanteBCM, 5014, 66002, '20260805', '20260807', 'C', '20260901', 3200.00, '640', 2560.00, 'Consultation cardiologue + Examens', '20260807');
 
--- =====================================================
 -- 12. DOCUMENTS (PolDocument)
--- =====================================================
 INSERT INTO dbo.PolDocument (fk_site_id, fk_police_id, fk_document_id, libelle) VALUES
 -- SITE 1
 (1, @PolAutoDSM, 101, 'Carte Grise Dacia Duster'),
@@ -289,9 +261,6 @@ INSERT INTO dbo.PolDocument (fk_site_id, fk_police_id, fk_document_id, libelle) 
 (2, @PolAutoGDA, 201, 'Carte Grise Ford Transit'),
 (2, @PolSanteBCM, 701, 'Convention Tiers Payant BCM 2026');
 
--- =====================================================
--- 13. RECLAMATIONS
--- =====================================================
 INSERT INTO dbo.ReclamationsIdt (fk_site_id, FK_User_Client, DateReclamation, Sujet, Statut, DateStatut, Nature, CreatedAt) VALUES
 -- SITE 1
 (1, @UserClient1, '20260210 09:15:00', 'Demande de cartes vertes Flotte 2026', 'C', '20260212 14:20:00', 'I', '20260210 09:15:00'),
@@ -313,9 +282,6 @@ INSERT INTO dbo.ReclamationsDet (fk_site_id, FK_Reclamation_Id, FK_User_Id, Date
 (2, @R3, @ComRabatId, '20260701 16:00:00', 'A', 'Votre carte est disponible à l''agence de Rabat.');
 GO
 
--- =====================================================
--- 14. LIAISONS DE SIMULATION DE TEST
--- =====================================================
 INSERT INTO dbo.UserSimulationClients (fk_user_id, fk_client_id) VALUES
 (1, 1001), (1, 1002), (1, 3001), (1, 3002), -- Admin simulates all
 (2, 1001), (2, 1002), -- Com Casa simulates Casa
@@ -335,4 +301,108 @@ INSERT INTO dbo.sinComplement (
 GO
 
 PRINT '=== DONNES DE TEST MULTI-SITES EXPERT IMPORTES AVEC SUCCES ===';
+GO
+
+SET IDENTITY_INSERT dbo.SitePermission ON;
+INSERT INTO dbo.SitePermission (Id, Code, Description) VALUES
+(1, 'utilisateurs:lire', 'Afficher la liste des utilisateurs'),
+(2, 'utilisateurs:creer', 'Ajouter des utilisateurs'),
+(3, 'utilisateurs:modifier', 'Modifier des utilisateurs'),
+(4, 'utilisateurs:supprimer', 'Supprimer des utilisateurs'),
+(5, 'utilisateurs:synchroniser', 'Synchroniser les comptes'),
+(6, 'utilisateurs:gerer_roles', 'Gérer l''attribution des rôles'),
+(7, 'utilisateurs:gerer_sites', 'Gérer l''accès aux sites'),
+(8, 'utilisateurs:gerer_permissions_sites', 'Gérer les permissions par site'),
+
+(9, 'sites:lire', 'Afficher la liste des sites'),
+(10, 'sites:creer', 'Ajouter des sites'),
+(11, 'sites:modifier', 'Modifier des sites'),
+(12, 'sites:supprimer', 'Supprimer des sites'),
+
+(13, 'simulations:lire', 'Afficher la liste des simulations'),
+(14, 'simulations:creer', 'Ajouter des simulations'),
+(15, 'simulations:modifier', 'Modifier des simulations'),
+(16, 'simulations:supprimer', 'Supprimer des simulations'),
+
+(17, 'clients:lire', 'Afficher la liste des clients'),
+(18, 'clients:creer', 'Ajouter des clients'),
+(19, 'clients:modifier', 'Modifier des clients'),
+(20, 'clients:supprimer', 'Supprimer des clients'),
+(21, 'clients:creer_utilisateur', 'Créer un compte pour un client'),
+(22, 'clients:lier', 'Associer un client à un profil'),
+(23, 'clients:delier', 'Délier un client d''un utilisateur'),
+(24, 'clients:modifier_parent', 'Modifier le parent d''un client'),
+(25, 'clients:gerer_emails', 'Gérer les adresses emails'),
+(26, 'clients:gerer_options', 'Gérer les options du client'),
+
+(27, 'adherents:lire', 'Afficher la liste des adhérents'),
+(28, 'adherents:creer', 'Ajouter des adhérents'),
+(29, 'adherents:modifier', 'Modifier des adhérents'),
+(30, 'adherents:supprimer', 'Supprimer des adhérents'),
+(31, 'adherents:creer_utilisateur', 'Créer un compte pour un adhérent'),
+(32, 'adherents:lier', 'Associer un adhérent à un profil'),
+(33, 'adherents:delier', 'Délier un adhérent'),
+
+(34, 'reclamations:lire', 'Afficher la liste des réclamations'),
+(35, 'reclamations:creer', 'Créer des réclamations'),
+(36, 'reclamations:modifier', 'Modifier les réclamations'),
+(37, 'reclamations:supprimer', 'Supprimer des réclamations'),
+
+(38, 'documents:lire', 'Afficher la liste des documents'),
+(39, 'documents:creer', 'Ajouter des documents'),
+(40, 'documents:modifier', 'Modifier des documents'),
+(41, 'documents:supprimer', 'Supprimer des documents'),
+
+(42, 'roles:lire', 'Afficher la liste des rôles'),
+(43, 'roles:creer', 'Créer des rôles'),
+(44, 'roles:modifier', 'Modifier des rôles'),
+(45, 'roles:supprimer', 'Supprimer des rôles'),
+(46, 'roles:gerer_permissions', 'Paramétrer les autorisations');
+SET IDENTITY_INSERT dbo.SitePermission OFF;
+GO
+
+-- Rôles Globaux (SiteId NULL)
+SET IDENTITY_INSERT dbo.SiteRole ON;
+INSERT INTO dbo.SiteRole (Id, Name, Description, SiteId) VALUES
+(1, 'Super Admin Global', 'Accès total à tout', NULL),
+(2, 'Gestionnaire Clients', 'Peut lire et gérer les clients', NULL),
+(3, 'Commercial cabinet', 'Role pour les commercial cabinet', NULL);
+SET IDENTITY_INSERT dbo.SiteRole OFF;
+GO
+
+-- Permissions des rôles
+-- Rôle 1 : Super Admin Global (Toutes les 46 permissions)
+INSERT INTO dbo.SiteRolePermission (SiteRoleId, SitePermissionId, Actif) VALUES
+(1, 1, 'O'), (1, 2, 'O'), (1, 3, 'O'), (1, 4, 'O'), (1, 5, 'O'), (1, 6, 'O'), (1, 7, 'O'), (1, 8, 'O'), 
+(1, 9, 'O'), (1, 10, 'O'), (1, 11, 'O'), (1, 12, 'O'), 
+(1, 13, 'O'), (1, 14, 'O'), (1, 15, 'O'), (1, 16, 'O'), 
+(1, 17, 'O'), (1, 18, 'O'), (1, 19, 'O'), (1, 20, 'O'), (1, 21, 'O'), (1, 22, 'O'), (1, 23, 'O'), (1, 24, 'O'), (1, 25, 'O'), (1, 26, 'O'), 
+(1, 27, 'O'), (1, 28, 'O'), (1, 29, 'O'), (1, 30, 'O'), (1, 31, 'O'), (1, 32, 'O'), (1, 33, 'O'), 
+(1, 34, 'O'), (1, 35, 'O'), (1, 36, 'O'), (1, 37, 'O'), 
+(1, 38, 'O'), (1, 39, 'O'), (1, 40, 'O'), (1, 41, 'O'), 
+(1, 42, 'O'), (1, 43, 'O'), (1, 44, 'O'), (1, 45, 'O'), (1, 46, 'O');
+GO
+
+-- Rôle 2 : Gestionnaire Clients (Permissions clients et réclamations)
+INSERT INTO dbo.SiteRolePermission (SiteRoleId, SitePermissionId, Actif) VALUES
+(2, 17, 'O'), (2, 18, 'O'), (2, 19, 'O'), (2, 20, 'O'), (2, 21, 'O'), 
+(2, 22, 'O'), (2, 23, 'O'), (2, 24, 'O'), (2, 25, 'O'), (2, 26, 'O'), 
+(2, 34, 'O'), (2, 35, 'O'), (2, 36, 'O'), (2, 37, 'O');
+GO
+
+-- Rôle 3 : Commercial cabinet
+INSERT INTO dbo.SiteRolePermission (SiteRoleId, SitePermissionId, Actif) VALUES
+(3, 1, 'O'), (3, 9, 'O'), (3, 17, 'O'), (3, 19, 'O'), (3, 21, 'O'), 
+(3, 23, 'O'), (3, 27, 'O'), (3, 28, 'O'), (3, 29, 'O'), (3, 31, 'O'), 
+(3, 32, 'O'), (3, 33, 'O'), (3, 34, 'O'), (3, 35, 'O'), (3, 36, 'O'), 
+(3, 37, 'O'), (3, 38, 'O'), (3, 40, 'O');
+GO
+
+INSERT INTO dbo.UserSiteRole (UserId, SiteId, SiteRoleId) VALUES
+(1, 1, 1), -- AdminId a Super Admin sur Casa
+(1, 2, 2), -- AdminId a Gestionnaire Clients sur Rabat
+(2, 1, 2); -- ComCasaId a Gestionnaire Clients sur Casa
+GO
+
+PRINT '=== DONNES DE TEST APPROLES IMPORTES AVEC SUCCES ===';
 GO

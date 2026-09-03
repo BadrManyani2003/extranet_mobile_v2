@@ -39,15 +39,8 @@ const uploadDocument = asyncHandler(async (req, res) => {
         throw new Error('Le fichier dépasse la taille maximale autorisée (20 Mo).');
     }
 
-    let result;
-    try {
-        result = await documentService.upload(userId, token, finalSiteId, nature, parseInt(identifiant), type, documentBuffer);
-    } catch (err) {
-        console.error("ERREUR SQL UPLOAD DOCUMENT:", err);
-        throw err;
-    }
+    const result = await documentService.upload(userId, token, finalSiteId, nature, parseInt(identifiant), type, documentBuffer);
 
-    // -- Début de l'envoi d'email asynchrone --
     try {
         const qryEmails = `EXEC dbo.sp_GetClientEmailsByUser @0`;
         const dbResult = await db.execute(qryEmails, [userId]);
@@ -79,9 +72,8 @@ const uploadDocument = asyncHandler(async (req, res) => {
     } catch (err) {
         console.error("[Document] Erreur lors de la préparation de l'envoi d'emails :", err.message);
     }
-    // -- Fin de l'envoi d'email --
 
-    success(res, result[0]?.[0] || {}, 'Document chargé avec succès');
+    success(res, result[0]?.[0] || {}, 'Le document a été chargé.');
 });
 
 /**
@@ -90,10 +82,10 @@ const uploadDocument = asyncHandler(async (req, res) => {
  * Accessible aux rôles admin_cabinet et commercial_cabinet uniquement.
  */
 const getDocuments = asyncHandler(async (req, res) => {
-    const { userId, token, source } = getContext(req);
+    const { userId, token, source, siteId } = getContext(req);
     const { nature, identifiant, dateFrom, dateTo } = req.body;
 
-    const result = await documentService.getDocuments(userId, token, source, nature, identifiant, dateFrom, dateTo);
+    const result = await documentService.getDocuments(userId, token, source, nature, identifiant, dateFrom, dateTo, siteId);
     success(res, result[0] || []);
 });
 
@@ -134,7 +126,7 @@ const deleteDocument = asyncHandler(async (req, res) => {
     if (!documentId) throw new Error('documentId manquant.');
 
     await documentService.deleteDocument(userId, token, source, siteId, documentId);
-    success(res, null, 'Document supprimé avec succès');
+    success(res, null, 'Le document a été supprimé.');
 });
 
 /**
@@ -152,7 +144,7 @@ const updateDocumentTransfere = asyncHandler(async (req, res) => {
     }
 
     await documentService.updateDocumentTransfere(userId, token, source, siteId, documentId, transfere);
-    success(res, null, 'Statut de transfert mis à jour avec succès');
+    success(res, null, 'Le transfert a été enregistré.');
 });
 
 module.exports = { uploadDocument, getDocuments, getDocumentById, deleteDocument, updateDocumentTransfere };

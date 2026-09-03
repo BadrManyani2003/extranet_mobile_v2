@@ -36,7 +36,7 @@ const getUserSites = asyncHandler(async (req, res) => {
 const deleteSite = asyncHandler(async (req, res) => {
     const { id } = req.params;
     const result = await siteService.deleteSite(id);
-    success(res, result, 'Site supprimé avec succès');
+    success(res, result, 'Le site a été supprimé.');
 });
 
 module.exports = {

@@ -14,6 +14,8 @@ export const useUserStore = defineStore('user', () => {
     return user.value.nom || user.value.Nom || user.value.name || user.value.username || 'Admin'
   })
 
+  const permissions = computed(() => user.value?.permissions || [])
+
   // Rôles basés sur Keycloak
   const isAdmin = computed(() => keycloak.hasRole('admin_cabinet'))
   const isCommercial = computed(() => keycloak.hasRole('commercial_cabinet') && !keycloak.hasRole('admin_cabinet'))
@@ -22,9 +24,7 @@ export const useUserStore = defineStore('user', () => {
     loading.value = true
     error.value = null
     try {
-      console.log('--- Appel API  ---')
       const userData = await api.admin.getMe()
-      console.log('--- Réponse API getMe() ---', userData)
       user.value = userData
       return userData
     } catch (e: any) {
@@ -51,6 +51,7 @@ export const useUserStore = defineStore('user', () => {
     error,
     isAuthenticated,
     userName,
+    permissions,
     isAdmin,
     isCommercial,
     fetchUser,

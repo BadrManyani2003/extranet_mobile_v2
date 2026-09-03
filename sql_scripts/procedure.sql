@@ -157,7 +157,7 @@ BEGIN
     IF @fk_site_id IS NULL SET @fk_site_id = CAST(SESSION_CONTEXT(N'site_id') AS INT);
     IF @fk_site_id IS NULL AND @Source = 'A'
     BEGIN
-        RAISERROR('Site non defini : impossible de determiner le site courant', 16, 1);
+        RAISERROR('Veuillez d''abord sélectionner une agence (site).', 16, 1);
         RETURN;
     END
 
@@ -167,18 +167,18 @@ BEGIN
     -- L'appelant doit lui-meme etre rattache au site indique
     IF NOT EXISTS (SELECT 1 FROM dbo.UserSites WHERE fk_user_id = @FK_User_Id AND fk_site_id = @fk_site_id)
     BEGIN
-        RAISERROR('Action non autorisee : utilisateur non rattache a ce site', 16, 1);
+        RAISERROR('Vous n''avez pas accès à cette agence.', 16, 1);
         RETURN;
     END
 
     DECLARE @IsAdmin      BIT = 0;
     DECLARE @IsCommercial BIT = 0;
 
-    IF EXISTS (SELECT 1 FROM dbo.Roles WHERE FK_User_Id = @FK_User_Id AND Role = 'admin_cabinet')
+    IF EXISTS (SELECT 1 FROM dbo.Nature WHERE FK_User_Id = @FK_User_Id AND Nature = 'admin_cabinet')
     BEGIN
         SET @IsAdmin = 1;
     END
-    ELSE IF EXISTS (SELECT 1 FROM dbo.Roles WHERE FK_User_Id = @FK_User_Id AND Role = 'commercial_cabinet')
+    ELSE IF EXISTS (SELECT 1 FROM dbo.Nature WHERE FK_User_Id = @FK_User_Id AND Nature = 'commercial_cabinet')
     BEGIN
         SET @IsCommercial = 1;
     END
@@ -189,7 +189,7 @@ BEGIN
 
     IF NOT (@Source = 'A' AND (@IsAdmin = 1 OR @IsCommercial = 1))
     BEGIN
-        RAISERROR('Action non autorisee', 16, 1);
+        RAISERROR('Opération non autorisée.', 16, 1);
         RETURN;
     END
 
@@ -204,7 +204,7 @@ BEGIN
         SELECT 1 FROM dbo.UserSites WHERE fk_user_id = @FK_Target_Id AND fk_site_id = @fk_site_id
     )
     BEGIN
-        RAISERROR('Action non autorisee sur cet utilisateur : il n''appartient pas a ce site', 16, 1);
+        RAISERROR('Opération non autorisée. sur cet utilisateur : il n''appartient pas a ce site', 16, 1);
         RETURN;
     END
 
@@ -227,7 +227,7 @@ BEGIN
             )
         )
         BEGIN
-            RAISERROR('Action non autorisee sur cet utilisateur : il n''est pas associe a votre perimetre de simulation', 16, 1);
+            RAISERROR('Opération non autorisée. sur cet utilisateur : il n''est pas associe a votre perimetre de simulation', 16, 1);
             RETURN;
         END
     END
@@ -282,19 +282,19 @@ BEGIN
     IF @fk_site_id IS NULL SET @fk_site_id = CAST(SESSION_CONTEXT(N'site_id') AS INT);
     IF @fk_site_id IS NULL AND @Source = 'A'
     BEGIN
-        RAISERROR('Site non defini : impossible de determiner le site courant', 16, 1);
+        RAISERROR('Veuillez d''abord sélectionner une agence (site).', 16, 1);
         RETURN;
     END
 
     IF NOT EXISTS (SELECT 1 FROM dbo.UserSites WHERE fk_user_id = @FK_User_Id AND fk_site_id = @fk_site_id)
     BEGIN
-        RAISERROR('Action non autorisee : utilisateur non rattache a ce site', 16, 1);
+        RAISERROR('Vous n''avez pas accès à cette agence.', 16, 1);
         RETURN;
     END
 
     IF NOT EXISTS (SELECT 1 FROM dbo.UserSites WHERE fk_user_id = @FK_Delete_Id AND fk_site_id = @fk_site_id)
     BEGIN
-        RAISERROR('Action non autorisee : cet utilisateur n''appartient pas a ce site', 16, 1);
+        RAISERROR('Opération non autorisée. : cet utilisateur n''appartient pas a ce site', 16, 1);
         RETURN;
     END
 
@@ -304,11 +304,11 @@ BEGIN
     DECLARE @IsAdmin      BIT = 0;
     DECLARE @IsCommercial BIT = 0;
 
-    IF EXISTS (SELECT 1 FROM dbo.Roles WHERE FK_User_Id = @FK_User_Id AND Role = 'admin_cabinet')
+    IF EXISTS (SELECT 1 FROM dbo.Nature WHERE FK_User_Id = @FK_User_Id AND Nature = 'admin_cabinet')
     BEGIN
         SET @IsAdmin = 1;
     END
-    ELSE IF EXISTS (SELECT 1 FROM dbo.Roles WHERE FK_User_Id = @FK_User_Id AND Role = 'commercial_cabinet')
+    ELSE IF EXISTS (SELECT 1 FROM dbo.Nature WHERE FK_User_Id = @FK_User_Id AND Nature = 'commercial_cabinet')
     BEGIN
         SET @IsCommercial = 1;
     END
@@ -319,7 +319,7 @@ BEGIN
 
     IF NOT (@Source = 'A' AND (@IsAdmin = 1 OR @IsCommercial = 1))
     BEGIN
-        RAISERROR('Action non autorisee', 16, 1);
+        RAISERROR('Opération non autorisée.', 16, 1);
         RETURN;
     END
 
@@ -342,7 +342,7 @@ BEGIN
             )
         )
         BEGIN
-            RAISERROR('Action non autorisee : cet utilisateur n''est pas associe a votre perimetre de simulation', 16, 1);
+            RAISERROR('Opération non autorisée. : cet utilisateur n''est pas associe a votre perimetre de simulation', 16, 1);
             RETURN;
         END
     END
@@ -359,7 +359,7 @@ BEGIN
         RETURN;
     END
 
-    DELETE FROM dbo.Roles            WHERE FK_User_Id = @FK_Delete_Id;
+    DELETE FROM dbo.Nature            WHERE FK_User_Id = @FK_Delete_Id;
     DELETE FROM dbo.Postes_Autorises WHERE FK_User_Id = @FK_Delete_Id;
     DELETE FROM dbo.UsersXClients    WHERE FK_User_Id = @FK_Delete_Id;
     DELETE FROM dbo.UserSites        WHERE fk_user_id = @FK_Delete_Id;
@@ -383,20 +383,20 @@ BEGIN
     IF @fk_site_id IS NULL SET @fk_site_id = CAST(SESSION_CONTEXT(N'site_id') AS INT);
     IF @fk_site_id IS NULL AND @Source = 'A'
     BEGIN
-        RAISERROR('Site non defini : impossible de determiner le site courant', 16, 1);
+        RAISERROR('Veuillez d''abord sélectionner une agence (site).', 16, 1);
         RETURN;
     END
 
     IF NOT EXISTS (SELECT 1 FROM dbo.sysUser WHERE Id = @FK_User_Id AND token = @Token)
     BEGIN
-        RAISERROR('Session expiree', 16, 1);
+        RAISERROR('Votre session a expiré. Veuillez vous reconnecter.', 16, 1);
         RETURN;
     END
 
     -- L'appelant doit lui-meme etre rattache au site demande, quel que soit son role
     IF NOT EXISTS (SELECT 1 FROM dbo.UserSites WHERE fk_user_id = @FK_User_Id AND fk_site_id = @fk_site_id)
     BEGIN
-        RAISERROR('Action non autorisee : utilisateur non rattache a ce site', 16, 1);
+        RAISERROR('Vous n''avez pas accès à cette agence.', 16, 1);
         RETURN;
     END
 
@@ -406,11 +406,11 @@ BEGIN
     DECLARE @IsAdmin      BIT = 0;
     DECLARE @IsCommercial BIT = 0;
 
-    IF EXISTS (SELECT 1 FROM dbo.Roles WHERE FK_User_Id = @FK_User_Id AND Role = 'admin_cabinet')
+    IF EXISTS (SELECT 1 FROM dbo.Nature WHERE FK_User_Id = @FK_User_Id AND Nature = 'admin_cabinet')
     BEGIN
         SET @IsAdmin = 1;
     END
-    ELSE IF EXISTS (SELECT 1 FROM dbo.Roles WHERE FK_User_Id = @FK_User_Id AND Role = 'commercial_cabinet')
+    ELSE IF EXISTS (SELECT 1 FROM dbo.Nature WHERE FK_User_Id = @FK_User_Id AND Nature = 'commercial_cabinet')
     BEGIN
         SET @IsCommercial = 1;
     END
@@ -434,8 +434,8 @@ BEGIN
             u.CreatedAt  AS createdAt,
             u.UpdatedAt  AS updatedAt,
             STUFF((
-                SELECT ', ' + r.Role
-                FROM dbo.Roles r
+                SELECT ', ' + r.Nature
+                FROM dbo.Nature r
                 WHERE r.FK_User_Id = u.Id
                 FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)'), 1, 2, '') AS roles,
             CASE
@@ -473,7 +473,7 @@ BEGIN
     END
     ELSE
     BEGIN
-        RAISERROR('Action non autorisee', 16, 1);
+        RAISERROR('Opération non autorisée.', 16, 1);
     END
 END
 GO
@@ -497,13 +497,13 @@ BEGIN
     IF @fk_site_id IS NULL SET @fk_site_id = CAST(SESSION_CONTEXT(N'site_id') AS INT);
     IF @fk_site_id IS NULL AND @Source = 'A'
     BEGIN
-        RAISERROR('Site non defini : impossible de determiner le site courant', 16, 1);
+        RAISERROR('Veuillez d''abord sélectionner une agence (site).', 16, 1);
         RETURN;
     END
 
     IF NOT EXISTS (SELECT 1 FROM dbo.UserSites WHERE fk_user_id = @FK_User_Id AND fk_site_id = @fk_site_id)
     BEGIN
-        RAISERROR('Action non autorisee : utilisateur non rattache a ce site', 16, 1);
+        RAISERROR('Vous n''avez pas accès à cette agence.', 16, 1);
         RETURN;
     END
 
@@ -520,11 +520,11 @@ BEGIN
     DECLARE @IsAdmin      BIT = 0;
     DECLARE @IsCommercial BIT = 0;
 
-    IF EXISTS (SELECT 1 FROM dbo.Roles WHERE FK_User_Id = @FK_User_Id AND Role = 'admin_cabinet')
+    IF EXISTS (SELECT 1 FROM dbo.Nature WHERE FK_User_Id = @FK_User_Id AND Nature = 'admin_cabinet')
     BEGIN
         SET @IsAdmin = 1;
     END
-    ELSE IF EXISTS (SELECT 1 FROM dbo.Roles WHERE FK_User_Id = @FK_User_Id AND Role = 'commercial_cabinet')
+    ELSE IF EXISTS (SELECT 1 FROM dbo.Nature WHERE FK_User_Id = @FK_User_Id AND Nature = 'commercial_cabinet')
     BEGIN
         SET @IsCommercial = 1;
     END
@@ -535,7 +535,7 @@ BEGIN
 
     IF NOT (@Source = 'A' AND (@IsAdmin = 1 OR @IsCommercial = 1))
     BEGIN
-        RAISERROR('Action non autorisee', 16, 1);
+        RAISERROR('Opération non autorisée.', 16, 1);
         RETURN;
     END
 
@@ -546,7 +546,7 @@ BEGIN
             WHERE fk_user_id = @FK_User_Id AND fk_client_id = @FK_Client_Id
         )
         BEGIN
-            RAISERROR('Acces refuse : ce client ne fait pas partie de vos clients assignes', 16, 1);
+            RAISERROR('Vous n''êtes pas autorisé à gérer ce client.', 16, 1);
             RETURN;
         END
     END
@@ -609,13 +609,13 @@ BEGIN
     IF @fk_site_id IS NULL SET @fk_site_id = CAST(SESSION_CONTEXT(N'site_id') AS INT);
     IF @fk_site_id IS NULL AND @Source = 'A'
     BEGIN
-        RAISERROR('Site non defini : impossible de determiner le site courant', 16, 1);
+        RAISERROR('Veuillez d''abord sélectionner une agence (site).', 16, 1);
         RETURN;
     END
 
     IF NOT EXISTS (SELECT 1 FROM dbo.UserSites WHERE fk_user_id = @FK_User_Id AND fk_site_id = @fk_site_id)
     BEGIN
-        RAISERROR('Action non autorisee : utilisateur non rattache a ce site', 16, 1);
+        RAISERROR('Vous n''avez pas accès à cette agence.', 16, 1);
         RETURN;
     END
 
@@ -632,11 +632,11 @@ BEGIN
     DECLARE @IsAdmin      BIT = 0;
     DECLARE @IsCommercial BIT = 0;
 
-    IF EXISTS (SELECT 1 FROM dbo.Roles WHERE FK_User_Id = @FK_User_Id AND Role = 'admin_cabinet')
+    IF EXISTS (SELECT 1 FROM dbo.Nature WHERE FK_User_Id = @FK_User_Id AND Nature = 'admin_cabinet')
     BEGIN
         SET @IsAdmin = 1;
     END
-    ELSE IF EXISTS (SELECT 1 FROM dbo.Roles WHERE FK_User_Id = @FK_User_Id AND Role = 'commercial_cabinet')
+    ELSE IF EXISTS (SELECT 1 FROM dbo.Nature WHERE FK_User_Id = @FK_User_Id AND Nature = 'commercial_cabinet')
     BEGIN
         SET @IsCommercial = 1;
     END
@@ -647,7 +647,7 @@ BEGIN
 
     IF NOT (@Source = 'A' AND (@IsAdmin = 1 OR @IsCommercial = 1))
     BEGIN
-        RAISERROR('Action non autorisee', 16, 1);
+        RAISERROR('Opération non autorisée.', 16, 1);
         RETURN;
     END
 
@@ -733,13 +733,13 @@ BEGIN
     IF @fk_site_id IS NULL SET @fk_site_id = CAST(SESSION_CONTEXT(N'site_id') AS INT);
     IF @fk_site_id IS NULL AND @Source = 'A'
     BEGIN
-        RAISERROR('Site non defini : impossible de determiner le site courant', 16, 1);
+        RAISERROR('Veuillez d''abord sélectionner une agence (site).', 16, 1);
         RETURN;
     END
 
     IF NOT EXISTS (SELECT 1 FROM dbo.UserSites WHERE fk_user_id = @FK_User_Id AND fk_site_id = @fk_site_id)
     BEGIN
-        RAISERROR('Action non autorisee : utilisateur non rattache a ce site', 16, 1);
+        RAISERROR('Vous n''avez pas accès à cette agence.', 16, 1);
         RETURN;
     END
 
@@ -755,11 +755,11 @@ BEGIN
     IF NOT (
         @Source = 'A' AND (
             @UserNature IN ('A')
-            OR EXISTS (SELECT 1 FROM dbo.Roles WHERE FK_User_Id = @FK_User_Id AND Role IN ('admin_cabinet', 'commercial_cabinet', 'COMMERCIAL'))
+            OR EXISTS (SELECT 1 FROM dbo.Nature WHERE FK_User_Id = @FK_User_Id AND Nature IN ('admin_cabinet', 'commercial_cabinet', 'COMMERCIAL'))
         )
     )
     BEGIN
-        RAISERROR('Action non autorisee', 16, 1);
+        RAISERROR('Opération non autorisée.', 16, 1);
         RETURN;
     END
 
@@ -770,7 +770,7 @@ BEGIN
             WHERE fk_user_id = @FK_User_Id AND fk_client_id = @FK_Client_Id
         )
         BEGIN
-            RAISERROR('Acces refuse : ce client ne fait pas partie de vos clients assignes', 16, 1);
+            RAISERROR('Vous n''êtes pas autorisé à gérer ce client.', 16, 1);
             RETURN;
         END
     END
@@ -809,13 +809,13 @@ BEGIN
     IF @fk_site_id IS NULL SET @fk_site_id = CAST(SESSION_CONTEXT(N'site_id') AS INT);
     IF @fk_site_id IS NULL AND @Source = 'A'
     BEGIN
-        RAISERROR('Site non defini : impossible de determiner le site courant', 16, 1);
+        RAISERROR('Veuillez d''abord sélectionner une agence (site).', 16, 1);
         RETURN;
     END
 
     IF NOT EXISTS (SELECT 1 FROM dbo.UserSites WHERE fk_user_id = @FK_User_Id AND fk_site_id = @fk_site_id)
     BEGIN
-        RAISERROR('Action non autorisee : utilisateur non rattache a ce site', 16, 1);
+        RAISERROR('Vous n''avez pas accès à cette agence.', 16, 1);
         RETURN;
     END
 
@@ -831,11 +831,11 @@ BEGIN
     IF NOT (
         @Source = 'A' AND (
             @UserNature IN ('A')
-            OR EXISTS (SELECT 1 FROM dbo.Roles WHERE FK_User_Id = @FK_User_Id AND Role IN ('admin_cabinet', 'commercial_cabinet', 'COMMERCIAL'))
+            OR EXISTS (SELECT 1 FROM dbo.Nature WHERE FK_User_Id = @FK_User_Id AND Nature IN ('admin_cabinet', 'commercial_cabinet', 'COMMERCIAL'))
         )
     )
     BEGIN
-        RAISERROR('Action non autorisee', 16, 1);
+        RAISERROR('Opération non autorisée.', 16, 1);
         RETURN;
     END
 
@@ -846,7 +846,7 @@ BEGIN
             WHERE fk_user_id = @FK_User_Id AND fk_client_id = @FK_Client_Id
         )
         BEGIN
-            RAISERROR('Acces refuse : ce client ne fait pas partie de vos clients assignes', 16, 1);
+            RAISERROR('Vous n''êtes pas autorisé à gérer ce client.', 16, 1);
             RETURN;
         END
     END
@@ -872,13 +872,13 @@ BEGIN
     IF @fk_site_id IS NULL SET @fk_site_id = CAST(SESSION_CONTEXT(N'site_id') AS INT);
     IF @fk_site_id IS NULL AND @Source = 'A'
     BEGIN
-        RAISERROR('Site non defini : impossible de determiner le site courant', 16, 1);
+        RAISERROR('Veuillez d''abord sélectionner une agence (site).', 16, 1);
         RETURN;
     END
 
     IF NOT EXISTS (SELECT 1 FROM dbo.UserSites WHERE fk_user_id = @FK_User_Id AND fk_site_id = @fk_site_id)
     BEGIN
-        RAISERROR('Action non autorisee : utilisateur non rattache a ce site', 16, 1);
+        RAISERROR('Vous n''avez pas accès à cette agence.', 16, 1);
         RETURN;
     END
 
@@ -894,11 +894,11 @@ BEGIN
     IF NOT (
         @Source = 'A' AND (
             @UserNature IN ('A')
-            OR EXISTS (SELECT 1 FROM dbo.Roles WHERE FK_User_Id = @FK_User_Id AND Role IN ('admin_cabinet', 'commercial_cabinet', 'COMMERCIAL'))
+            OR EXISTS (SELECT 1 FROM dbo.Nature WHERE FK_User_Id = @FK_User_Id AND Nature IN ('admin_cabinet', 'commercial_cabinet', 'COMMERCIAL'))
         )
     )
     BEGIN
-        RAISERROR('Action non autorisee', 16, 1);
+        RAISERROR('Opération non autorisée.', 16, 1);
         RETURN;
     END
 
@@ -944,19 +944,19 @@ BEGIN
     IF @fk_site_id IS NULL SET @fk_site_id = CAST(SESSION_CONTEXT(N'site_id') AS INT);
     IF @fk_site_id IS NULL AND @Source = 'A'
     BEGIN
-        RAISERROR('Site non defini : impossible de determiner le site courant', 16, 1);
+        RAISERROR('Veuillez d''abord sélectionner une agence (site).', 16, 1);
         RETURN;
     END
 
     IF NOT EXISTS (SELECT 1 FROM dbo.UserSites WHERE fk_user_id = @FK_User_Id AND fk_site_id = @fk_site_id)
     BEGIN
-        RAISERROR('Action non autorisee : utilisateur non rattache a ce site', 16, 1);
+        RAISERROR('Vous n''avez pas accès à cette agence.', 16, 1);
         RETURN;
     END
 
     IF NOT EXISTS (SELECT 1 FROM dbo.UserSites WHERE fk_user_id = @IdToSync AND fk_site_id = @fk_site_id)
     BEGIN
-        RAISERROR('Action non autorisee : cet utilisateur n''appartient pas a ce site', 16, 1);
+        RAISERROR('Opération non autorisée. : cet utilisateur n''appartient pas a ce site', 16, 1);
         RETURN;
     END
 
@@ -966,11 +966,11 @@ BEGIN
     DECLARE @IsAdmin      BIT = 0;
     DECLARE @IsCommercial BIT = 0;
 
-    IF EXISTS (SELECT 1 FROM dbo.Roles WHERE FK_User_Id = @FK_User_Id AND Role = 'admin_cabinet')
+    IF EXISTS (SELECT 1 FROM dbo.Nature WHERE FK_User_Id = @FK_User_Id AND Nature = 'admin_cabinet')
     BEGIN
         SET @IsAdmin = 1;
     END
-    ELSE IF EXISTS (SELECT 1 FROM dbo.Roles WHERE FK_User_Id = @FK_User_Id AND Role = 'commercial_cabinet')
+    ELSE IF EXISTS (SELECT 1 FROM dbo.Nature WHERE FK_User_Id = @FK_User_Id AND Nature = 'commercial_cabinet')
     BEGIN
         SET @IsCommercial = 1;
     END
@@ -981,7 +981,7 @@ BEGIN
 
     IF NOT (@Source = 'A' AND (@IsAdmin = 1 OR @IsCommercial = 1))
     BEGIN
-        RAISERROR('Action non autorisee', 16, 1);
+        RAISERROR('Opération non autorisée.', 16, 1);
         RETURN;
     END
 
@@ -1004,7 +1004,7 @@ BEGIN
             )
         )
         BEGIN
-            RAISERROR('Action non autorisee : cet utilisateur n''est pas associe a votre perimetre de simulation', 16, 1);
+            RAISERROR('Opération non autorisée. : cet utilisateur n''est pas associe a votre perimetre de simulation', 16, 1);
             RETURN;
         END
     END
@@ -1033,19 +1033,19 @@ BEGIN
     IF @fk_site_id IS NULL SET @fk_site_id = CAST(SESSION_CONTEXT(N'site_id') AS INT);
     IF @fk_site_id IS NULL AND @Source = 'A'
     BEGIN
-        RAISERROR('Site non defini : impossible de determiner le site courant', 16, 1);
+        RAISERROR('Veuillez d''abord sélectionner une agence (site).', 16, 1);
         RETURN;
     END
 
     IF NOT EXISTS (SELECT 1 FROM dbo.UserSites WHERE fk_user_id = @FK_User_Id AND fk_site_id = @fk_site_id)
     BEGIN
-        RAISERROR('Action non autorisee : utilisateur non rattache a ce site', 16, 1);
+        RAISERROR('Vous n''avez pas accès à cette agence.', 16, 1);
         RETURN;
     END
 
     IF NOT EXISTS (SELECT 1 FROM dbo.UserSites WHERE fk_user_id = @Target_User_Id AND fk_site_id = @fk_site_id)
     BEGIN
-        RAISERROR('Action non autorisee : cet utilisateur n''appartient pas a ce site', 16, 1);
+        RAISERROR('Opération non autorisée. : cet utilisateur n''appartient pas a ce site', 16, 1);
         RETURN;
     END
 
@@ -1054,13 +1054,13 @@ BEGIN
 
     IF NOT (@Source = 'A' AND @UserNature IN ('A'))
     BEGIN
-        RAISERROR('Action non autorisee', 16, 1);
+        RAISERROR('Opération non autorisée.', 16, 1);
         RETURN;
     END
 
-    DELETE FROM dbo.Roles WHERE FK_User_Id = @Target_User_Id;
+    DELETE FROM dbo.Nature WHERE FK_User_Id = @Target_User_Id;
 
-    INSERT INTO dbo.Roles (FK_User_Id, Role)
+    INSERT INTO dbo.Nature (FK_User_Id, Nature)
     SELECT @Target_User_Id, value
     FROM STRING_SPLIT(@RolesCSV, ',');
 
@@ -1086,19 +1086,19 @@ BEGIN
     IF @fk_site_id IS NULL SET @fk_site_id = CAST(SESSION_CONTEXT(N'site_id') AS INT);
     IF @fk_site_id IS NULL AND @Source = 'A'
     BEGIN
-        RAISERROR('Site non defini : impossible de determiner le site courant', 16, 1);
+        RAISERROR('Veuillez d''abord sélectionner une agence (site).', 16, 1);
         RETURN;
     END
 
     IF NOT EXISTS (SELECT 1 FROM dbo.sysUser WHERE Id = @FK_User_Id AND token = @Token)
     BEGIN
-        RAISERROR('Session expiree', 16, 1);
+        RAISERROR('Votre session a expiré. Veuillez vous reconnecter.', 16, 1);
         RETURN;
     END
 
     IF NOT EXISTS (SELECT 1 FROM dbo.UserSites WHERE fk_user_id = @FK_User_Id AND fk_site_id = @fk_site_id)
     BEGIN
-        RAISERROR('Action non autorisee : utilisateur non rattache a ce site', 16, 1);
+        RAISERROR('Vous n''avez pas accès à cette agence.', 16, 1);
         RETURN;
     END
 
@@ -1108,11 +1108,11 @@ BEGIN
     IF NOT (
         @Source = 'A' AND (
             @UserNature IN ('A')
-            OR EXISTS (SELECT 1 FROM dbo.Roles WHERE FK_User_Id = @FK_User_Id AND Role IN ('admin_cabinet', 'commercial_cabinet', 'COMMERCIAL'))
+            OR EXISTS (SELECT 1 FROM dbo.Nature WHERE FK_User_Id = @FK_User_Id AND Nature IN ('admin_cabinet', 'commercial_cabinet', 'COMMERCIAL'))
         )
     )
     BEGIN
-        RAISERROR('Action non autorisee', 16, 1);
+        RAISERROR('Opération non autorisée.', 16, 1);
         RETURN;
     END
 
@@ -1129,8 +1129,8 @@ BEGIN
         u.CreatedAt  AS createdAt,
         u.UpdatedAt  AS updatedAt,
         STUFF((
-            SELECT ', ' + r.Role
-            FROM dbo.Roles r
+            SELECT ', ' + r.Nature
+            FROM dbo.Nature r
             WHERE r.FK_User_Id = u.Id
             FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)'), 1, 2, '') AS roles
     FROM dbo.sysUser u
@@ -1159,13 +1159,13 @@ BEGIN
     IF @fk_site_id IS NULL SET @fk_site_id = CAST(SESSION_CONTEXT(N'site_id') AS INT);
     IF @fk_site_id IS NULL AND @Source = 'A'
     BEGIN
-        RAISERROR('Site non defini : impossible de determiner le site courant', 16, 1);
+        RAISERROR('Veuillez d''abord sélectionner une agence (site).', 16, 1);
         RETURN;
     END
 
     IF NOT EXISTS (SELECT 1 FROM dbo.UserSites WHERE fk_user_id = @FK_User_Id AND fk_site_id = @fk_site_id)
     BEGIN
-        RAISERROR('Action non autorisee : utilisateur non rattache a ce site', 16, 1);
+        RAISERROR('Vous n''avez pas accès à cette agence.', 16, 1);
         RETURN;
     END
 
@@ -1175,11 +1175,11 @@ BEGIN
     IF NOT (
         @Source = 'A' AND (
             @UserNature IN ('A')
-            OR EXISTS (SELECT 1 FROM dbo.Roles WHERE FK_User_Id = @FK_User_Id AND Role IN ('admin_cabinet', 'commercial_cabinet', 'COMMERCIAL'))
+            OR EXISTS (SELECT 1 FROM dbo.Nature WHERE FK_User_Id = @FK_User_Id AND Nature IN ('admin_cabinet', 'commercial_cabinet', 'COMMERCIAL'))
         )
     )
     BEGIN
-        RAISERROR('Action non autorisee', 16, 1);
+        RAISERROR('Opération non autorisée.', 16, 1);
         RETURN;
     END
 
@@ -1210,13 +1210,13 @@ BEGIN
     IF @fk_site_id IS NULL SET @fk_site_id = CAST(SESSION_CONTEXT(N'site_id') AS INT);
     IF @fk_site_id IS NULL AND @Source = 'A'
     BEGIN
-        RAISERROR('Site non defini : impossible de determiner le site courant', 16, 1);
+        RAISERROR('Veuillez d''abord sélectionner une agence (site).', 16, 1);
         RETURN;
     END
 
     IF NOT EXISTS (SELECT 1 FROM dbo.UserSites WHERE fk_user_id = @FK_User_Id AND fk_site_id = @fk_site_id)
     BEGIN
-        RAISERROR('Action non autorisee : utilisateur non rattache a ce site', 16, 1);
+        RAISERROR('Vous n''avez pas accès à cette agence.', 16, 1);
         RETURN;
     END
 
@@ -1225,7 +1225,7 @@ BEGIN
 
     IF NOT (@Source = 'A' AND @UserNature IN ('A'))
     BEGIN
-        RAISERROR('Action non autorisee', 16, 1);
+        RAISERROR('Opération non autorisée.', 16, 1);
         RETURN;
     END
 
@@ -1261,13 +1261,13 @@ BEGIN
     IF @fk_site_id IS NULL SET @fk_site_id = CAST(SESSION_CONTEXT(N'site_id') AS INT);
     IF @fk_site_id IS NULL AND @Source = 'A'
     BEGIN
-        RAISERROR('Site non defini : impossible de determiner le site courant', 16, 1);
+        RAISERROR('Veuillez d''abord sélectionner une agence (site).', 16, 1);
         RETURN;
     END
 
     IF NOT EXISTS (SELECT 1 FROM dbo.UserSites WHERE fk_user_id = @FK_User_Id AND fk_site_id = @fk_site_id)
     BEGIN
-        RAISERROR('Action non autorisee : utilisateur non rattache a ce site', 16, 1);
+        RAISERROR('Vous n''avez pas accès à cette agence.', 16, 1);
         RETURN;
     END
 
@@ -1276,7 +1276,7 @@ BEGIN
 
     IF NOT (@Source = 'A' AND @UserNature IN ('A'))
     BEGIN
-        RAISERROR('Action non autorisee', 16, 1);
+        RAISERROR('Opération non autorisée.', 16, 1);
         RETURN;
     END
 
@@ -1328,13 +1328,13 @@ BEGIN
     IF @fk_site_id IS NULL SET @fk_site_id = CAST(SESSION_CONTEXT(N'site_id') AS INT);
     IF @fk_site_id IS NULL AND @Source = 'A'
     BEGIN
-        RAISERROR('Site non defini : impossible de determiner le site courant', 16, 1);
+        RAISERROR('Veuillez d''abord sélectionner une agence (site).', 16, 1);
         RETURN;
     END
 
     IF NOT EXISTS (SELECT 1 FROM dbo.UserSites WHERE fk_user_id = @FK_User_Id AND fk_site_id = @fk_site_id)
     BEGIN
-        RAISERROR('Action non autorisee : utilisateur non rattache a ce site', 16, 1);
+        RAISERROR('Vous n''avez pas accès à cette agence.', 16, 1);
         RETURN;
     END
 
@@ -1344,15 +1344,15 @@ BEGIN
     IF NOT (
         @Source = 'A' AND (
             @UserNature IN ('A')
-            OR EXISTS (SELECT 1 FROM dbo.Roles WHERE FK_User_Id = @FK_User_Id AND Role IN ('admin_cabinet', 'commercial_cabinet', 'COMMERCIAL'))
+            OR EXISTS (SELECT 1 FROM dbo.Nature WHERE FK_User_Id = @FK_User_Id AND Nature IN ('admin_cabinet', 'commercial_cabinet', 'COMMERCIAL'))
         )
     )
     BEGIN
-        RAISERROR('Action non autorisee', 16, 1);
+        RAISERROR('Opération non autorisée.', 16, 1);
         RETURN;
     END
 
-    IF @Role = 'admin_cabinet' AND NOT EXISTS (SELECT 1 FROM dbo.Roles WHERE FK_User_Id = @FK_User_Id AND Role = 'commercial_cabinet')
+    IF @Role = 'admin_cabinet' AND NOT EXISTS (SELECT 1 FROM dbo.Nature WHERE FK_User_Id = @FK_User_Id AND Nature = 'commercial_cabinet')
     BEGIN
         SELECT
             c.Id                AS id,
@@ -1431,13 +1431,13 @@ BEGIN
     IF @fk_site_id IS NULL SET @fk_site_id = CAST(SESSION_CONTEXT(N'site_id') AS INT);
     IF @fk_site_id IS NULL AND @Source = 'A'
     BEGIN
-        RAISERROR('Site non defini : impossible de determiner le site courant', 16, 1);
+        RAISERROR('Veuillez d''abord sélectionner une agence (site).', 16, 1);
         RETURN;
     END
 
     IF NOT EXISTS (SELECT 1 FROM dbo.UserSites WHERE fk_user_id = @FK_User_Id AND fk_site_id = @fk_site_id)
     BEGIN
-        RAISERROR('Action non autorisee : utilisateur non rattache a ce site', 16, 1);
+        RAISERROR('Vous n''avez pas accès à cette agence.', 16, 1);
         RETURN;
     END
 
@@ -1447,11 +1447,11 @@ BEGIN
     IF NOT (
         @Source = 'A' AND (
             @UserNature IN ('A')
-            OR EXISTS (SELECT 1 FROM dbo.Roles WHERE FK_User_Id = @FK_User_Id AND Role IN ('admin_cabinet', 'commercial_cabinet', 'COMMERCIAL'))
+            OR EXISTS (SELECT 1 FROM dbo.Nature WHERE FK_User_Id = @FK_User_Id AND Nature IN ('admin_cabinet', 'commercial_cabinet', 'COMMERCIAL'))
         )
     )
     BEGIN
-        RAISERROR('Action non autorisee', 16, 1);
+        RAISERROR('Opération non autorisée.', 16, 1);
         RETURN;
     END
 
@@ -1462,7 +1462,7 @@ BEGIN
             WHERE fk_user_id = @FK_User_Id AND fk_client_id = @FK_Client_Id
         )
         BEGIN
-            RAISERROR('Acces refuse : ce client ne fait pas partie de vos clients assignes', 16, 1);
+            RAISERROR('Vous n''êtes pas autorisé à gérer ce client.', 16, 1);
             RETURN;
         END
     END
@@ -1470,7 +1470,7 @@ BEGIN
     -- SITE OBLIGATOIRE : le client cible doit appartenir au meme site, y compris pour l'admin
     IF NOT EXISTS (SELECT 1 FROM dbo.Clients WHERE Id = @FK_Client_Id AND fk_site_id = @fk_site_id)
     BEGIN
-        RAISERROR('Client introuvable pour ce site', 16, 1);
+        RAISERROR('Ce client est introuvable.', 16, 1);
         RETURN;
     END
 
@@ -1500,13 +1500,13 @@ BEGIN
     IF @fk_site_id IS NULL SET @fk_site_id = CAST(SESSION_CONTEXT(N'site_id') AS INT);
     IF @fk_site_id IS NULL AND @Source = 'A'
     BEGIN
-        RAISERROR('Site non defini : impossible de determiner le site courant', 16, 1);
+        RAISERROR('Veuillez d''abord sélectionner une agence (site).', 16, 1);
         RETURN;
     END
 
     IF NOT EXISTS (SELECT 1 FROM dbo.UserSites WHERE fk_user_id = @FK_User_Id AND fk_site_id = @fk_site_id)
     BEGIN
-        RAISERROR('Action non autorisee : utilisateur non rattache a ce site', 16, 1);
+        RAISERROR('Vous n''avez pas accès à cette agence.', 16, 1);
         RETURN;
     END
 
@@ -1517,7 +1517,7 @@ BEGIN
             WHERE fk_user_id = @FK_User_Id AND fk_client_id = @FK_Client_Id
         )
         BEGIN
-            RAISERROR('Acces refuse : ce client ne fait pas partie de vos clients assignes', 16, 1);
+            RAISERROR('Vous n''êtes pas autorisé à gérer ce client.', 16, 1);
             RETURN;
         END
     END
@@ -1525,7 +1525,7 @@ BEGIN
     -- SITE OBLIGATOIRE, y compris pour l'admin
     IF NOT EXISTS (SELECT 1 FROM dbo.Clients WHERE Id = @FK_Client_Id AND fk_site_id = @fk_site_id)
     BEGIN
-        RAISERROR('Client introuvable pour ce site', 16, 1);
+        RAISERROR('Ce client est introuvable.', 16, 1);
         RETURN;
     END
 
@@ -1554,13 +1554,13 @@ BEGIN
     IF @fk_site_id IS NULL SET @fk_site_id = CAST(SESSION_CONTEXT(N'site_id') AS INT);
     IF @fk_site_id IS NULL AND @Source = 'A'
     BEGIN
-        RAISERROR('Site non defini : impossible de determiner le site courant', 16, 1);
+        RAISERROR('Veuillez d''abord sélectionner une agence (site).', 16, 1);
         RETURN;
     END
 
     IF NOT EXISTS (SELECT 1 FROM dbo.UserSites WHERE fk_user_id = @FK_User_Id AND fk_site_id = @fk_site_id)
     BEGIN
-        RAISERROR('Action non autorisee : utilisateur non rattache a ce site', 16, 1);
+        RAISERROR('Vous n''avez pas accès à cette agence.', 16, 1);
         RETURN;
     END
 
@@ -1570,11 +1570,11 @@ BEGIN
     IF NOT (
         @Source = 'A' AND (
             @UserNature IN ('A')
-            OR EXISTS (SELECT 1 FROM dbo.Roles WHERE FK_User_Id = @FK_User_Id AND Role IN ('admin_cabinet', 'commercial_cabinet', 'COMMERCIAL'))
+            OR EXISTS (SELECT 1 FROM dbo.Nature WHERE FK_User_Id = @FK_User_Id AND Nature IN ('admin_cabinet', 'commercial_cabinet', 'COMMERCIAL'))
         )
     )
     BEGIN
-        RAISERROR('Action non autorisee', 16, 1);
+        RAISERROR('Opération non autorisée.', 16, 1);
         RETURN;
     END
 
@@ -1585,7 +1585,7 @@ BEGIN
             WHERE fk_user_id = @FK_User_Id AND fk_client_id = @FK_Client_Id
         )
         BEGIN
-            RAISERROR('Acces refuse : ce client ne fait pas partie de vos clients assignes', 16, 1);
+            RAISERROR('Vous n''êtes pas autorisé à gérer ce client.', 16, 1);
             RETURN;
         END
     END
@@ -1593,13 +1593,13 @@ BEGIN
     -- SITE OBLIGATOIRE, y compris pour l'admin
     IF NOT EXISTS (SELECT 1 FROM dbo.Clients WHERE Id = @FK_Client_Id AND fk_site_id = @fk_site_id)
     BEGIN
-        RAISERROR('Client introuvable pour ce site', 16, 1);
+        RAISERROR('Ce client est introuvable.', 16, 1);
         RETURN;
     END
 
     IF @FK_Client_Id = @FK_Parent_Id
     BEGIN
-        RAISERROR('Un client ne peut pas etre son propre parent', 16, 1);
+        RAISERROR('Un client ne peut pas être lié à lui-même.', 16, 1);
         RETURN;
     END
 
@@ -1608,13 +1608,13 @@ BEGIN
         -- Le parent doit lui aussi appartenir au meme site
         IF NOT EXISTS (SELECT 1 FROM dbo.Clients WHERE Id = @FK_Parent_Id AND fk_site_id = @fk_site_id)
         BEGIN
-            RAISERROR('Client parent introuvable pour ce site', 16, 1);
+            RAISERROR('Le client principal est introuvable.', 16, 1);
             RETURN;
         END
 
         IF EXISTS (SELECT 1 FROM dbo.Clients WHERE Id = @FK_Parent_Id AND Fk_Client_Id = @FK_Client_Id)
         BEGIN
-            RAISERROR('Cette association cree une boucle de parent-enfant directe', 16, 1);
+            RAISERROR('Impossible de lier ces clients, cela créerait une boucle.', 16, 1);
             RETURN;
         END
     END
@@ -1639,7 +1639,7 @@ BEGIN
     IF @fk_site_id IS NULL SET @fk_site_id = CAST(SESSION_CONTEXT(N'site_id') AS INT);
     IF @fk_site_id IS NULL
     BEGIN
-        RAISERROR('Site non defini : impossible de determiner le site courant', 16, 1);
+        RAISERROR('Veuillez d''abord sélectionner une agence (site).', 16, 1);
         RETURN;
     END
 
@@ -1675,13 +1675,13 @@ BEGIN
     IF @fk_site_id IS NULL SET @fk_site_id = CAST(SESSION_CONTEXT(N'site_id') AS INT);
     IF @fk_site_id IS NULL AND @Source = 'A'
     BEGIN
-        RAISERROR('Site non defini : impossible de determiner le site courant', 16, 1);
+        RAISERROR('Veuillez d''abord sélectionner une agence (site).', 16, 1);
         RETURN;
     END
 
     IF NOT EXISTS (SELECT 1 FROM dbo.sysUser WHERE Id = @FK_User_Id AND token = @Token)
     BEGIN
-        RAISERROR('Session expiree', 16, 1);
+        RAISERROR('Votre session a expiré. Veuillez vous reconnecter.', 16, 1);
         RETURN;
     END
 
@@ -1756,13 +1756,13 @@ BEGIN
     IF @fk_site_id IS NULL SET @fk_site_id = CAST(SESSION_CONTEXT(N'site_id') AS INT);
     IF @fk_site_id IS NULL AND @Source = 'A'
     BEGIN
-        RAISERROR('Site non defini : impossible de determiner le site courant', 16, 1);
+        RAISERROR('Veuillez d''abord sélectionner une agence (site).', 16, 1);
         RETURN;
     END
 
     IF NOT EXISTS (SELECT 1 FROM dbo.sysUser WHERE Id = @FK_User_Id AND token = @Token)
     BEGIN
-        RAISERROR('Session expiree', 16, 1);
+        RAISERROR('Votre session a expiré. Veuillez vous reconnecter.', 16, 1);
         RETURN;
     END
 
@@ -1816,13 +1816,13 @@ BEGIN
     IF @fk_site_id IS NULL SET @fk_site_id = CAST(SESSION_CONTEXT(N'site_id') AS INT);
     IF @fk_site_id IS NULL AND @Source = 'A'
     BEGIN
-        RAISERROR('Site non defini : impossible de determiner le site courant', 16, 1);
+        RAISERROR('Veuillez d''abord sélectionner une agence (site).', 16, 1);
         RETURN;
     END
 
     IF NOT EXISTS (SELECT 1 FROM dbo.sysUser WHERE Id = @FK_User_Id AND token = @Token)
     BEGIN
-        RAISERROR('Session expiree', 16, 1);
+        RAISERROR('Votre session a expiré. Veuillez vous reconnecter.', 16, 1);
         RETURN;
     END
 
@@ -1832,11 +1832,11 @@ BEGIN
     DECLARE @IsAdmin      BIT = 0;
     DECLARE @IsCommercial BIT = 0;
 
-    IF EXISTS (SELECT 1 FROM dbo.Roles WHERE FK_User_Id = @FK_User_Id AND Role = 'admin_cabinet')
+    IF EXISTS (SELECT 1 FROM dbo.Nature WHERE FK_User_Id = @FK_User_Id AND Nature = 'admin_cabinet')
     BEGIN
         SET @IsAdmin = 1;
     END
-    ELSE IF EXISTS (SELECT 1 FROM dbo.Roles WHERE FK_User_Id = @FK_User_Id AND Role = 'commercial_cabinet')
+    ELSE IF EXISTS (SELECT 1 FROM dbo.Nature WHERE FK_User_Id = @FK_User_Id AND Nature = 'commercial_cabinet')
     BEGIN
         SET @IsCommercial = 1;
     END
@@ -1856,7 +1856,9 @@ BEGIN
         a.Actif         AS actif,
         a.Telephone     AS telephone,
         a.FK_User_Id    AS fkUserId,
-        u.Nom           AS userNom
+        u.Nom           AS userNom,
+        c.RaisonSociale AS clientNom,
+        c.Id            AS clientId
     FROM dbo.Adherents a
     INNER JOIN dbo.Polices p ON a.FK_Police_Id = p.Id
     INNER JOIN dbo.Clients c ON p.Fk_Client_Id = c.Id
@@ -1902,13 +1904,13 @@ BEGIN
     IF @fk_site_id IS NULL SET @fk_site_id = CAST(SESSION_CONTEXT(N'site_id') AS INT);
     IF @fk_site_id IS NULL AND @Source = 'A'
     BEGIN
-        RAISERROR('Site non defini : impossible de determiner le site courant', 16, 1);
+        RAISERROR('Veuillez d''abord sélectionner une agence (site).', 16, 1);
         RETURN;
     END
 
     IF NOT EXISTS (SELECT 1 FROM dbo.sysUser WHERE Id = @FK_User_Id AND token = @Token)
     BEGIN
-        RAISERROR('Session expiree', 16, 1);
+        RAISERROR('Votre session a expiré. Veuillez vous reconnecter.', 16, 1);
         RETURN;
     END
 
@@ -1959,13 +1961,13 @@ BEGIN
     IF @fk_site_id IS NULL SET @fk_site_id = CAST(SESSION_CONTEXT(N'site_id') AS INT);
     IF @fk_site_id IS NULL AND @Source = 'A'
     BEGIN
-        RAISERROR('Site non defini : impossible de determiner le site courant', 16, 1);
+        RAISERROR('Veuillez d''abord sélectionner une agence (site).', 16, 1);
         RETURN;
     END
 
     IF NOT EXISTS (SELECT 1 FROM dbo.sysUser WHERE Id = @FK_User_Id AND token = @Token)
     BEGIN
-        RAISERROR('Session expiree', 16, 1);
+        RAISERROR('Votre session a expiré. Veuillez vous reconnecter.', 16, 1);
         RETURN;
     END
 
@@ -2019,13 +2021,13 @@ BEGIN
     IF @fk_site_id IS NULL SET @fk_site_id = CAST(SESSION_CONTEXT(N'site_id') AS INT);
     IF @fk_site_id IS NULL AND @Source = 'A'
     BEGIN
-        RAISERROR('Site non defini : impossible de determiner le site courant', 16, 1);
+        RAISERROR('Veuillez d''abord sélectionner une agence (site).', 16, 1);
         RETURN;
     END
 
     IF NOT EXISTS (SELECT 1 FROM dbo.sysUser WHERE Id = @FK_User_Id AND token = @Token)
     BEGIN
-        RAISERROR('Session expiree', 16, 1);
+        RAISERROR('Votre session a expiré. Veuillez vous reconnecter.', 16, 1);
         RETURN;
     END
 
@@ -2095,13 +2097,13 @@ BEGIN
     IF @fk_site_id IS NULL SET @fk_site_id = CAST(SESSION_CONTEXT(N'site_id') AS INT);
     IF @fk_site_id IS NULL AND @Source = 'A'
     BEGIN
-        RAISERROR('Site non defini : impossible de determiner le site courant', 16, 1);
+        RAISERROR('Veuillez d''abord sélectionner une agence (site).', 16, 1);
         RETURN;
     END
 
     IF NOT EXISTS (SELECT 1 FROM dbo.sysUser WHERE Id = @FK_User_Id AND token = @Token)
     BEGIN
-        RAISERROR('Session expiree', 16, 1);
+        RAISERROR('Votre session a expiré. Veuillez vous reconnecter.', 16, 1);
         RETURN;
     END
 
@@ -2194,13 +2196,13 @@ BEGIN
     IF @fk_site_id IS NULL SET @fk_site_id = CAST(SESSION_CONTEXT(N'site_id') AS INT);
     IF @fk_site_id IS NULL AND @Source = 'A'
     BEGIN
-        RAISERROR('Site non defini : impossible de determiner le site courant', 16, 1);
+        RAISERROR('Veuillez d''abord sélectionner une agence (site).', 16, 1);
         RETURN;
     END
 
     IF NOT EXISTS (SELECT 1 FROM dbo.sysUser WHERE Id = @FK_User_Id AND token = @Token)
     BEGIN
-        RAISERROR('Session expiree', 16, 1);
+        RAISERROR('Votre session a expiré. Veuillez vous reconnecter.', 16, 1);
         RETURN;
     END
 
@@ -2309,13 +2311,13 @@ BEGIN
     IF @fk_site_id IS NULL SET @fk_site_id = CAST(SESSION_CONTEXT(N'site_id') AS INT);
     IF @fk_site_id IS NULL AND @Source = 'A'
     BEGIN
-        RAISERROR('Site non defini : impossible de determiner le site courant', 16, 1);
+        RAISERROR('Veuillez d''abord sélectionner une agence (site).', 16, 1);
         RETURN;
     END
 
     IF NOT EXISTS (SELECT 1 FROM dbo.sysUser WHERE Id = @FK_User_Id AND token = @Token)
     BEGIN
-        RAISERROR('Session expiree', 16, 1);
+        RAISERROR('Votre session a expiré. Veuillez vous reconnecter.', 16, 1);
         RETURN;
     END
 
@@ -2418,13 +2420,13 @@ BEGIN
     IF @fk_site_id IS NULL SET @fk_site_id = CAST(SESSION_CONTEXT(N'site_id') AS INT);
     IF @fk_site_id IS NULL AND @Source = 'A'
     BEGIN
-        RAISERROR('Site non defini : impossible de determiner le site courant', 16, 1);
+        RAISERROR('Veuillez d''abord sélectionner une agence (site).', 16, 1);
         RETURN;
     END
 
     IF NOT EXISTS (SELECT 1 FROM dbo.sysUser WHERE Id = @FK_User_Id AND token = @Token)
     BEGIN
-        RAISERROR('Session expiree', 16, 1);
+        RAISERROR('Votre session a expiré. Veuillez vous reconnecter.', 16, 1);
         RETURN;
     END
 
@@ -2477,18 +2479,18 @@ BEGIN
     IF @fk_site_id IS NULL SET @fk_site_id = CAST(SESSION_CONTEXT(N'site_id') AS INT);
     IF @fk_site_id IS NULL
     BEGIN
-        RAISERROR('Site non defini : impossible de determiner le site courant', 16, 1);
+        RAISERROR('Veuillez d''abord sélectionner une agence (site).', 16, 1);
         RETURN;
     END
 
     IF NOT EXISTS (SELECT 1 FROM dbo.sysUser WHERE Id = @FK_User_Id AND token = @Token)
     BEGIN
-        RAISERROR('Session expiree', 16, 1);
+        RAISERROR('Votre session a expiré. Veuillez vous reconnecter.', 16, 1);
         RETURN;
     END
 
-    INSERT INTO dbo.StdDocument (Nature, Identifiant, Type, Document, Transfere, FK_User_Id, DateCreation)
-    VALUES (@Nature, @Identifiant, @Type, @Document, 'N', @FK_User_Id, GETDATE());
+    INSERT INTO dbo.StdDocument (fk_site_id, Nature, Identifiant, Type, Document, Transfere, FK_User_Id, DateCreation)
+    VALUES (@fk_site_id, @Nature, @Identifiant, @Type, @Document, 'N', @FK_User_Id, GETDATE());
 
     SELECT SCOPE_IDENTITY() AS id;
     RETURN;
@@ -2513,13 +2515,13 @@ BEGIN
     IF @fk_site_id IS NULL SET @fk_site_id = CAST(SESSION_CONTEXT(N'site_id') AS INT);
     IF @fk_site_id IS NULL AND @Source = 'A'
     BEGIN
-        RAISERROR('Site non defini : impossible de determiner le site courant', 16, 1);
+        RAISERROR('Veuillez d''abord sélectionner une agence (site).', 16, 1);
         RETURN;
     END
 
     IF NOT EXISTS (SELECT 1 FROM dbo.sysUser WHERE Id = @FK_User_Id AND token = @Token)
     BEGIN
-        RAISERROR('Session expiree', 16, 1);
+        RAISERROR('Votre session a expiré. Veuillez vous reconnecter.', 16, 1);
         RETURN;
     END
 
@@ -2528,13 +2530,13 @@ BEGIN
 
     IF NOT (@Source = 'A' AND @UserNature IN ('A'))
     BEGIN
-        RAISERROR('Action non autorisee', 16, 1);
+        RAISERROR('Opération non autorisée.', 16, 1);
         RETURN;
     END
 
     IF NOT EXISTS (SELECT 1 FROM dbo.UserSites WHERE fk_user_id = @FK_User_Id AND fk_site_id = @fk_site_id)
     BEGIN
-        RAISERROR('Action non autorisee : utilisateur non rattache a ce site', 16, 1);
+        RAISERROR('Vous n''avez pas accès à cette agence.', 16, 1);
         RETURN;
     END
 
@@ -2586,13 +2588,13 @@ BEGIN
     IF @fk_site_id IS NULL SET @fk_site_id = CAST(SESSION_CONTEXT(N'site_id') AS INT);
     IF @fk_site_id IS NULL AND @Source = 'A'
     BEGIN
-        RAISERROR('Site non defini : impossible de determiner le site courant', 16, 1);
+        RAISERROR('Veuillez d''abord sélectionner une agence (site).', 16, 1);
         RETURN;
     END
 
     IF NOT EXISTS (SELECT 1 FROM dbo.sysUser WHERE Id = @FK_User_Id AND token = @Token)
     BEGIN
-        RAISERROR('Session expiree', 16, 1);
+        RAISERROR('Votre session a expiré. Veuillez vous reconnecter.', 16, 1);
         RETURN;
     END
 
@@ -2601,13 +2603,13 @@ BEGIN
 
     IF NOT (@Source = 'A' AND @UserNature IN ('A'))
     BEGIN
-        RAISERROR('Action non autorisee', 16, 1);
+        RAISERROR('Opération non autorisée.', 16, 1);
         RETURN;
     END
 
     IF NOT EXISTS (SELECT 1 FROM dbo.UserSites WHERE fk_user_id = @FK_User_Id AND fk_site_id = @fk_site_id)
     BEGIN
-        RAISERROR('Action non autorisee : utilisateur non rattache a ce site', 16, 1);
+        RAISERROR('Vous n''avez pas accès à cette agence.', 16, 1);
         RETURN;
     END
 
@@ -2635,13 +2637,13 @@ BEGIN
     IF @fk_site_id IS NULL SET @fk_site_id = CAST(SESSION_CONTEXT(N'site_id') AS INT);
     IF @fk_site_id IS NULL AND @Source = 'A'
     BEGIN
-        RAISERROR('Site non defini : impossible de determiner le site courant', 16, 1);
+        RAISERROR('Veuillez d''abord sélectionner une agence (site).', 16, 1);
         RETURN;
     END
 
     IF NOT EXISTS (SELECT 1 FROM dbo.sysUser WHERE Id = @FK_User_Id AND token = @Token)
     BEGIN
-        RAISERROR('Session expiree', 16, 1);
+        RAISERROR('Votre session a expiré. Veuillez vous reconnecter.', 16, 1);
         RETURN;
     END
 
@@ -2671,7 +2673,7 @@ BEGIN
         RETURN;
     END
 
-    RAISERROR('Document introuvable ou acces refuse', 16, 1);
+    RAISERROR('Ce document est introuvable ou vous n''y avez pas accès.', 16, 1);
     RETURN;
 END
 GO
@@ -2690,13 +2692,13 @@ BEGIN
     IF @fk_site_id IS NULL SET @fk_site_id = CAST(SESSION_CONTEXT(N'site_id') AS INT);
     IF @fk_site_id IS NULL AND @Source = 'A'
     BEGIN
-        RAISERROR('Site non defini : impossible de determiner le site courant', 16, 1);
+        RAISERROR('Veuillez d''abord sélectionner une agence (site).', 16, 1);
         RETURN;
     END
 
     IF NOT EXISTS (SELECT 1 FROM dbo.sysUser WHERE Id = @FK_User_Id AND token = @Token)
     BEGIN
-        RAISERROR('Session expiree', 16, 1);
+        RAISERROR('Votre session a expiré. Veuillez vous reconnecter.', 16, 1);
         RETURN;
     END
 
@@ -2705,13 +2707,13 @@ BEGIN
 
     IF NOT (@Source = 'A' AND @UserNature IN ('A'))
     BEGIN
-        RAISERROR('Action non autorisee', 16, 1);
+        RAISERROR('Opération non autorisée.', 16, 1);
         RETURN;
     END
 
     IF NOT EXISTS (SELECT 1 FROM dbo.UserSites WHERE fk_user_id = @FK_User_Id AND fk_site_id = @fk_site_id)
     BEGIN
-        RAISERROR('Action non autorisee : utilisateur non rattache a ce site', 16, 1);
+        RAISERROR('Vous n''avez pas accès à cette agence.', 16, 1);
         RETURN;
     END
 
@@ -2739,13 +2741,13 @@ BEGIN
     IF @fk_site_id IS NULL SET @fk_site_id = CAST(SESSION_CONTEXT(N'site_id') AS INT);
     IF @fk_site_id IS NULL AND @Source = 'A'
     BEGIN
-        RAISERROR('Site non defini : impossible de determiner le site courant', 16, 1);
+        RAISERROR('Veuillez d''abord sélectionner une agence (site).', 16, 1);
         RETURN;
     END
 
     IF NOT EXISTS (SELECT 1 FROM dbo.sysUser WHERE Id = @FK_User_Id AND token = @Token)
     BEGIN
-        RAISERROR('Session expiree', 16, 1);
+        RAISERROR('Votre session a expiré. Veuillez vous reconnecter.', 16, 1);
         RETURN;
     END
 
@@ -2799,13 +2801,13 @@ BEGIN
     IF @fk_site_id IS NULL SET @fk_site_id = CAST(SESSION_CONTEXT(N'site_id') AS INT);
     IF @fk_site_id IS NULL AND @Source = 'A'
     BEGIN
-        RAISERROR('Site non defini : impossible de determiner le site courant', 16, 1);
+        RAISERROR('Veuillez d''abord sélectionner une agence (site).', 16, 1);
         RETURN;
     END
 
     IF NOT EXISTS (SELECT 1 FROM dbo.sysUser WHERE Id = @FK_User_Id AND token = @Token)
     BEGIN
-        RAISERROR('Session expiree', 16, 1);
+        RAISERROR('Votre session a expiré. Veuillez vous reconnecter.', 16, 1);
         RETURN;
     END
 
@@ -2842,7 +2844,7 @@ BEGIN
         RETURN;
     END
 
-    RAISERROR('Reclamation introuvable', 16, 1);
+    RAISERROR('Cette réclamation n''existe plus.', 16, 1);
     RETURN;
 END
 GO
@@ -2863,13 +2865,13 @@ BEGIN
     IF @fk_site_id IS NULL SET @fk_site_id = CAST(SESSION_CONTEXT(N'site_id') AS INT);
     IF @fk_site_id IS NULL AND @Source = 'A'
     BEGIN
-        RAISERROR('Site non defini : impossible de determiner le site courant', 16, 1);
+        RAISERROR('Veuillez d''abord sélectionner une agence (site).', 16, 1);
         RETURN;
     END
 
     IF NOT EXISTS (SELECT 1 FROM dbo.sysUser WHERE Id = @FK_User_Id AND token = @Token)
     BEGIN
-        RAISERROR('Session expiree', 16, 1);
+        RAISERROR('Votre session a expiré. Veuillez vous reconnecter.', 16, 1);
         RETURN;
     END
 
@@ -2882,8 +2884,8 @@ BEGIN
 
     SET @NewId = SCOPE_IDENTITY();
 
-    INSERT INTO dbo.ReclamationsDet (FK_Reclamation_Id, FK_User_Id, Nature, Message)
-    VALUES (@NewId, @FK_User_Id, @UserNature, @Message);
+    INSERT INTO dbo.ReclamationsDet (fk_site_id, FK_Reclamation_Id, FK_User_Id, Nature, Message)
+    VALUES (@fk_site_id, @NewId, @FK_User_Id, @UserNature, @Message);
 
     SELECT @NewId AS id;
 
@@ -2907,19 +2909,19 @@ BEGIN
     IF @fk_site_id IS NULL SET @fk_site_id = CAST(SESSION_CONTEXT(N'site_id') AS INT);
     IF @fk_site_id IS NULL AND @Source = 'A'
     BEGIN
-        RAISERROR('Site non defini : impossible de determiner le site courant', 16, 1);
+        RAISERROR('Veuillez d''abord sélectionner une agence (site).', 16, 1);
         RETURN;
     END
 
     IF NOT EXISTS (SELECT 1 FROM dbo.sysUser WHERE Id = @FK_User_Id AND token = @Token)
     BEGIN
-        RAISERROR('Session expiree', 16, 1);
+        RAISERROR('Votre session a expiré. Veuillez vous reconnecter.', 16, 1);
         RETURN;
     END
 
     IF EXISTS (SELECT 1 FROM dbo.ReclamationsIdt WHERE Id = @FK_Reclamation_Id AND Statut = 'C')
     BEGIN
-        RAISERROR('La reclamation est cloturee', 16, 1);
+        RAISERROR('Cette réclamation est déjà clôturée.', 16, 1);
         RETURN;
     END
 
@@ -2933,8 +2935,8 @@ BEGIN
           AND (@UserNature IN ('A') OR FK_User_Client = @FK_User_Id)
     )
     BEGIN
-        INSERT INTO dbo.ReclamationsDet (FK_Reclamation_Id, FK_User_Id, Nature, Message)
-        VALUES (@FK_Reclamation_Id, @FK_User_Id, @UserNature, @Message);
+        INSERT INTO dbo.ReclamationsDet (fk_site_id, FK_Reclamation_Id, FK_User_Id, Nature, Message)
+        VALUES (@fk_site_id, @FK_Reclamation_Id, @FK_User_Id, @UserNature, @Message);
 
         UPDATE dbo.ReclamationsIdt
         SET Statut              = 'E',
@@ -2945,7 +2947,7 @@ BEGIN
         RETURN;
     END
 
-    RAISERROR('Action non autorisee', 16, 1);
+    RAISERROR('Opération non autorisée.', 16, 1);
     RETURN;
 END
 GO
@@ -2965,19 +2967,19 @@ BEGIN
     IF @fk_site_id IS NULL SET @fk_site_id = CAST(SESSION_CONTEXT(N'site_id') AS INT);
     IF @fk_site_id IS NULL AND @Source = 'A'
     BEGIN
-        RAISERROR('Site non defini : impossible de determiner le site courant', 16, 1);
+        RAISERROR('Veuillez d''abord sélectionner une agence (site).', 16, 1);
         RETURN;
     END
 
     IF NOT EXISTS (SELECT 1 FROM dbo.sysUser WHERE Id = @FK_User_Id AND token = @Token)
     BEGIN
-        RAISERROR('Session expiree', 16, 1);
+        RAISERROR('Votre session a expiré. Veuillez vous reconnecter.', 16, 1);
         RETURN;
     END
 
     IF @Statut NOT IN ('E', 'C')
     BEGIN
-        RAISERROR('Statut invalide. Valeurs acceptees : E (En cours), C (Cloture)', 16, 1);
+        RAISERROR('Le statut choisi est invalide.', 16, 1);
         RETURN;
     END
 
@@ -2999,7 +3001,7 @@ BEGIN
         RETURN;
     END
 
-    RAISERROR('Action non autorisee', 16, 1);
+    RAISERROR('Opération non autorisée.', 16, 1);
     RETURN;
 END
 GO
@@ -3018,13 +3020,13 @@ BEGIN
     IF @fk_site_id IS NULL SET @fk_site_id = CAST(SESSION_CONTEXT(N'site_id') AS INT);
     IF @fk_site_id IS NULL AND @Source = 'A'
     BEGIN
-        RAISERROR('Site non defini : impossible de determiner le site courant', 16, 1);
+        RAISERROR('Veuillez d''abord sélectionner une agence (site).', 16, 1);
         RETURN;
     END
 
     IF NOT EXISTS (SELECT 1 FROM dbo.sysUser WHERE Id = @FK_User_Id AND token = @Token)
     BEGIN
-        RAISERROR('Session expiree', 16, 1);
+        RAISERROR('Votre session a expiré. Veuillez vous reconnecter.', 16, 1);
         RETURN;
     END
 
@@ -3040,7 +3042,7 @@ BEGIN
         RETURN;
     END
 
-    RAISERROR('Action non autorisee', 16, 1);
+    RAISERROR('Opération non autorisée.', 16, 1);
     RETURN;
 END
 GO
@@ -3075,19 +3077,28 @@ BEGIN
     IF @fk_site_id IS NULL SET @fk_site_id = CAST(SESSION_CONTEXT(N'site_id') AS INT);
     IF @fk_site_id IS NULL
     BEGIN
-        RAISERROR('Site non defini : impossible de determiner le site courant', 16, 1);
+        RAISERROR('Veuillez d''abord sélectionner une agence (site).', 16, 1);
         RETURN;
     END
 
     IF NOT EXISTS (SELECT 1 FROM dbo.sysUser WHERE Id = @FK_User_Id AND token = @Token)
     BEGIN
-        RAISERROR('Session expiree', 16, 1);
+        RAISERROR('Votre session a expiré. Veuillez vous reconnecter.', 16, 1);
         RETURN;
     END
 
-    IF NOT EXISTS (SELECT 1 FROM dbo.ReclamationsDet WHERE Id = @MessageId AND FK_User_Id = @FK_User_Id)
+    DECLARE @DateMessage DATETIME;
+    SELECT @DateMessage = DateMessage FROM dbo.ReclamationsDet WHERE Id = @MessageId AND FK_User_Id = @FK_User_Id;
+    
+    IF @DateMessage IS NULL
     BEGIN
-        RAISERROR('Non autorise a supprimer ce message', 16, 1);
+        RAISERROR('Vous ne pouvez pas supprimer ce message.', 16, 1);
+        RETURN;
+    END
+    
+    IF DATEDIFF(MINUTE, @DateMessage, GETDATE()) > 10
+    BEGIN
+        RAISERROR('Vous ne pouvez pas supprimer un message plus de 10 minutes après son envoi.', 16, 1);
         RETURN;
     END
 
@@ -3097,13 +3108,13 @@ BEGIN
     -- SITE OBLIGATOIRE : la reclamation parente doit appartenir au site courant
     IF NOT EXISTS (SELECT 1 FROM dbo.ReclamationsIdt WHERE Id = @FK_Reclamation_Id AND fk_site_id = @fk_site_id)
     BEGIN
-        RAISERROR('Action non autorisee : reclamation hors de ce site', 16, 1);
+        RAISERROR('Cette réclamation appartient à un autre site.', 16, 1);
         RETURN;
     END
 
     IF EXISTS (SELECT 1 FROM dbo.ReclamationsDet WHERE FK_Reclamation_Id = @FK_Reclamation_Id AND Id > @MessageId)
     BEGIN
-        RAISERROR('Impossible de supprimer : ce n''est pas le dernier message', 16, 1);
+        RAISERROR('Vous ne pouvez supprimer que le tout dernier message envoyé.', 16, 1);
         RETURN;
     END
 
@@ -3128,13 +3139,13 @@ BEGIN
     IF @fk_site_id IS NULL SET @fk_site_id = CAST(SESSION_CONTEXT(N'site_id') AS INT);
     IF @fk_site_id IS NULL AND @Source = 'A'
     BEGIN
-        RAISERROR('Site non defini : impossible de determiner le site courant', 16, 1);
+        RAISERROR('Veuillez d''abord sélectionner une agence (site).', 16, 1);
         RETURN;
     END
 
     IF NOT EXISTS (SELECT 1 FROM dbo.sysUser WHERE Id = @FK_User_Id AND token = @Token)
     BEGIN
-        RAISERROR('Session expiree', 16, 1);
+        RAISERROR('Votre session a expiré. Veuillez vous reconnecter.', 16, 1);
         RETURN;
     END
 
@@ -3144,15 +3155,15 @@ BEGIN
     IF NOT (
         @Source = 'A' AND (
             @UserNature IN ('A')
-            OR EXISTS (SELECT 1 FROM dbo.Roles WHERE FK_User_Id = @FK_User_Id AND Role IN ('admin_cabinet', 'commercial_cabinet', 'COMMERCIAL'))
+            OR EXISTS (SELECT 1 FROM dbo.Nature WHERE FK_User_Id = @FK_User_Id AND Nature IN ('admin_cabinet', 'commercial_cabinet', 'COMMERCIAL'))
         )
     )
     BEGIN
-        RAISERROR('Action non autorisee', 16, 1);
+        RAISERROR('Opération non autorisée.', 16, 1);
         RETURN;
     END
 
-    IF @Role = 'admin_cabinet' AND NOT EXISTS (SELECT 1 FROM dbo.Roles WHERE FK_User_Id = @FK_User_Id AND Role = 'commercial_cabinet')
+    IF @Role = 'admin_cabinet' AND NOT EXISTS (SELECT 1 FROM dbo.Nature WHERE FK_User_Id = @FK_User_Id AND Nature = 'commercial_cabinet')
     BEGIN
         SELECT
             r.Id              AS id,
@@ -3255,6 +3266,7 @@ BEGIN
         d.DateMessage,
         d.FK_User_Id          AS SenderUserId,
         i.FK_User_Client      AS ClientUserId,
+        i.fk_site_id          AS SiteId,
 
         (SELECT TOP 1 c.RaisonSociale
          FROM dbo.UsersXClients uxc
@@ -3268,8 +3280,8 @@ BEGIN
 
         CASE
             WHEN EXISTS (
-                SELECT 1 FROM dbo.Roles r
-                WHERE r.FK_User_Id = d.FK_User_Id AND r.Role IN ('admin_cabinet', 'commercial_cabinet')
+                SELECT 1 FROM dbo.Nature r
+                WHERE r.FK_User_Id = d.FK_User_Id AND r.Nature IN ('admin_cabinet', 'commercial_cabinet')
             ) THEN 'CABINET'
             ELSE 'CLIENT'
         END AS SenderType
@@ -3417,7 +3429,7 @@ BEGIN
     IF @fk_site_id IS NULL SET @fk_site_id = CAST(SESSION_CONTEXT(N'site_id') AS INT);
     IF @fk_site_id IS NULL AND @Source = 'A'
     BEGIN
-        RAISERROR('Site non defini : impossible de determiner le site courant', 16, 1);
+        RAISERROR('Veuillez d''abord sélectionner une agence (site).', 16, 1);
         RETURN;
     END
 
@@ -3443,7 +3455,7 @@ BEGIN
           )
     )
     BEGIN
-        RAISERROR('Acces refuse a cette police', 16, 1);
+        RAISERROR('Vous n''avez pas accès à ce contrat.', 16, 1);
         RETURN;
     END
 
@@ -3538,17 +3550,17 @@ BEGIN
 
     IF @CheckResult = 1
     BEGIN
-        THROW 50002, 'Session expiree.', 1;
+        THROW 50002, 'Votre session a expiré. Veuillez vous reconnecter..', 1;
         RETURN;
     END
     IF @CheckResult = 2
     BEGIN
-        THROW 50003, 'Acces refuse a cette police.', 1;
+        THROW 50003, 'Vous n''avez pas accès à ce contrat..', 1;
         RETURN;
     END
     IF @CheckResult = 3
     BEGIN
-        THROW 50004, 'Site non defini : impossible de determiner le site courant.', 1;
+        THROW 50004, 'Veuillez d''abord sélectionner une agence (site)..', 1;
         RETURN;
     END
 
@@ -3619,9 +3631,9 @@ BEGIN
         @Result       = @CheckResult OUTPUT,
         @fk_site_id   = @fk_site_id;
 
-    IF @CheckResult = 1 THROW 50002, 'Session expiree.', 1;
-    IF @CheckResult = 2 THROW 50003, 'Acces refuse a cette police.', 1;
-    IF @CheckResult = 3 THROW 50004, 'Site non defini : impossible de determiner le site courant.', 1;
+    IF @CheckResult = 1 THROW 50002, 'Votre session a expiré. Veuillez vous reconnecter..', 1;
+    IF @CheckResult = 2 THROW 50003, 'Vous n''avez pas accès à ce contrat..', 1;
+    IF @CheckResult = 3 THROW 50004, 'Veuillez d''abord sélectionner une agence (site)..', 1;
 
     BEGIN TRY
         SELECT
@@ -3679,9 +3691,9 @@ BEGIN
         @Result       = @CheckResult OUTPUT,
         @fk_site_id   = @fk_site_id;
 
-    IF @CheckResult = 1 THROW 50002, 'Session expiree.', 1;
-    IF @CheckResult = 2 THROW 50003, 'Acces refuse a cette police.', 1;
-    IF @CheckResult = 3 THROW 50004, 'Site non defini : impossible de determiner le site courant.', 1;
+    IF @CheckResult = 1 THROW 50002, 'Votre session a expiré. Veuillez vous reconnecter..', 1;
+    IF @CheckResult = 2 THROW 50003, 'Vous n''avez pas accès à ce contrat..', 1;
+    IF @CheckResult = 3 THROW 50004, 'Veuillez d''abord sélectionner une agence (site)..', 1;
 
     BEGIN TRY
         WITH CTE_ITT AS (
@@ -3742,9 +3754,9 @@ BEGIN
         @Result       = @CheckResult OUTPUT,
         @fk_site_id   = @fk_site_id;
 
-    IF @CheckResult = 1 THROW 50002, 'Session expiree.', 1;
-    IF @CheckResult = 2 THROW 50003, 'Acces refuse a cette police.', 1;
-    IF @CheckResult = 3 THROW 50004, 'Site non defini : impossible de determiner le site courant.', 1;
+    IF @CheckResult = 1 THROW 50002, 'Votre session a expiré. Veuillez vous reconnecter..', 1;
+    IF @CheckResult = 2 THROW 50003, 'Vous n''avez pas accès à ce contrat..', 1;
+    IF @CheckResult = 3 THROW 50004, 'Veuillez d''abord sélectionner une agence (site)..', 1;
 
     BEGIN TRY
         SELECT
@@ -3845,13 +3857,13 @@ BEGIN
     IF @fk_site_id IS NULL SET @fk_site_id = CAST(SESSION_CONTEXT(N'site_id') AS INT);
     IF @fk_site_id IS NULL AND @Source = 'A'
     BEGIN
-        RAISERROR('Site non defini : impossible de determiner le site courant', 16, 1);
+        RAISERROR('Veuillez d''abord sélectionner une agence (site).', 16, 1);
         RETURN;
     END
 
     IF NOT EXISTS (SELECT 1 FROM dbo.sysUser WHERE Id = @FK_User_Id AND token = @Token)
     BEGIN
-        RAISERROR('Session expiree', 16, 1);
+        RAISERROR('Votre session a expiré. Veuillez vous reconnecter.', 16, 1);
         RETURN;
     END
 
@@ -3917,7 +3929,7 @@ BEGIN
     IF @fk_site_id IS NULL SET @fk_site_id = CAST(SESSION_CONTEXT(N'site_id') AS INT);
     IF @fk_site_id IS NULL
     BEGIN
-        RAISERROR('Site non defini : impossible de determiner le site courant', 16, 1);
+        RAISERROR('Veuillez d''abord sélectionner une agence (site).', 16, 1);
         RETURN;
     END
 
@@ -4028,5 +4040,260 @@ BEGIN
         IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
         THROW;
     END CATCH
+END
+GO
+
+-- Liste tous les sites actifs pour l'administration
+CREATE OR ALTER PROCEDURE dbo.sp_GetAllSites
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT Id, Code, RaisonSociale, Adresse, Ville, Actif 
+    FROM dbo.Sites 
+    WHERE Actif = 'O' 
+    ORDER BY RaisonSociale;
+END
+GO
+
+-- Récupère un site par son identifiant
+CREATE OR ALTER PROCEDURE dbo.sp_GetSiteById
+    @Id INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT Id, Code, RaisonSociale, Adresse, Ville, Actif 
+    FROM dbo.Sites 
+    WHERE Id = @Id;
+END
+GO
+
+-- Création d'un site
+CREATE OR ALTER PROCEDURE dbo.sp_CreateSite
+    @Code          NVARCHAR(50),
+    @RaisonSociale NVARCHAR(100),
+    @Adresse       NVARCHAR(255),
+    @Ville         NVARCHAR(100),
+    @Actif         CHAR(1)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    INSERT INTO dbo.Sites (Code, RaisonSociale, Adresse, Ville, Actif) 
+    OUTPUT INSERTED.Id 
+    VALUES (@Code, @RaisonSociale, @Adresse, @Ville, @Actif);
+END
+GO
+
+-- Mise à jour d'un site
+CREATE OR ALTER PROCEDURE dbo.sp_UpdateSite
+    @Id            INT,
+    @Code          NVARCHAR(50),
+    @RaisonSociale NVARCHAR(100),
+    @Adresse       NVARCHAR(255),
+    @Ville         NVARCHAR(100),
+    @Actif         CHAR(1)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    UPDATE dbo.Sites 
+    SET Code = @Code, RaisonSociale = @RaisonSociale, Adresse = @Adresse, Ville = @Ville, Actif = @Actif 
+    WHERE Id = @Id;
+END
+GO
+
+-- Suppression (désactivation) d'un site
+CREATE OR ALTER PROCEDURE dbo.sp_DeleteSite
+    @Id INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    UPDATE dbo.Sites SET Actif = 'N' WHERE Id = @Id;
+END
+GO
+
+
+/* ============================================================================
+   SECTION 16 - ROLES & PERMISSIONS PAR SITE
+   ============================================================================ */
+
+-- Liste les rôles applicatifs (globaux et/ou rattachés à un site)
+CREATE OR ALTER PROCEDURE dbo.sp_GetSiteRoles
+    @SiteId INT = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT Id, Name, Description, SiteId 
+    FROM dbo.SiteRole 
+    WHERE SiteId IS NULL OR SiteId = @SiteId;
+END
+GO
+
+-- Création d'un rôle applicatif
+CREATE OR ALTER PROCEDURE dbo.sp_CreateSiteRole
+    @Name        NVARCHAR(100),
+    @Description NVARCHAR(255),
+    @SiteId      INT = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    INSERT INTO dbo.SiteRole (Name, Description, SiteId) 
+    OUTPUT INSERTED.Id 
+    VALUES (@Name, @Description, @SiteId);
+END
+GO
+
+-- Mise à jour d'un rôle applicatif
+CREATE OR ALTER PROCEDURE dbo.sp_UpdateSiteRole
+    @Id          INT,
+    @Name        NVARCHAR(100),
+    @Description NVARCHAR(255),
+    @SiteId      INT = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    UPDATE dbo.SiteRole 
+    SET Name = @Name, Description = @Description, SiteId = @SiteId, UpdatedAt = GETDATE() 
+    WHERE Id = @Id;
+END
+GO
+
+-- Suppression d'un rôle applicatif
+CREATE OR ALTER PROCEDURE dbo.sp_DeleteSiteRole
+    @Id INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DELETE FROM dbo.SiteRole WHERE Id = @Id;
+END
+GO
+
+-- Liste l'ensemble des permissions du système
+CREATE OR ALTER PROCEDURE dbo.sp_GetSitePermissions
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT Id, Code, Description FROM dbo.SitePermission;
+END
+GO
+
+-- Liste les permissions d'un rôle avec indicateur d'activation
+CREATE OR ALTER PROCEDURE dbo.sp_GetSiteRolePermissions
+    @SiteRoleId INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT p.Id, p.Code, p.Description, ISNULL(rp.Actif, 'N') AS Actif 
+    FROM dbo.SitePermission p 
+    LEFT JOIN dbo.SiteRolePermission rp ON p.Id = rp.SitePermissionId AND rp.SiteRoleId = @SiteRoleId;
+END
+GO
+
+-- Active ou désactive une permission pour un rôle donné
+CREATE OR ALTER PROCEDURE dbo.sp_SetSiteRolePermission
+    @SiteRoleId       INT,
+    @SitePermissionId INT,
+    @Actif            CHAR(1)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF EXISTS (SELECT 1 FROM dbo.SiteRolePermission WHERE SiteRoleId = @SiteRoleId AND SitePermissionId = @SitePermissionId)
+    BEGIN
+        UPDATE dbo.SiteRolePermission 
+        SET Actif = @Actif 
+        WHERE SiteRoleId = @SiteRoleId AND SitePermissionId = @SitePermissionId;
+    END
+    ELSE
+    BEGIN
+        INSERT INTO dbo.SiteRolePermission (SiteRoleId, SitePermissionId, Actif) 
+        VALUES (@SiteRoleId, @SitePermissionId, @Actif);
+    END
+END
+GO
+
+-- Rôles attribués à un utilisateur sur un site
+CREATE OR ALTER PROCEDURE dbo.sp_GetUserSiteRoles
+    @UserId INT,
+    @SiteId INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT r.Id, r.Name, r.Description, uar.SiteId 
+    FROM dbo.UserSiteRole uar 
+    JOIN dbo.SiteRole r ON uar.SiteRoleId = r.Id 
+    WHERE uar.UserId = @UserId AND uar.SiteId = @SiteId;
+END
+GO
+
+-- Assigner un rôle à un utilisateur sur un site
+CREATE OR ALTER PROCEDURE dbo.sp_AssignUserSiteRole
+    @UserId     INT,
+    @SiteId     INT,
+    @SiteRoleId INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF NOT EXISTS (SELECT 1 FROM dbo.UserSiteRole WHERE UserId = @UserId AND SiteId = @SiteId AND SiteRoleId = @SiteRoleId)
+    BEGIN
+        INSERT INTO dbo.UserSiteRole (UserId, SiteId, SiteRoleId) 
+        VALUES (@UserId, @SiteId, @SiteRoleId);
+    END
+END
+GO
+
+-- Retirer un rôle à un utilisateur sur un site
+CREATE OR ALTER PROCEDURE dbo.sp_RemoveUserSiteRole
+    @UserId     INT,
+    @SiteId     INT,
+    @SiteRoleId INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DELETE FROM dbo.UserSiteRole 
+    WHERE UserId = @UserId AND SiteId = @SiteId AND SiteRoleId = @SiteRoleId;
+END
+GO
+
+-- Récupère toutes les permissions actives d'un utilisateur groupées par site
+CREATE OR ALTER PROCEDURE dbo.sp_GetUserSitesPermissions
+    @UserId INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT p.Code, uar.SiteId 
+    FROM dbo.UserSiteRole uar 
+    JOIN dbo.SiteRolePermission rp ON uar.SiteRoleId = rp.SiteRoleId 
+    JOIN dbo.SitePermission p ON rp.SitePermissionId = p.Id 
+    WHERE uar.UserId = @UserId AND rp.Actif = 'O';
+END
+GO
+
+-- Récupère les codes de permission distincts d'un utilisateur sur un site spécifique
+CREATE OR ALTER PROCEDURE dbo.sp_GetUserPermissionsBySite
+    @UserId INT,
+    @SiteId INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT DISTINCT p.Code 
+    FROM dbo.UserSiteRole uar 
+    JOIN dbo.SiteRolePermission rp ON uar.SiteRoleId = rp.SiteRoleId 
+    JOIN dbo.SitePermission p ON rp.SitePermissionId = p.Id 
+    WHERE uar.UserId = @UserId AND uar.SiteId = @SiteId AND rp.Actif = 'O';
 END
 GO

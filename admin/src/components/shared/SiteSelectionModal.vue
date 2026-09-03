@@ -26,10 +26,10 @@ const handleSiteSelect = (siteId: number) => {
       <DialogHeader>
         <DialogTitle class="text-xl font-bold flex items-center gap-2">
           <Globe class="h-6 w-6 text-primary" />
-          Current site
+          {{ $t('sites.current_site_title') }}
         </DialogTitle>
         <DialogDescription class="text-base text-slate-500 mt-1">
-          Veuillez choisir le site que vous voulez explorer.
+          {{ $t('sites.choose_site_desc') }}
         </DialogDescription>
       </DialogHeader>
 

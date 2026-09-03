@@ -63,10 +63,9 @@ export const useSiteStore = defineStore('site', () => {
             setCookie('currentSiteId', siteList[0].Id.toString());
             needsSiteSelection.value = false;
         } else if (siteList.length > 1) {
-            // Auto-select first if nothing stored
-            currentSiteId.value = siteList[0].Id;
-            setCookie('currentSiteId', siteList[0].Id.toString());
-            needsSiteSelection.value = false;
+            // Force selection if nothing stored
+            currentSiteId.value = null;
+            needsSiteSelection.value = true;
         } else {
             currentSiteId.value = null;
             document.cookie = "currentSiteId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";

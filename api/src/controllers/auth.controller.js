@@ -14,10 +14,12 @@ const getMe = asyncHandler(async (req, res) => {
     }
 
     const user = result[0][0];
+    const permissionsData = await authService.getUserPermissions(user.id);
 
     success(res, {
         ...user,
-        roles: req.user.roles || []
+        roles: req.user.roles || [],
+        permissions: permissionsData
     });
 });
 
@@ -26,12 +28,8 @@ const changePassword = asyncHandler(async (req, res) => {
     
     if (!newPassword) return error(res, 'Le nouveau mot de passe est requis', 400);
     
-    try {
-        await keycloakService.changePassword(req.user.sub, newPassword);
-        success(res, 'Mot de passe modifié avec succès');
-    } catch (err) {
-        error(res, err.message || 'Erreur lors de la modification du mot de passe', 500);
-    }
+    await keycloakService.changePassword(req.user.sub, newPassword);
+    success(res, 'Mot de passe modifié avec succès');
 });
 
 module.exports = {

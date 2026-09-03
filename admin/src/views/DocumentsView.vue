@@ -3,21 +3,21 @@ import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   FolderOpen, Search, Eye, Loader2, Filter, X,
-  Calendar, User, Tag, CheckCircle2, Clock, Trash2
+  Calendar, User, Tag, Trash2
 } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import ConfirmModal from '@/components/shared/ConfirmModal.vue'
 import { api } from '@/lib/api'
 import { toast } from 'vue-sonner'
+import { usePermissions } from '@/composables/usePermissions'
 
 const { t } = useI18n()
+const { hasPermission } = usePermissions()
 
-// ─── State ───────────────────────────────────────────────────────────────────
 const documents     = ref<any[]>([])
 const loading       = ref(false)
 const showFilters   = ref(false)
 
-// Filters
 const filterNature      = ref('')
 const filterUser        = ref('')
 const filterDate        = ref('') // Contient la date YYYY-MM-DD
@@ -33,7 +33,6 @@ const filterDateFormatted = computed(() => {
   return filterDate.value
 })
 
-// Pagination
 const currentPage  = ref(1)
 const itemsPerPage = 10
 
@@ -44,7 +43,6 @@ const deleteModalOpen = ref(false)
 const deleteLoading   = ref(false)
 const docToDelete     = ref<number | null>(null)
 
-// ─── Computed ─────────────────────────────────────────────────────────────────
 const uniqueNatures = computed(() => {
   const natures = documents.value.map(d => d.nature).filter(Boolean)
   return Array.from(new Set(natures)).sort()
@@ -92,7 +90,6 @@ const paginatedDocs = computed(() => {
   return filteredDocuments.value.slice(start, start + itemsPerPage)
 })
 
-// ─── Methods ──────────────────────────────────────────────────────────────────
 const fetchDocuments = async () => {
   loading.value = true
   try {
@@ -175,6 +172,7 @@ const confirmDelete = async () => {
 }
 
 const toggleTransfere = async (doc: any) => {
+  if (!hasPermission('documents:modifier')) return
   const newStatus = doc.transfere === 'O' ? 'N' : 'O'
   try {
     await api.document.updateDocumentTransfere(doc.id, newStatus)
@@ -268,7 +266,7 @@ onMounted(fetchDocuments)
             <!-- Custom styled input container showing French format -->
             <div class="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-3 text-sm font-bold flex items-center justify-between pointer-events-none">
               <span :class="filterDate ? 'text-slate-700' : 'text-slate-400 font-medium'">
-                {{ filterDateFormatted || 'JJ/MM/AAAA' }}
+                {{ filterDateFormatted || $t('documents.date_placeholder') }}
               </span>
               <Calendar class="w-4 h-4 text-slate-400" />
             </div>
@@ -389,8 +387,9 @@ onMounted(fetchDocuments)
                 <td class="py-4 px-6 text-center">
                   <div class="flex flex-col items-center justify-center gap-1">
                     <button 
+                      :disabled="!hasPermission('documents:modifier')"
                       @click="toggleTransfere(doc)"
-                      :class="['w-9 h-5 rounded-full p-0.5 transition-all duration-300 relative outline-none flex shrink-0 mx-auto', doc.transfere === 'O' ? 'bg-emerald-500' : 'bg-slate-200']"
+                      :class="['w-9 h-5 rounded-full p-0.5 transition-all duration-300 relative outline-none flex shrink-0 mx-auto', doc.transfere === 'O' ? 'bg-emerald-500' : 'bg-slate-200', !hasPermission('documents:modifier') ? 'opacity-50 cursor-not-allowed' : '']"
                     >
                       <span :class="['w-4 h-4 rounded-full bg-white shadow-md block transition-transform duration-300', doc.transfere === 'O' ? 'translate-x-4' : 'translate-x-0']"></span>
                     </button>
@@ -412,6 +411,7 @@ onMounted(fetchDocuments)
                       <Eye class="w-4 h-4" />
                     </Button>
                     <Button
+                      v-if="hasPermission('documents:supprimer')"
                       variant="ghost"
                       size="icon"
                       class="h-8 w-8 text-red-600 hover:bg-red-50 rounded-xl transition-all"

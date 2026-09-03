@@ -32,7 +32,7 @@ const sqlConfig = {
     database: process.env.DB_DATABASE,
     server:   process.env.DB_SERVER,
     port:     parseInt(process.env.DB_PORT, 10),
-    pool:     { max: 10, min: 0, idleTimeoutMillis: 30000 },
+    pool:     { max: 50, min: 0, idleTimeoutMillis: 30000 },
     options:  { encrypt: false, trustServerCertificate: true }
 };
 

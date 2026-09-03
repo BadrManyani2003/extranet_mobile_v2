@@ -15,7 +15,7 @@ const getQuittances = (userId, source, token, policeId) => db.execute(qry.getQui
 
 const getImpayes = (userId, source, token, policeId, enCour) => db.execute(qry.getImpayes, [userId, source, token, policeId, enCour]);
 
-const getAdherents = (userId, source, token, policeId) => db.execute(qry.getAdherents, [userId, source, token, policeId]);
+const getAdherents = (userId, source, token, policeId) => db.execute(qry.getAdherents, [userId, source, token, policeId, null]);
 
 const getPersACharge = (userId, source, token, adherentId) => db.execute(qry.getPersACharge, [userId, source, token, adherentId]);
 

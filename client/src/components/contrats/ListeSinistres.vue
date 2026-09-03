@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue'
 import { useUserStore } from '@/store/user'
 import { useI18n } from 'vue-i18n'
-import { Calendar, Clock, Info, Shield, Car, User, Wallet, FileText, Users, Upload, AlertCircle } from 'lucide-vue-next'
+import { Calendar, Clock, Info, Shield, User, Wallet, FileText, Upload, AlertCircle } from 'lucide-vue-next'
 import { CardContent } from '@/components/ui/card'
 import {
   Accordion,
@@ -30,26 +30,15 @@ const userStore = useUserStore()
 
 const emit = defineEmits(['update:searchQuery'])
 
-// ─── Upload dialog state ─────────────────────────────────────────────────────
 const uploadDialog = ref(false)
-const uploadSinistre = ref<any>(null)   // sinistre courant pour lequel on upload
+const uploadSinistre = ref<any>(null)
 
 const openUploadDialog = (sin: any) => {
   uploadSinistre.value = sin
   uploadDialog.value = true
 }
-// ─── Existing logic ──────────────────────────────────────────────────────────
 
-const obtenirInfoRisque = (sin: any) => {
-  if (!props.risques) return null
-  return props.risques.find(r =>
-    r.immatriculation === sin.objet ||
-    r.marque === sin.objet ||
-    r.nom === sin.objet ||
-    r.matricule === sin.objet ||
-    r.identifiant === sin.objet
-  )
-}
+
 
 const sinistresFiltres = computed(() => {
   const requete = props.searchQuery.toLowerCase()
@@ -79,6 +68,7 @@ const loadMore = () => {
 }
 
 import { watch } from 'vue'
+
 watch(() => [props.searchQuery, props.activeTab], () => {
   itemsLimit.value = 20
 })
@@ -240,7 +230,7 @@ const getLibelleRisque = (sin: any) => {
                 </div>
               </div>
 
-              <!-- ── Bouton Charger un document ────────────────────────────── -->
+
               <div v-if="!userStore.impersonatedUser" class="mt-5 flex justify-end">
                 <Button variant="outline" size="sm"
                   class="gap-2 border-primary/30 text-primary hover:bg-primary/5 hover:border-primary/60 font-bold transition-all"
@@ -265,8 +255,6 @@ const getLibelleRisque = (sin: any) => {
     </CardContent>
   </div>
 
-  <!-- ═══════════════════════════════════════════════════════════════════════ -->
-  <!-- Dialog : Chargement de document                                         -->
-  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+
   <UploadDocumentDialog :open="uploadDialog" :sinistre="uploadSinistre" @close="uploadDialog = false" />
 </template>

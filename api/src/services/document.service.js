@@ -25,17 +25,18 @@ const upload = async (userId, token, siteId, nature, identifiant, type, document
 /**
  * Récupère la liste des documents (admin uniquement).
  */
-const getDocuments = async (userId, token, source, nature, identifiant, dateFrom, dateTo) => {
+const getDocuments = async (userId, token, source, nature, identifiant, dateFrom, dateTo, siteId) => {
     const pool    = await getPool();
     const request = pool.request();
 
     request.input('userId',      sql.Int,              userId);
     request.input('token',       sql.VarChar(sql.MAX), token);
-    request.input('source',      sql.VarChar(10),      source);
-    request.input('nature',      sql.VarChar(50),      nature   || null);
-    request.input('identifiant', sql.Int,              identifiant ? parseInt(identifiant) : null);
-    request.input('dateFrom',    sql.Date,             dateFrom || null);
-    request.input('dateTo',      sql.Date,             dateTo   || null);
+    request.input('source',      sql.VarChar(50),      source);
+    request.input('nature',      sql.VarChar(50),      nature || null);
+    request.input('identifiant', sql.Int,              identifiant || null);
+    request.input('dateFrom',    sql.Date,             dateFrom ? new Date(dateFrom) : null);
+    request.input('dateTo',      sql.Date,             dateTo ? new Date(dateTo) : null);
+    request.input('siteId',      sql.Int,              siteId || null);
 
     const result = await request.query(qry.getDocuments);
     return result.recordsets;
