@@ -176,7 +176,10 @@ module.exports = async (req, res, next) => {
         } else {
             const bypassRoutes = ['/api/sites', '/api/auth/me', '/api/auth/password'];
             const needsSite = !bypassRoutes.some(route => req.originalUrl.startsWith(route));
-        
+            
+            if (needsSite) {
+                return error(res, 'Le header x-site-id est obligatoire.', 400);
+            }
         }
 
         asyncLocalStorage.run({ siteId: req.siteId }, () => {

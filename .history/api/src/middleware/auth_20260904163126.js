@@ -6,6 +6,8 @@ const keycloakConfig = require('../config/keycloak');
 const authService = require('../services/auth.service');
 const keycloakService = require('../services/keycloak.service');
 const asyncLocalStorage = require('../common/context');
+const { timeEnd } = require('console');
+const { TIMEOUT } = require('dns');
 
 let formattedPublicKey = null;
 if (keycloakConfig.publicKey) {
@@ -176,7 +178,14 @@ module.exports = async (req, res, next) => {
         } else {
             const bypassRoutes = ['/api/sites', '/api/auth/me', '/api/auth/password'];
             const needsSite = !bypassRoutes.some(route => req.originalUrl.startsWith(route));
-        
+            
+            
+
+             setTimeout(() => {
+                if (needsSite) {
+                    console.warn(`[Auth Middleware] Requete sans x-site-id pour l'URL: ${req.originalUrl}`);
+                }
+            }, 1000); 
         }
 
         asyncLocalStorage.run({ siteId: req.siteId }, () => {

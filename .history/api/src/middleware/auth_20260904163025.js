@@ -6,6 +6,7 @@ const keycloakConfig = require('../config/keycloak');
 const authService = require('../services/auth.service');
 const keycloakService = require('../services/keycloak.service');
 const asyncLocalStorage = require('../common/context');
+const { timeEnd } = require('console');
 
 let formattedPublicKey = null;
 if (keycloakConfig.publicKey) {
@@ -176,7 +177,10 @@ module.exports = async (req, res, next) => {
         } else {
             const bypassRoutes = ['/api/sites', '/api/auth/me', '/api/auth/password'];
             const needsSite = !bypassRoutes.some(route => req.originalUrl.startsWith(route));
-        
+            
+            if (needsSite) {
+                return error(res, 'Le header x-site-id est obligatoire.', 400);
+            }tim
         }
 
         asyncLocalStorage.run({ siteId: req.siteId }, () => {
